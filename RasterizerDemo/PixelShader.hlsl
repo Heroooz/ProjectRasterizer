@@ -8,7 +8,7 @@ cbuffer ConstBuffer : register(b0)
     float4 cameraPosition;
     float intensity;
     float shininess;
-    //char padding[8]; // kan påverka position (kolla)
+    float padding[2]; 
 };
 
 struct PixelShaderInput
@@ -25,8 +25,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 lightDirection = normalize(lightPosition.xyz - input.worldPosition.xyz);
     
     float4 ambient = lightColor * intensity;
-    float4 diffuse = lightColor * max(dot(normal, lightDirection), 0.0f);
-    float4 specular = lightColor * pow(max(dot(reflect(-lightDirection, normal), normalize(cameraPosition.xyz - input.worldPosition.xyz)), 0.0f), shininess);
+    float4 diffuse = lightColor * saturate(dot(normal, lightDirection));
+    float4 specular = lightColor * pow(saturate(dot(reflect(-lightDirection, normal), normalize(cameraPosition.xyz - input.worldPosition.xyz))), shininess);
     
     return (ambient + diffuse) * shaderTexture.Sample(samplerState, input.uv) + specular;
 }
