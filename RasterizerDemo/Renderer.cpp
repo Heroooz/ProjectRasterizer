@@ -4,7 +4,8 @@
 
 Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
                                      dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), vertexBuffer(nullptr), 
-                                     vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr) {
+                                     vsBuffer(nullptr), psBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
+                                     depthBuffer(), vsConstantBuffer(), psConstantBuffer(), camera(), rotation(0.0f) {
 
     if (!Renderer::Initialize()) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -15,8 +16,6 @@ Renderer::~Renderer() {
 	if (samplerState) samplerState->Release();
 	if (srv) srv->Release();
 	if (texture) texture->Release();
-	if (psConstantBuffer) psConstantBuffer->Release();
-	if (vsConstantBuffer) vsConstantBuffer->Release();
 	if (vertexBuffer) vertexBuffer->Release();
 	if (inputLayout) inputLayout->Release();
 	if (pShader) pShader->Release();
@@ -64,13 +63,32 @@ bool Renderer::Initialize() {
         std::cerr << "Failed to create the pointlight constant buffer!" << std::endl;
         return false;
     }
-    
+
+    ProjectionInfo projInfo;
+	projInfo.fovAngleY = DirectX::XMConvertToRadians(90.0f);
+	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
+	projInfo.nearZ = 0.1f;
+	projInfo.farZ = 100.0f;
+    camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f));
+
     return true;
 }
 
 void Renderer::Render() {
 
-    Rotate(); // Rotation math for the Quad
+    time.Update();
+    rotation += time.GetDeltaTime() * 0.6f;
+    if (rotation > 360) rotation = 0;
+
+    camera.UpdateInternalConstantBuffer(immediateContext);
+
+    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
+    DirectX::XMMATRIX worldViewProjectionMatrix = DirectX::XMMatrixMultiplyTranspose(CreateWorldMatrix(0.0f), camera.GetViewProjectionMatrix());
+    
+    DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
+    DirectX::XMStoreFloat4x4(&matrixArr[1], worldViewProjectionMatrix);
+    
+	vsConstantBuffer.UpdateBuffer(immediateContext, &matrixArr);
 
     float clearColour[4] = { 0, 0, 0, 0 };
     immediateContext->ClearRenderTargetView(rtv, clearColour);
@@ -83,16 +101,21 @@ void Renderer::Render() {
     immediateContext->IASetInputLayout(inputLayout);
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     immediateContext->VSSetShader(vShader, nullptr, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &vsConstantBuffer);
+    immediateContext->VSSetConstantBuffers(0, 1, &vsBuffer);
     immediateContext->RSSetViewports(1, &viewport);
     immediateContext->PSSetShader(pShader, nullptr, 0);
     immediateContext->PSSetShaderResources(0, 1, &srv);
     immediateContext->PSSetSamplers(0, 1, &samplerState);
-    immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+    immediateContext->PSSetConstantBuffers(0, 1, &psBuffer);
     immediateContext->OMSetRenderTargets(1, &rtv, dsView);
 
     immediateContext->Draw(4, 0);
     swapChain->Present(0, 0);
+}
+
+CameraD3D11& Renderer::GetCamera()
+{
+    return camera;
 }
 
 bool Renderer::SetupDeviceAndSwapChain() {
@@ -143,27 +166,9 @@ bool Renderer::SetupRenderTarget() {
 }
 
 bool Renderer::SetupDepthStencil() {
-
-    D3D11_TEXTURE2D_DESC textureDesc;
-    textureDesc.Width = window.GetWidth();
-    textureDesc.Height = window.GetHeight();
-    textureDesc.MipLevels = 1;
-    textureDesc.ArraySize = 1;
-    textureDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    textureDesc.CPUAccessFlags = 0;
-    textureDesc.MiscFlags = 0;
-    if (FAILED(device->CreateTexture2D(&textureDesc, nullptr, &dsTexture)))
-    {
-        std::cerr << "Failed to create depth stencil texture!" << std::endl;
-        return false;
-    }
-
-    HRESULT hr = device->CreateDepthStencilView(dsTexture, 0, &dsView);
-    return !(FAILED(hr));
+	depthBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
+    dsView = depthBuffer.GetDSV(0);
+    return true;
 }
 
 bool Renderer::SetupViewport() {
@@ -178,78 +183,39 @@ bool Renderer::SetupViewport() {
     return true;
 }
 
-bool Renderer::CreateVSConstantBuffer(ID3D11Device* device, ID3D11Buffer*& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
-    D3D11_BUFFER_DESC vertexShaderConstBufferDesc;
-    vertexShaderConstBufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * 2;
-    vertexShaderConstBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    vertexShaderConstBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    vertexShaderConstBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    vertexShaderConstBufferDesc.MiscFlags = 0;
-    vertexShaderConstBufferDesc.StructureByteStride = 0;
-
+bool Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
     DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
     DirectX::XMFLOAT4X4 worldMatrixFloat4x4;
     DirectX::XMStoreFloat4x4(&worldMatrixFloat4x4, worldMatrix);
 
-    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixMultiplyTranspose(CreateViewMatrix(), CreateProjectionMatrix(59.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f));
+    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixMultiplyTranspose(CreateViewMatrix(), CreateProjectionMatrix(90.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f));
     DirectX::XMFLOAT4X4 viewMatrixFloat4x4;
     DirectX::XMStoreFloat4x4(&viewMatrixFloat4x4, viewMatrix);
 
     matrixArr[0] = worldMatrixFloat4x4;
     matrixArr[1] = viewMatrixFloat4x4;
 
-    D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = matrixArr;
-    data.SysMemPitch = 0;
-    data.SysMemSlicePitch = 0;
-
-    HRESULT hr = device->CreateBuffer(&vertexShaderConstBufferDesc, &data, &vsConstantBuffer);
-    return !FAILED(hr);
+	vsConstantBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
+    vsBuffer = vsConstantBuffer.GetBuffer();
+    return true;
 }
 
-bool Renderer::CreatePointLight(ID3D11Device* device, ID3D11Buffer*& psConstantBuffer) {
+bool Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBuffer) {
 
     struct lightStruct
     {
-        DirectX::XMFLOAT4 lightPosition = { 0.0f, 0.5f, -5.0f, 0.0f };
+        DirectX::XMFLOAT4 lightPosition = { 0.0f, 0.5f, -2.0f, 0.0f };
         DirectX::XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
-        DirectX::XMFLOAT4 cameraPosition = { 0.0f, 0.0f, -3.0f, 1.0f };
-        float lightIntensity = 0.01f;
+        DirectX::XMFLOAT4 cameraPosition = { 0.0f, 0.0f, -2.0f, 1.0f };
+        float lightIntensity = 0.1f;
         float shininess = 100.0f;
         char padding[8] = { ' ' };
     };
 
     lightStruct light;
-    D3D11_BUFFER_DESC lightConstantBufferDesc;
-    lightConstantBufferDesc.ByteWidth = sizeof(lightStruct);
-    lightConstantBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-    lightConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    lightConstantBufferDesc.CPUAccessFlags = 0;
-    lightConstantBufferDesc.MiscFlags = 0;
-    lightConstantBufferDesc.StructureByteStride = 0;
-
-    D3D11_SUBRESOURCE_DATA lightData;
-    lightData.pSysMem = &light;
-    lightData.SysMemPitch = 0;
-    lightData.SysMemSlicePitch = 0;
-
-    HRESULT hr = device->CreateBuffer(&lightConstantBufferDesc, &lightData, &psConstantBuffer);
-    return !FAILED(hr);
-}
-
-void Renderer::Rotate()
-{
-    time.Update();
-    rotation += time.GetDeltaTime() * 0.6f;
-    if (rotation > 360) rotation = 0;
-
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
-    ZeroMemory(&mappedResource, sizeof(mappedResource));
-
-    immediateContext->Map(vsConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    DirectX::XMStoreFloat4x4(&(matrixArr[0]), CreateWorldMatrix(rotation));
-    memcpy(mappedResource.pData, matrixArr, sizeof(matrixArr));
-    immediateContext->Unmap(vsConstantBuffer, 0);
+	psConstantBuffer.Initialize(device, sizeof(lightStruct), &light);
+    psBuffer = psConstantBuffer.GetBuffer();
+    return true;
 }
 
 DirectX::XMMATRIX CreateWorldMatrix(float angle) {
