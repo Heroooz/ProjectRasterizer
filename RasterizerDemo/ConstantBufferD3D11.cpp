@@ -54,7 +54,7 @@ size_t ConstantBufferD3D11::GetSize() const
 
 ID3D11Buffer* ConstantBufferD3D11::GetBuffer() const
 {
-    return (buffer.Get());
+    return buffer.Get();
 }
 
 void ConstantBufferD3D11::UpdateBuffer(ID3D11DeviceContext* context, void* data)

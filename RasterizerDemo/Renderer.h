@@ -6,6 +6,8 @@
 #include "Time.h"
 #include "CameraD3D11.h"
 #include "DepthBufferD3D11.h"
+#include "VertexBufferD3D11.h"
+#include "RenderTargetD3D11.h"
 
 class Renderer {
 public:
@@ -29,15 +31,17 @@ private:
 	ID3D11PixelShader* pShader;
 	ID3D11InputLayout* inputLayout;
 	ID3D11Texture2D* texture;
-	ID3D11Buffer* vsBuffer;
-	ID3D11Buffer* psBuffer;
+	ID3D11Buffer* vsConstantBuffer;
+	ID3D11Buffer* psConstantBuffer;
 	ID3D11ShaderResourceView* srv;
 	ID3D11SamplerState* samplerState;
 	ID3D11Buffer* vertexBuffer;
 
-	DepthBufferD3D11 depthBuffer;
-	ConstantBufferD3D11 vsConstantBuffer;
-	ConstantBufferD3D11 psConstantBuffer;
+	RenderTargetD3D11 renderTargetD3D11;
+	DepthBufferD3D11 depthBufferD3D11;
+	ConstantBufferD3D11 vsConstantBufferD3D11;
+	ConstantBufferD3D11 psConstantBufferD3D11;
+	VertexBufferD3D11 vertexBufferD3D11;
 
 	CameraD3D11 camera;
 
@@ -46,12 +50,13 @@ private:
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
 
     bool SetupDeviceAndSwapChain();
-    bool SetupRenderTarget();
-    bool SetupDepthStencil();
-    bool SetupViewport();
+    void SetupRenderTarget();
+    void SetupDepthStencil();
+	void SetupViewport();
 
-	bool CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
-	bool CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& lightConstantBuffer);
+	void CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
+	void CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
+	void CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& lightConstantBuffer);
 };
 
 DirectX::XMMATRIX CreateWorldMatrix(float angle);

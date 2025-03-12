@@ -57,7 +57,7 @@ bool LoadShaders(ID3D11Device* device, ID3D11VertexShader*& vShader, ID3D11Pixel
 	return true;
 }
 
-bool CreateInputLayout(ID3D11Device* device, ID3D11InputLayout*& inputLayout, const std::string& vShaderByteCode)
+bool CreateInputLayout(ID3D11Device* device, ID3D11InputLayout*& inputLayout, std::string& vShaderByteCode)
 {
 	D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
 	{
@@ -67,36 +67,7 @@ bool CreateInputLayout(ID3D11Device* device, ID3D11InputLayout*& inputLayout, co
 
 	};
 
-	HRESULT hr = device->CreateInputLayout(inputDesc, sizeof(inputDesc) / sizeof(D3D10_INPUT_ELEMENT_DESC), vShaderByteCode.c_str(), vShaderByteCode.length(), &inputLayout);
-
-	return !FAILED(hr);
-}
-
-bool CreateVertexBuffer(ID3D11Device* device, ID3D11Buffer*& vertexBuffer)
-{
-	SimpleVertex triangle[] =
-	{
-		{ {-0.5f, 0.5f, 0.0f}, {0, 0, -1}, {0, 0} },
-		{ {0.5f, 0.5f, 0.0f}, {0, 0, -1}, {1, 0} },
-		{ {-0.5, -0.5f, 0.0f}, {0, 0, -1}, {0, 1} },
-
-		{ {0.5f, -0.5f, 0.0f}, {0, 0, -1}, {1, 1} }
-	};
-
-	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.ByteWidth = sizeof(triangle);
-	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	bufferDesc.MiscFlags = 0;
-	bufferDesc.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = triangle;
-	data.SysMemPitch = 0;
-	data.SysMemSlicePitch = 0;
-
-	HRESULT hr = device->CreateBuffer(&bufferDesc, &data, &vertexBuffer);
+	HRESULT hr = device->CreateInputLayout(inputDesc, sizeof(inputDesc) / sizeof(D3D10_INPUT_ELEMENT_DESC), vShaderByteCode.c_str(), vShaderByteCode.size(), &inputLayout);
 
 	return !FAILED(hr);
 }
@@ -162,26 +133,20 @@ bool CreateSamplerState(ID3D11Device* device, ID3D11SamplerState*& sampler)
 	return !FAILED(hr);
 }
 
-bool SetupPipeline(ID3D11Device* device, ID3D11Buffer*& vertexBuffer, ID3D11VertexShader*& vShader,
-	ID3D11PixelShader*& pShader, ID3D11InputLayout*& inputLayout, ID3D11Texture2D*& texture, 
-	ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
+bool SetupPipeline(ID3D11Device* device, ID3D11VertexShader*& vShader, ID3D11PixelShader*& pShader, ID3D11InputLayout*& inputLayout,
+	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
 {
+
 	std::string vShaderByteCode;
 	if (!LoadShaders(device, vShader, pShader, vShaderByteCode))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;
 	}
-
+	
 	if (!CreateInputLayout(device, inputLayout, vShaderByteCode))
 	{
 		std::cerr << "Error creating input layout!" << std::endl;
-		return false;
-	}
-
-	if (!CreateVertexBuffer(device, vertexBuffer))
-	{
-		std::cerr << "Error creating vertex buffer!" << std::endl;
 		return false;
 	}
 

@@ -4,8 +4,9 @@
 
 Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
                                      dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), vertexBuffer(nullptr), 
-                                     vsBuffer(nullptr), psBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
-                                     depthBuffer(), vsConstantBuffer(), psConstantBuffer(), camera(), rotation(0.0f) {
+                                     vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
+                                     renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
+                                     vertexBufferD3D11(), camera(), rotation(0.0f) {
 
     if (!Renderer::Initialize()) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -17,6 +18,8 @@ Renderer::~Renderer() {
 	if (srv) srv->Release();
 	if (texture) texture->Release();
 	if (vertexBuffer) vertexBuffer->Release();
+	if (psConstantBuffer) psConstantBuffer->Release();
+	if (vsConstantBuffer) vsConstantBuffer->Release();
 	if (inputLayout) inputLayout->Release();
 	if (pShader) pShader->Release();
 	if (vShader) vShader->Release();
@@ -35,34 +38,28 @@ bool Renderer::Initialize() {
 		std::cerr << "Failed to setup device and swap chain!" << std::endl;
 		return false;
     }
-    if (!SetupRenderTarget()) {
-		std::cerr << "Failed to setup render target!" << std::endl;
-		return false;
-    }
-    if (!SetupDepthStencil()) {
-		std::cerr << "Failed to setup depth stencil!" << std::endl;
-		return false;
-    }
-    if (!SetupViewport()) {
-		std::cerr << "Failed to setup viewport!" << std::endl;
-		return false;
-    }
+    SetupRenderTarget();
+	SetupDepthStencil();
+	SetupViewport();
 	// End of SetupD3D11
 
-    if (!SetupPipeline(device, vertexBuffer, vShader, pShader, inputLayout, texture, srv, samplerState)) {
+    SimpleVertex triangle[] =
+    {
+        { {-0.5f, 0.5f, 0.0f}, {0, 0, -1}, {0, 0} },
+        { {0.5f, 0.5f, 0.0f}, {0, 0, -1}, {1, 0} },
+        { {-0.5, -0.5f, 0.0f}, {0, 0, -1}, {0, 1} },
+
+        { {0.5f, -0.5f, 0.0f}, {0, 0, -1}, {1, 1} }
+    };
+    CreateVertexBuffer(device, vertexBufferD3D11, 4, triangle);
+
+    if (!SetupPipeline(device, vShader, pShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         return false;
     }
 
-    if (!CreateVSConstantBuffer(device, vsConstantBuffer, matrixArr, rotation, window.GetWidth(), window.GetHeight())) {
-        std::cerr << "Failed to create vertex shader constant buffer!" << std::endl;
-        return false;
-    }
-
-    if (!CreatePointLight(device, psConstantBuffer)) {
-        std::cerr << "Failed to create the pointlight constant buffer!" << std::endl;
-        return false;
-    }
+    CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
+    CreatePointLight(device, psConstantBufferD3D11);
 
     ProjectionInfo projInfo;
 	projInfo.fovAngleY = DirectX::XMConvertToRadians(90.0f);
@@ -88,7 +85,7 @@ void Renderer::Render() {
     DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
     DirectX::XMStoreFloat4x4(&matrixArr[1], worldViewProjectionMatrix);
     
-	vsConstantBuffer.UpdateBuffer(immediateContext, &matrixArr);
+	vsConstantBufferD3D11.UpdateBuffer(immediateContext, &matrixArr);
 
     float clearColour[4] = { 0, 0, 0, 0 };
     immediateContext->ClearRenderTargetView(rtv, clearColour);
@@ -101,12 +98,12 @@ void Renderer::Render() {
     immediateContext->IASetInputLayout(inputLayout);
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     immediateContext->VSSetShader(vShader, nullptr, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &vsBuffer);
+    immediateContext->VSSetConstantBuffers(0, 1, &vsConstantBuffer);
     immediateContext->RSSetViewports(1, &viewport);
     immediateContext->PSSetShader(pShader, nullptr, 0);
     immediateContext->PSSetShaderResources(0, 1, &srv);
     immediateContext->PSSetSamplers(0, 1, &samplerState);
-    immediateContext->PSSetConstantBuffers(0, 1, &psBuffer);
+    immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
     immediateContext->OMSetRenderTargets(1, &rtv, dsView);
 
     immediateContext->Draw(4, 0);
@@ -149,29 +146,17 @@ bool Renderer::SetupDeviceAndSwapChain() {
     return !(FAILED(hr));
 }
 
-bool Renderer::SetupRenderTarget() {
-    // get the address of the back buffer
-    ID3D11Texture2D* backBuffer = nullptr;
-    if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer))))
-    {
-        std::cerr << "Failed to get back buffer!" << std::endl;
-        return false;
-    }
-
-    // use the back buffer address to create the render target
-    // null as description to base it on the backbuffers values
-    HRESULT hr = device->CreateRenderTargetView(backBuffer, NULL, &rtv);
-    backBuffer->Release();
-    return !(FAILED(hr));
+void Renderer::SetupRenderTarget() {
+	renderTargetD3D11.Initialize(device, swapChain, window.GetWidth(), window.GetHeight());
+	rtv = renderTargetD3D11.GetRTV();
 }
 
-bool Renderer::SetupDepthStencil() {
-	depthBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
-    dsView = depthBuffer.GetDSV(0);
-    return true;
+void Renderer::SetupDepthStencil() {
+	depthBufferD3D11.Initialize(device, window.GetWidth(), window.GetHeight());
+    dsView = depthBufferD3D11.GetDSV(0);
 }
 
-bool Renderer::SetupViewport() {
+void Renderer::SetupViewport() {
     viewport.TopLeftX = 0.0f;
     viewport.TopLeftY = 0.0f;
     viewport.Width = static_cast<float>(window.GetWidth());
@@ -180,10 +165,14 @@ bool Renderer::SetupViewport() {
     viewport.MaxDepth = 1.0f;
 
     immediateContext->RSSetViewports(1, &viewport);
-    return true;
 }
 
-bool Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
+void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
+	vertexBufferD3D11.Initialize(device, sizeof(SimpleVertex), nrOfVertices, vertexData);
+	vertexBuffer = vertexBufferD3D11.GetBuffer();
+}
+
+void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
     DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
     DirectX::XMFLOAT4X4 worldMatrixFloat4x4;
     DirectX::XMStoreFloat4x4(&worldMatrixFloat4x4, worldMatrix);
@@ -195,12 +184,11 @@ bool Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
     matrixArr[0] = worldMatrixFloat4x4;
     matrixArr[1] = viewMatrixFloat4x4;
 
-	vsConstantBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
-    vsBuffer = vsConstantBuffer.GetBuffer();
-    return true;
+	vsConstantBufferD3D11.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
+    vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
 }
 
-bool Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBuffer) {
+void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) {
 
     struct lightStruct
     {
@@ -213,9 +201,8 @@ bool Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psCon
     };
 
     lightStruct light;
-	psConstantBuffer.Initialize(device, sizeof(lightStruct), &light);
-    psBuffer = psConstantBuffer.GetBuffer();
-    return true;
+	psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
+    psConstantBuffer = psConstantBufferD3D11.GetBuffer();
 }
 
 DirectX::XMMATRIX CreateWorldMatrix(float angle) {

@@ -1,16 +1,18 @@
 #pragma once
 
-#include <d3d11_4.h>
 #include "stb_image.h"
+#include <d3d11_4.h>
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 
 #include <vector>
 
 class DepthBufferD3D11
 {
 private:
-	ID3D11Texture2D* texture = nullptr;
-	std::vector<ID3D11DepthStencilView*> depthStencilViews;
-	ID3D11ShaderResourceView* srv = nullptr;
+	ComPtr<ID3D11Texture2D> texture = nullptr;
+	std::vector<ComPtr<ID3D11DepthStencilView>> depthStencilViews;
+	ComPtr<ID3D11ShaderResourceView> srv = nullptr;
 
 public:
 	DepthBufferD3D11() = default;
