@@ -8,6 +8,8 @@
 #include "DepthBufferD3D11.h"
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
+#include "ConstantBufferD3D11.h"
+
 
 class Renderer {
 public:
