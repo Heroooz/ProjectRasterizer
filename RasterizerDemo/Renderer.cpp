@@ -53,14 +53,17 @@ bool Renderer::Initialize() {
     };
     CreateVertexBuffer(device, vertexBufferD3D11, 4, triangle);
 
+	// Setup Pipeline, shaders, input layout, texture, sampler state
     if (!SetupPipeline(device, vShader, pShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         return false;
     }
 
+	// Setup constant buffers (for vertex shader and pixel shader)
     CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
     CreatePointLight(device, psConstantBufferD3D11);
 
+	// Setup camera (projection info and initialize)
     ProjectionInfo projInfo;
 	projInfo.fovAngleY = DirectX::XMConvertToRadians(90.0f);
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
@@ -73,9 +76,7 @@ bool Renderer::Initialize() {
 
 void Renderer::Render() {
 
-    time.Update();
-    rotation += time.GetDeltaTime() * 0.6f;
-    if (rotation > 360) rotation = 0;
+	time.Update(); // Update frame timing
 
     camera.UpdateInternalConstantBuffer(immediateContext);
 
@@ -94,6 +95,7 @@ void Renderer::Render() {
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
+	// Bind and set pipeline states, then draw
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetInputLayout(inputLayout);
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
