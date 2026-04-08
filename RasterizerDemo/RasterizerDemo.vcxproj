@@ -196,12 +196,14 @@
     <ClInclude Include="D3D11Helper.h" />
     <ClInclude Include="DepthBufferD3D11.h" />
     <ClInclude Include="IndexBufferD3D11.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="MeshD3D11.h" />
     <ClInclude Include="PipelineHelper.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderTargetD3D11.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SamplerD3D11.h" />
+    <ClInclude Include="SimpleVertex.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="StructuredBufferD3D11.h" />
     <ClInclude Include="SubMeshD3D11.h" />

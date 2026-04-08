@@ -1,6 +1,8 @@
 #include "Renderer.h"
 #include "PipelineHelper.h"
 #include <iostream>
+#include "SimpleVertex.h"
+#include "Light.h"
 
 Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
                                      dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), vertexBuffer(nullptr), 
@@ -192,15 +194,7 @@ void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
 
 void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) {
 
-    struct lightStruct
-    {
-        DirectX::XMFLOAT4 lightPosition = { 0.0f, 0.5f, -2.0f, 0.0f };
-        DirectX::XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
-        DirectX::XMFLOAT4 cameraPosition = { 0.0f, 0.0f, -2.0f, 1.0f };
-        float lightIntensity = 0.1f;
-        float shininess = 100.0f;
-        char padding[8] = { ' ' };
-    };
+
 
     lightStruct light;
 	psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
