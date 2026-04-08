@@ -11,6 +11,9 @@
 
 #include "OBJ_Loader.h"
 
+#include <WICTextureLoader.h>
+#include <wrl/client.h>
+
 struct MeshData
 {
 	struct VertexInfo

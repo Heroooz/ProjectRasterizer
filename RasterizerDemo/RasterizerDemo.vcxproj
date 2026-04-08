@@ -198,6 +198,7 @@
     <ClInclude Include="IndexBufferD3D11.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MeshD3D11.h" />
+    <ClInclude Include="OBJ_Loader.h" />
     <ClInclude Include="PipelineHelper.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderTargetD3D11.h" />

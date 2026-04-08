@@ -1,9 +1,6 @@
 #include "MeshD3D11.h"
 #include "SimpleVertex.h"
 
-#include <WICTextureLoader.h>
-#include <wrl/client.h>
-
 void MeshD3D11::Initialize(ID3D11Device* device, const MeshData& meshInfo)
 {
     std::string path;
