@@ -213,7 +213,15 @@
     <ClInclude Include="WindowHelper.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="objs\Cat\Cat_bump.jpg" />
+    <Image Include="objs\Cat\Cat_diffuse.jpg" />
     <Image Include="texture.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="objs\Cat\12221_Cat_v1_l3.mtl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="objs\Cat\12221_Cat_v1_l3.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
