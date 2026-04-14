@@ -36,10 +36,10 @@ void RenderTargetD3D11::Initialize(ID3D11Device* device, IDXGISwapChain* swapCha
 
 ID3D11RenderTargetView* RenderTargetD3D11::GetRTV() const
 {
-    return rtv.Get();
+    return this->rtv.Get();
 }
 
 ID3D11ShaderResourceView* RenderTargetD3D11::GetSRV() const
 {
-    return srv.Get();
+    return this->srv.Get();
 }

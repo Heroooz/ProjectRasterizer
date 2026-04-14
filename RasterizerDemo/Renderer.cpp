@@ -101,13 +101,19 @@ void Renderer::Render() {
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->IASetInputLayout(inputLayout);
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	// Sending stuff to VS
     immediateContext->VSSetShader(vShader, nullptr, 0);
     immediateContext->VSSetConstantBuffers(0, 1, &vsConstantBuffer);
+
     immediateContext->RSSetViewports(1, &viewport);
+
+    // Sending stuff to PS
     immediateContext->PSSetShader(pShader, nullptr, 0);
     immediateContext->PSSetShaderResources(0, 1, &srv);
     immediateContext->PSSetSamplers(0, 1, &samplerState);
     immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
     immediateContext->OMSetRenderTargets(1, &rtv, dsView);
 
     immediateContext->Draw(4, 0);
