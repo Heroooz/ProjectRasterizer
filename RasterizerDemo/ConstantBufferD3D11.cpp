@@ -47,26 +47,20 @@ void ConstantBufferD3D11::Initialize(ID3D11Device* device, size_t byteSize, void
     }
 }
 
-size_t ConstantBufferD3D11::GetSize() const
-{
-    return bufferSize;
-}
+size_t ConstantBufferD3D11::GetSize() const { return this->bufferSize; }
 
-ID3D11Buffer* ConstantBufferD3D11::GetBuffer() const
-{
-    return buffer.Get();
-}
+ID3D11Buffer* ConstantBufferD3D11::GetBuffer() const { return this->buffer; }
 
 void ConstantBufferD3D11::UpdateBuffer(ID3D11DeviceContext* context, void* data)
 {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     ZeroMemory(&mappedResource, sizeof(mappedResource));
-    HRESULT hr = context->Map(buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    HRESULT hr = context->Map(this->buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
     if (FAILED(hr))
     {
         std::cout << "Failed to map constant buffer" << std::endl;
     }
 
-    memcpy(mappedResource.pData, data, bufferSize);
-    context->Unmap(buffer.Get(), 0);
+    memcpy(mappedResource.pData, data, this->bufferSize);
+    context->Unmap(this->buffer, 0);
 }

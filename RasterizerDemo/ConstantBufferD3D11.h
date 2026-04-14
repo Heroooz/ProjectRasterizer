@@ -7,7 +7,7 @@ using Microsoft::WRL::ComPtr;
 class ConstantBufferD3D11
 {
 private:
-	ComPtr<ID3D11Buffer> buffer = nullptr;
+	ID3D11Buffer* buffer = nullptr;
 	size_t bufferSize = 0;
 
 public:
