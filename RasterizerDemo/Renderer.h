@@ -47,6 +47,12 @@ private:
 
 	CameraD3D11 camera;
 
+	ConstantBufferD3D11 worldMatrixBuffer;
+	ID3D11Buffer* pWorldMatrix;
+
+	ConstantBufferD3D11 cameraBuffer;
+	ID3D11Buffer* pCamera;
+
 	Time time;
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
@@ -62,5 +68,5 @@ private:
 };
 
 DirectX::XMMATRIX CreateWorldMatrix(float angle);
-DirectX::XMMATRIX CreateViewMatrix();
-DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ);
+//DirectX::XMMATRIX CreateViewMatrix();
+//DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ);

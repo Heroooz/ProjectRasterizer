@@ -71,7 +71,7 @@ bool Renderer::Initialize() {
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
-    camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f));
+    camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
 
     return true;
 }
@@ -83,12 +83,20 @@ void Renderer::Render() {
     camera.UpdateInternalConstantBuffer(immediateContext);
 
     DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
-    DirectX::XMMATRIX worldViewProjectionMatrix = DirectX::XMMatrixMultiplyTranspose(CreateWorldMatrix(0.0f), camera.GetViewProjectionMatrix());
+    DirectX::XMFLOAT4X4 worldMatrixT;
+    DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrix));
+
+    worldMatrixBuffer.UpdateBuffer(immediateContext, &worldMatrixT);
+    pWorldMatrix = worldMatrixBuffer.GetBuffer();
+
+    pCamera = camera.GetConstantBuffer();
+
+    //DirectX::XMMATRIX worldViewProjectionMatrix = DirectX::XMMatrixMultiplyTranspose(CreateWorldMatrix(0.0f), camera.GetViewProjectionMatrix());
+    //
+    //DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
+    //DirectX::XMStoreFloat4x4(&matrixArr[1], worldViewProjectionMatrix);
     
-    DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
-    DirectX::XMStoreFloat4x4(&matrixArr[1], worldViewProjectionMatrix);
-    
-	vsConstantBufferD3D11.UpdateBuffer(immediateContext, &matrixArr);
+	//vsConstantBufferD3D11.UpdateBuffer(immediateContext, &matrixArr);
 
     float clearColour[4] = { 0, 0, 0, 0 };
     immediateContext->ClearRenderTargetView(rtv, clearColour);
@@ -104,7 +112,8 @@ void Renderer::Render() {
 
 	// Sending stuff to VS
     immediateContext->VSSetShader(vShader, nullptr, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &vsConstantBuffer);
+    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
+    immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
 
     immediateContext->RSSetViewports(1, &viewport);
 
@@ -184,18 +193,21 @@ void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& verte
 
 void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
     DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
-    DirectX::XMFLOAT4X4 worldMatrixFloat4x4;
-    DirectX::XMStoreFloat4x4(&worldMatrixFloat4x4, worldMatrix);
+    DirectX::XMFLOAT4X4 worldMatrixTransposed;
+    DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
 
-    DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixMultiplyTranspose(CreateViewMatrix(), CreateProjectionMatrix(90.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f));
-    DirectX::XMFLOAT4X4 viewMatrixFloat4x4;
-    DirectX::XMStoreFloat4x4(&viewMatrixFloat4x4, viewMatrix);
+    worldMatrixBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
+    pWorldMatrix = worldMatrixBuffer.GetBuffer();
 
-    matrixArr[0] = worldMatrixFloat4x4;
-    matrixArr[1] = viewMatrixFloat4x4;
+    //DirectX::XMMATRIX viewMatrix = DirectX::XMMatrixMultiplyTranspose(CreateViewMatrix(), CreateProjectionMatrix(90.0f, static_cast<float>(WIDTH) / static_cast<float>(HEIGHT), 0.1f, 100.0f));
+    //DirectX::XMFLOAT4X4 viewMatrixFloat4x4;
+    //DirectX::XMStoreFloat4x4(&viewMatrixFloat4x4, viewMatrix);
 
-	vsConstantBufferD3D11.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
-    vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
+    //matrixArr[0] = worldMatrixFloat4x4;
+    //matrixArr[1] = viewMatrixFloat4x4;
+
+	//vsConstantBufferD3D11.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
+ //   vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
 }
 
 void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) {
@@ -208,18 +220,18 @@ void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psCon
 }
 
 DirectX::XMMATRIX CreateWorldMatrix(float angle) {
-    DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, -1.0f);
+    DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, -0.7f);
     DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(angle);
-    return XMMatrixTranspose(DirectX::XMMatrixMultiply(translationMatrix, rotationMatrix));
+    return DirectX::XMMatrixMultiply(translationMatrix, rotationMatrix);
 }
 
-DirectX::XMMATRIX CreateViewMatrix() {
-    DirectX::XMVECTOR eyePosition = DirectX::XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f);
-    DirectX::XMVECTOR focusPosition = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-    DirectX::XMVECTOR upDirection = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-    return DirectX::XMMatrixLookAtLH(eyePosition, focusPosition, upDirection);
-}
-
-DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ) {
-    return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(fovAngle), aspectRatio, nearZ, farZ);
-}
+//DirectX::XMMATRIX CreateViewMatrix() {
+//    DirectX::XMVECTOR eyePosition = DirectX::XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f);
+//    DirectX::XMVECTOR focusPosition = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+//    DirectX::XMVECTOR upDirection = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+//    return DirectX::XMMatrixLookAtLH(eyePosition, focusPosition, upDirection);
+//}
+//
+//DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ) {
+//    return DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(fovAngle), aspectRatio, nearZ, farZ);
+//}

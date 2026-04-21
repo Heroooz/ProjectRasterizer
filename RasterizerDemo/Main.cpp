@@ -57,6 +57,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			renderer.GetCamera().MoveUp(-movespeed);
 		}
 
+		if (GetKeyState(VK_UP) & 0x8000) {
+			renderer.GetCamera().RotateRight(-movespeed);
+		}
+		if (GetKeyState(VK_DOWN) & 0x8000)
+		{
+			renderer.GetCamera().RotateRight(movespeed);
+		}
+		if (GetKeyState(VK_LEFT) & 0x8000)
+		{
+			renderer.GetCamera().RotateUp(-movespeed);
+		}
+		if (GetKeyState(VK_RIGHT) & 0x8000)
+		{
+			renderer.GetCamera().RotateUp(movespeed);
+		}
+
 		// Mouse panning-movement
 		POINT currentPos;
 		GetCursorPos(&currentPos);

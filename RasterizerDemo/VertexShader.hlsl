@@ -1,7 +1,11 @@
-cbuffer ConstantBuffer : register(b0)
+cbuffer Camera : register(b0)
+{
+    float4x4 viewProj;
+}
+
+cbuffer WorldMatrix : register(b1)
 {
 	float4x4 world;
-	float4x4 view_projection;
 };
 
 struct VertexShaderInput
@@ -23,7 +27,7 @@ VertexShaderOutput main(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 	output.worldPosition = mul(float4(input.position, 1.0f), world);
-	output.position = mul(output.worldPosition, view_projection);
+	output.position = mul(output.worldPosition, viewProj);
 	output.normal = normalize(float4(mul(float4(input.normal, 1.0f), world).xyz, 0.0f));
 	output.uv = input.uv;
 	return output;

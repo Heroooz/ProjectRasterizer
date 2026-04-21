@@ -80,10 +80,13 @@ void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
 
 ID3D11Buffer* CameraD3D11::GetConstantBuffer() const { return this->cameraBuffer.GetBuffer(); }
 
-XMMATRIX CameraD3D11::GetViewProjectionMatrix() const
+XMFLOAT4X4 CameraD3D11::GetViewProjectionMatrix() const
 {
     XMMATRIX viewMatrix = XMMatrixLookToLH(XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
 
-    return XMMatrixMultiply(viewMatrix, projectionMatrix);
+    XMFLOAT4X4 viewProjMatrix;
+    XMStoreFloat4x4(&viewProjMatrix, XMMatrixMultiplyTranspose(viewMatrix, projectionMatrix));
+
+    return viewProjMatrix;
 }

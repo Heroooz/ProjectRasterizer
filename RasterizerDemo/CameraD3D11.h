@@ -56,5 +56,5 @@ public:
 	void UpdateInternalConstantBuffer(ID3D11DeviceContext* context);
 	ID3D11Buffer* GetConstantBuffer() const;
 
-	DirectX::XMMATRIX GetViewProjectionMatrix() const;
+	DirectX::XMFLOAT4X4 GetViewProjectionMatrix() const;
 };
