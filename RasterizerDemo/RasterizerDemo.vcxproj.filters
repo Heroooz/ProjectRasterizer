@@ -145,10 +145,26 @@
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OBJ_Loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="texture.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="objs\Cat\Cat_bump.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="objs\Cat\Cat_diffuse.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="objs\Cat\12221_Cat_v1_l3.mtl" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -209,6 +209,7 @@
     <ClInclude Include="StructuredBufferD3D11.h" />
     <ClInclude Include="SubMeshD3D11.h" />
     <ClInclude Include="Time.h" />
+    <ClInclude Include="Transform.h" />
     <ClInclude Include="VertexBufferD3D11.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowHelper.h" />

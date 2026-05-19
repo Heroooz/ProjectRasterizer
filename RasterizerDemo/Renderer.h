@@ -39,6 +39,10 @@ private:
 	ID3D11SamplerState* samplerState;
 	ID3D11Buffer* vertexBuffer;
 
+	VertexBufferD3D11 vertexBuffers[10];
+	DirectX::XMMATRIX worldMatrices[10];
+	ConstantBufferD3D11 worldMatriceBuffers[10];
+
 	RenderTargetD3D11 renderTargetD3D11;
 	DepthBufferD3D11 depthBufferD3D11;
 	ConstantBufferD3D11 vsConstantBufferD3D11;
@@ -67,6 +71,6 @@ private:
 	void CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& lightConstantBuffer);
 };
 
-DirectX::XMMATRIX CreateWorldMatrix(float angle);
+DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);
 //DirectX::XMMATRIX CreateViewMatrix();
 //DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ);

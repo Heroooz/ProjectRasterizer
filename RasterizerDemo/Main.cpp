@@ -17,7 +17,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	MSG msg = { };
 
 	// TEMPORARY SPEED VARIABLE
-	float movespeed = 0.0005f;
+	float movespeed = 0.005f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
@@ -74,16 +74,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		}
 
 		// Mouse panning-movement
-		POINT currentPos;
-		GetCursorPos(&currentPos);
+		//POINT currentPos;
+		//GetCursorPos(&currentPos);
 
-		float dx = static_cast<float>(currentPos.x - lastMousePos.x);
-		float dy = static_cast<float>(currentPos.y - lastMousePos.y);
-		renderer.GetCamera().RotateUp(dx * sensitivity);
-		renderer.GetCamera().RotateRight(dy * sensitivity);
+		//float dx = static_cast<float>(currentPos.x - lastMousePos.x);
+		//float dy = static_cast<float>(currentPos.y - lastMousePos.y);
+		//renderer.GetCamera().RotateUp(dx * sensitivity);
+		//renderer.GetCamera().RotateRight(dy * sensitivity);
 
-		SetCursorPos(center.x, center.y);
-		lastMousePos = center;
+		//SetCursorPos(center.x, center.y);
+		//lastMousePos = center;
 
 		renderer.Render();
 	}

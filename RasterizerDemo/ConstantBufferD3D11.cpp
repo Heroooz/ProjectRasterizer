@@ -29,21 +29,24 @@ ConstantBufferD3D11& ConstantBufferD3D11::operator=(ConstantBufferD3D11&& other)
 
 void ConstantBufferD3D11::Initialize(ID3D11Device* device, size_t byteSize, void* initialData)
 {
-    bufferSize = byteSize;
+    this->bufferSize = byteSize;
 
     D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     bufferDesc.ByteWidth = static_cast<UINT>(byteSize);
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+    bufferDesc.StructureByteStride = 0;
 
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = initialData;
-
-    HRESULT hr = device->CreateBuffer(&bufferDesc, initialData ? &initData : nullptr, &buffer);
+    initData.SysMemPitch = 0;
+    initData.SysMemSlicePitch = 0;
+    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &this->buffer);
     if (FAILED(hr))
     {
-        std::cout << "Failed to create constant buffer" << std::endl;
+        std::cerr << "Failed to create constant buffer" << std::endl;
     }
 }
 

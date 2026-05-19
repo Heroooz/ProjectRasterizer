@@ -3,6 +3,9 @@
 #include <iostream>
 #include "SimpleVertex.h"
 #include "Light.h"
+#include "Transform.h"
+
+using namespace DirectX;
 
 Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
                                      dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), vertexBuffer(nullptr), 
@@ -45,15 +48,69 @@ bool Renderer::Initialize() {
 	SetupViewport();
 	// End of SetupD3D11
 
-    SimpleVertex triangle[] =
+    SimpleVertex simpleQuad[] =
     {
-        { {-0.5f, 0.5f, 0.0f}, {0, 0, -1}, {0, 0} },
-        { {0.5f, 0.5f, 0.0f}, {0, 0, -1}, {1, 0} },
-        { {-0.5, -0.5f, 0.0f}, {0, 0, -1}, {0, 1} },
-
-        { {0.5f, -0.5f, 0.0f}, {0, 0, -1}, {1, 1} }
+        { {-1.0f, 1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
+        { {1.0f, 1.0f, 0.0f}, {0, 0, -1}, {1, 0} },
+        { {-1.0, -1.0f, 0.0f}, {0, 0, -1}, {0, 1} },
+        { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
     };
-    CreateVertexBuffer(device, vertexBufferD3D11, 4, triangle);
+    //CreateVertexBuffer(device, vertexBufferD3D11, 4, triangle);
+
+    //SimpleVertex quad2[] =
+    //{
+    //    { {-1.5f, -1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
+    //    { {-1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 0} },
+    //    { {-1.5, -1.5f, 0.0f}, {0, 0, -1}, {0, 1} },
+    //    { {-1.0f, -1.5f, 0.0f}, {0, 0, -1}, {1, 1} }
+    //};
+
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.ByteWidth = sizeof(float) * 4;
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = 0;
+    bufferDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA initData = {};
+    initData.pSysMem = simpleQuad;
+
+    vertexBuffers[0].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
+    ID3D11Buffer* buffer = vertexBuffers[0].GetBuffer();
+    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
+   
+    vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
+    buffer = vertexBuffers[1].GetBuffer();
+    hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
+
+
+    Transform transform1 =
+    {
+        {0, 0, 0},
+        {0, 0, 0},
+        {1, 1, 1},
+    };
+    Transform transform2 =
+    {
+        {4, 4, 0},
+        {0, 0, 0},
+        {1, 1, 1},
+    };
+
+    worldMatrices[0] = XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]) * XMMatrixRotationY(0.0f);
+    worldMatrices[1] = XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]) * XMMatrixRotationY(0.0f);
+
+    DirectX::XMFLOAT4X4 worldTransform;
+
+    DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[0]));
+    worldMatriceBuffers[0].Initialize(device, sizeof(XMFLOAT4X4), &worldTransform);
+    worldMatriceBuffers[0].UpdateBuffer(immediateContext, &worldTransform);
+
+
+    DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[1]));
+    worldMatriceBuffers[1].Initialize(device, sizeof(XMFLOAT4X4), &worldTransform); 
+    worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldTransform);
+
 
 	// Setup Pipeline, shaders, input layout, texture, sampler state
     if (!SetupPipeline(device, vShader, pShader, inputLayout, texture, srv, samplerState)) {
@@ -82,50 +139,61 @@ void Renderer::Render() {
 
     camera.UpdateInternalConstantBuffer(immediateContext);
 
-    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
+  /*  DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
     DirectX::XMFLOAT4X4 worldMatrixT;
-    DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrix));
+    DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrix));*/
 
-    worldMatrixBuffer.UpdateBuffer(immediateContext, &worldMatrixT);
-    pWorldMatrix = worldMatrixBuffer.GetBuffer();
+    //worldMatrixBuffer.UpdateBuffer(immediateContext, &worldMatrixT);
+    //pWorldMatrix = worldMatrixBuffer.GetBuffer();
 
     pCamera = camera.GetConstantBuffer();
 
     //DirectX::XMMATRIX worldViewProjectionMatrix = DirectX::XMMatrixMultiplyTranspose(CreateWorldMatrix(0.0f), camera.GetViewProjectionMatrix());
-    //
     //DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
     //DirectX::XMStoreFloat4x4(&matrixArr[1], worldViewProjectionMatrix);
     
 	//vsConstantBufferD3D11.UpdateBuffer(immediateContext, &matrixArr);
 
-    float clearColour[4] = { 0, 0, 0, 0 };
+    float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
     immediateContext->ClearRenderTargetView(rtv, clearColour);
     immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
-	// Bind and set pipeline states, then draw
-    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-    immediateContext->IASetInputLayout(inputLayout);
-    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    for (int i = 0; i < 2; i++)
+    {
+	    // Bind and set pipeline states, then draw
+        vertexBuffer = vertexBuffers[i].GetBuffer();
 
-	// Sending stuff to VS
-    immediateContext->VSSetShader(vShader, nullptr, 0);
-    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-    immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
+        immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+        immediateContext->IASetInputLayout(inputLayout);
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-    immediateContext->RSSetViewports(1, &viewport);
+	    // Sending stuff to VS
+        immediateContext->VSSetShader(vShader, nullptr, 0);
+        immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
 
-    // Sending stuff to PS
-    immediateContext->PSSetShader(pShader, nullptr, 0);
-    immediateContext->PSSetShaderResources(0, 1, &srv);
-    immediateContext->PSSetSamplers(0, 1, &samplerState);
-    immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
 
-    immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+        XMFLOAT4X4 worldMatrixT;
+        DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[i]));
+        worldMatriceBuffers[i].UpdateBuffer(immediateContext, &worldMatrixT);
+        pWorldMatrix = worldMatriceBuffers[i].GetBuffer();
+        
+    
+        immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
+        immediateContext->RSSetViewports(1, &viewport);
 
-    immediateContext->Draw(4, 0);
+        // Sending stuff to PS
+        immediateContext->PSSetShader(pShader, nullptr, 0);
+        immediateContext->PSSetShaderResources(0, 1, &srv);
+        immediateContext->PSSetSamplers(0, 1, &samplerState);
+        immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
+        immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+        immediateContext->Draw(4, 0);
+    }
+
     swapChain->Present(0, 0);
 }
 
@@ -192,7 +260,7 @@ void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& verte
 }
 
 void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
-    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix(rotation);
+    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
     DirectX::XMFLOAT4X4 worldMatrixTransposed;
     DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
 
@@ -207,7 +275,7 @@ void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
     //matrixArr[1] = viewMatrixFloat4x4;
 
 	//vsConstantBufferD3D11.Initialize(device, sizeof(DirectX::XMFLOAT4X4) * 2, matrixArr);
- //   vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
+    //vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
 }
 
 void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) {
@@ -219,9 +287,9 @@ void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psCon
     psConstantBuffer = psConstantBufferD3D11.GetBuffer();
 }
 
-DirectX::XMMATRIX CreateWorldMatrix(float angle) {
-    DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, -0.7f);
-    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(angle);
+DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) {
+    DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation.x);
     return DirectX::XMMatrixMultiply(translationMatrix, rotationMatrix);
 }
 
