@@ -22,10 +22,11 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
 
 void CameraD3D11::MoveInDirection(float amount, const XMFLOAT3& direction)
 {
-    XMVECTOR dir = XMLoadFloat3(&direction);
-    XMVECTOR pos = XMLoadFloat3(&position);
-    pos = XMVectorAdd(pos, XMVectorScale(dir, amount));
-    XMStoreFloat3(&this->position, pos);
+    this->position.x += direction.x * amount;
+    this->position.y += direction.y * amount;
+    this->position.z += direction.z * amount;
+
+    
 }
 
 void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)
@@ -68,12 +69,27 @@ const XMFLOAT3& CameraD3D11::GetUp() const { return this->up; }
 
 void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
 {
-    XMMATRIX viewMatrix = XMMatrixLookAtLH(XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
-    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
-    XMMATRIX viewProjectionMatrix = XMMatrixMultiply(viewMatrix, projectionMatrix);
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(
+        XMVectorSet(this->position.x, this->position.y, this->position.z, 0.0f), //EyePosition
+        XMVectorSet(
+            this->position.x + this->forward.x,
+            this->position.y + this->forward.y,
+            this->position.z + this->forward.z, 0.0f),							// Focus Position
+        XMVectorSet(this->up.x, this->up.y, this->up.z, 0.0f));					 // Up
+        
+        
+       // XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
+    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(
+        this->projInfo.fovAngleY, this->projInfo.aspectRatio,
+        this->projInfo.nearZ, this->projInfo.farZ);
+        
+        //XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
+    XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
+        
+        //XMMatrixMultiply(viewMatrix, projectionMatrix);
 
     XMFLOAT4X4 viewProjectionMatrixFloat4x4;
-    XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, viewProjectionMatrix);
+    XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
 
     this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
 }
