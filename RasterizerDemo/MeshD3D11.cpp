@@ -1,9 +1,18 @@
 #include "MeshD3D11.h"
 #include "SimpleVertex.h"
 
-void MeshD3D11::Initialize(ID3D11Device* device, const MeshData& meshInfo)
+
+MeshD3D11::MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName)
 {
-    std::string path;
+    Initialize(device, path, objName);
+}
+
+void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, const std::string& objName)
+{
+    this->filePath += folderPath;
+
+    std::string path = this->filePath + objName + ".obj";
+
     if (!loader.LoadFile(path))
     {
         std::cerr << "Failed to load OBJ at " << path << "!\n";
@@ -21,8 +30,8 @@ void MeshD3D11::Initialize(ID3D11Device* device, const MeshData& meshInfo)
     std::vector<SimpleVertex> vertices;
     std::vector<uint32_t> indices;
     std::vector<DirectX::XMFLOAT3> bbVertices;
-    vertices.reserve(nrOfVertices);
-    indices.reserve(nrOfVertices);
+    //vertices.reserve(nrOfVertices);
+    //indices.reserve(nrOfIndices);
 
     size_t indexOffset = 0;
 
@@ -91,29 +100,30 @@ void MeshD3D11::Initialize(ID3D11Device* device, const MeshData& meshInfo)
 		vertices.reserve(mesh.Vertices.size());
         for (const auto& vertex : mesh.Vertices)
         {
-            vertices.push_back({
+            vertices.emplace_back(SimpleVertex{
                 std::array<float, 3>{ vertex.Position.X, vertex.Position.Y, vertex.Position.Z },
                 std::array<float, 3>{ vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z },
                 std::array<float, 2>{ vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y }
                 });
-            bbVertices.push_back({ vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
+            //vertices.emplace_back(vertex);
+            bbVertices.emplace_back(DirectX::XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
+            //bbVertices.push_back({ vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
 		}
 
 		// Adding Indices to Index buffer
 		indices.reserve(mesh.Indices.size());
         for (const auto& index : mesh.Indices)
         {
-            indices.push_back(static_cast<uint32_t>(index + indexOffset));
+            indices.emplace_back(static_cast<uint32_t>(index + indexOffset));
         }
         indexOffset += mesh.Indices.size();
         subMesh.Initialize(startIndex, mesh.Indices.size(), ambientTextureSRV, diffuseTextureSRV, specularTextureSRV);
-		this->subMeshes.push_back(std::move(subMesh));
+		this->subMeshes.emplace_back(std::move(subMesh));
     }
 
-
     // Initialize buffers
-    this->vertexBuffer.Initialize(device, meshInfo.vertexInfo.sizeOfVertex, meshInfo.vertexInfo.nrOfVerticesInBuffer, meshInfo.vertexInfo.vertexData);
-    this->indexBuffer.Initialize(device, meshInfo.indexInfo.nrOfIndicesInBuffer, meshInfo.indexInfo.indexData);
+    this->vertexBuffer.Initialize(device, sizeof(SimpleVertex), vertices.size(), vertices.data());
+    this->indexBuffer.Initialize(device, indices.size(), indices.data());
     this->boundingBox.CreateFromPoints(this->boundingBox, bbVertices.size(), bbVertices.data(), sizeof(DirectX::XMFLOAT3));
 
     // Initialize sub-meshes
@@ -129,6 +139,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const MeshData& meshInfo)
     //    );
     //}
 }
+
 
 void MeshD3D11::BindMeshBuffers(ID3D11DeviceContext* context) const
 {
@@ -178,5 +189,15 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
     }
     return nullptr;
 }
+
+//VertexBufferD3D11 MeshD3D11::getVertexBuffer() const
+//{
+//    return this->vertexBuffer;
+//}
+//
+//IndexBufferD3D11 MeshD3D11::getIndexBuffer() const
+//{
+//    return this->indexBuffer;
+//}
 
 DirectX::BoundingBox MeshD3D11::getBoundingBox() const { return this->boundingBox; }

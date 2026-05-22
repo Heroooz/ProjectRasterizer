@@ -48,6 +48,19 @@ bool Renderer::Initialize() {
 	SetupViewport();
 	// End of SetupD3D11
 
+
+    MeshD3D11* cat = new MeshD3D11(device, "", "box");
+    cat->BindMeshBuffers(immediateContext);
+    objs.push_back(cat);
+
+
+    Transform transformCat;
+    objsWorldMatrices.push_back( XMMatrixTranslation(transformCat.position[0], transformCat.position[1], transformCat.position[2]) * XMMatrixRotationY(0.0f));
+
+    //XMFLOAT4X4 catMatrix;
+    //XMStoreFloat4x4(&catMatrix, XMMatrixTranspose(objsWorldMatrices.back()));
+    //objsWorldMatrixBuffers.back().Initialize(device, sizeof(XMFLOAT4X4), &catMatrix);
+
     SimpleVertex simpleQuad[] =
     {
         { {-1.0f, 1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
@@ -86,7 +99,7 @@ bool Renderer::Initialize() {
 
     Transform transform1 =
     {
-        {0, 0, 0},
+        {0, 0, 10},
         {0, 0, 0},
         {1, 1, 1},
     };
@@ -168,7 +181,7 @@ void Renderer::Render() {
 
         immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
         immediateContext->IASetInputLayout(inputLayout);
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+        immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	    // Sending stuff to VS
         immediateContext->VSSetShader(vShader, nullptr, 0);
@@ -192,6 +205,49 @@ void Renderer::Render() {
 
         immediateContext->OMSetRenderTargets(1, &rtv, dsView);
         immediateContext->Draw(4, 0);
+    }
+
+    for (int i = 0; i < objs.size(); i++)
+    {
+        // Bind and set pipeline states, then draw
+        //vertexBuffer = objs[i];
+
+        //immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+
+        objs[i]->BindMeshBuffers(immediateContext);
+        for (int j = 0; j < objs[i]->GetNrOfSubMeshes(); j++)
+        {
+            objs[i]->PerformSubMeshDrawCall(immediateContext, j);
+
+        }
+
+        //objs.front()->BindMeshBuffers(immediateContext);
+
+        //immediateContext->IASetInputLayout(inputLayout);
+        //immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ);
+
+        //// Sending stuff to VS
+        //immediateContext->VSSetShader(vShader, nullptr, 0);
+        //immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
+
+
+        //XMFLOAT4X4 worldMatrixT;
+        //DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[1]));
+        //worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldMatrixT);
+        //pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
+
+
+        //immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
+        //immediateContext->RSSetViewports(1, &viewport);
+
+        //// Sending stuff to PS
+        //immediateContext->PSSetShader(pShader, nullptr, 0);
+        //immediateContext->PSSetShaderResources(0, 1, &srv);
+        //immediateContext->PSSetSamplers(0, 1, &samplerState);
+        //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
+        //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+        //immediateContext->Draw(345, 0);
     }
 
     swapChain->Present(0, 0);

@@ -19,7 +19,7 @@ void SubMeshD3D11::PerformDrawCall(ID3D11DeviceContext* context) const
     context->PSSetShaderResources(2, 1, &specularTexture);
 
     // Perform the draw call
-    context->DrawIndexed(static_cast<UINT>(nrOfIndices), static_cast<UINT>(startIndex), 0);
+    context->DrawIndexed((INT)this->nrOfIndices, (UINT)this->startIndex, 0);
 }
 
 ID3D11ShaderResourceView* SubMeshD3D11::GetAmbientSRV() const

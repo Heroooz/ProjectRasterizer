@@ -18,6 +18,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 0.005f;
+	float rotationspeed = 0.0005f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
@@ -58,19 +59,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		}
 
 		if (GetKeyState(VK_UP) & 0x8000) {
-			renderer.GetCamera().RotateRight(-movespeed);
+			renderer.GetCamera().RotateRight(-rotationspeed);
 		}
 		if (GetKeyState(VK_DOWN) & 0x8000)
 		{
-			renderer.GetCamera().RotateRight(movespeed);
+			renderer.GetCamera().RotateRight(rotationspeed);
 		}
 		if (GetKeyState(VK_LEFT) & 0x8000)
 		{
-			renderer.GetCamera().RotateUp(-movespeed);
+			renderer.GetCamera().RotateUp(-rotationspeed);
 		}
 		if (GetKeyState(VK_RIGHT) & 0x8000)
 		{
-			renderer.GetCamera().RotateUp(movespeed);
+			renderer.GetCamera().RotateUp(rotationspeed);
 		}
 
 		// Mouse panning-movement

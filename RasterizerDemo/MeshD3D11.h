@@ -50,17 +50,18 @@ private:
 	DirectX::BoundingBox boundingBox;
 
 	objl::Loader loader;
-	std::string filePath = "Objs/";
+	std::string filePath = "objs/";
 
 public:
 	MeshD3D11() = default;
+	MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName);
 	~MeshD3D11() = default;
 	MeshD3D11(const MeshD3D11 & other) = delete;
 	MeshD3D11& operator=(const MeshD3D11 & other) = delete;
 	MeshD3D11(MeshD3D11 && other) = delete;
 	MeshD3D11& operator=(MeshD3D11 && other) = delete;
 
-	void Initialize(ID3D11Device* device, const MeshData& meshInfo);
+	void Initialize(ID3D11Device* device, const std::string& folderPath, const std::string& objName);
 
 	void BindMeshBuffers(ID3D11DeviceContext* context) const;
 	void PerformSubMeshDrawCall(ID3D11DeviceContext* context, size_t subMeshIndex) const;
@@ -70,5 +71,7 @@ public:
 	ID3D11ShaderResourceView* GetDiffuseSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetSpecularSRV(size_t subMeshIndex) const;
 
+	//VertexBufferD3D11 getVertexBuffer() const;
+	//IndexBufferD3D11 getIndexBuffer() const;
 	DirectX::BoundingBox getBoundingBox() const;
 };

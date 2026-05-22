@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <vector>
 
 #include "Window.h"
 #include "Time.h"
@@ -9,6 +10,7 @@
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
+#include "MeshD3D11.h"
 
 
 class Renderer {
@@ -42,6 +44,11 @@ private:
 	VertexBufferD3D11 vertexBuffers[10];
 	DirectX::XMMATRIX worldMatrices[10];
 	ConstantBufferD3D11 worldMatriceBuffers[10];
+
+	std::vector<MeshD3D11*> objs;
+	std::vector<DirectX::XMMATRIX> objsWorldMatrices;
+	std::vector<ConstantBufferD3D11> objsWorldMatrixBuffers;
+
 
 	RenderTargetD3D11 renderTargetD3D11;
 	DepthBufferD3D11 depthBufferD3D11;
