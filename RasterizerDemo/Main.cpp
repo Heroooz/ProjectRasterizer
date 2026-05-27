@@ -17,7 +17,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	MSG msg = { };
 
 	// TEMPORARY SPEED VARIABLE
-	float movespeed = 0.005f;
+	float movespeed = 0.003f;
 	float rotationspeed = 0.0005f;
 
 	// Get initial mouse position (center of the screen)

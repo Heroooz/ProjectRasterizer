@@ -70,6 +70,7 @@ public:
 	ID3D11ShaderResourceView* GetAmbientSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetDiffuseSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetSpecularSRV(size_t subMeshIndex) const;
+	void createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv);
 
 	//VertexBufferD3D11 getVertexBuffer() const;
 	//IndexBufferD3D11 getIndexBuffer() const;

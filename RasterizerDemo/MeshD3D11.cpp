@@ -76,6 +76,10 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
 				throw std::runtime_error("Failed to load diffuse texture!\n");
             }
         }
+        else
+        {
+            
+        }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
 
 
@@ -144,7 +148,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
 void MeshD3D11::BindMeshBuffers(ID3D11DeviceContext* context) const
 {
     // Bind vertex buffer
-    UINT stride = static_cast<UINT>(this->vertexBuffer.GetNrOfVertices());
+    UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
     ID3D11Buffer* vb = vertexBuffer.GetBuffer();
     context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
@@ -188,6 +192,11 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
         return this->subMeshes[subMeshIndex].GetSpecularSRV();
     }
     return nullptr;
+}
+
+void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv)
+{
+
 }
 
 //VertexBufferD3D11 MeshD3D11::getVertexBuffer() const

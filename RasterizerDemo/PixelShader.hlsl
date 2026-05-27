@@ -26,7 +26,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     float3 viewDirection = normalize(cameraPosition.xyz - input.worldPosition.xyz);
     float3 halfVector = normalize(lightDirection + viewDirection);
 
-    float4 ambient = lightColor * intensity;
+    float4 ambient = lightColor * intensity * 2;
     float4 diffuse = lightColor * saturate(dot(normal, lightDirection));
     float4 specular = lightColor * pow(saturate(dot(normal, halfVector)), shininess);
 

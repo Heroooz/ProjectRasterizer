@@ -40,26 +40,13 @@ bool Renderer::Initialize() {
 
     // SetupD3D11
     if (!SetupDeviceAndSwapChain()) {
-		std::cerr << "Failed to setup device and swap chain!" << std::endl;
-		return false;
+        std::cerr << "Failed to setup device and swap chain!" << std::endl;
+        return false;
     }
     SetupRenderTarget();
-	SetupDepthStencil();
-	SetupViewport();
-	// End of SetupD3D11
-
-
-    MeshD3D11* cat = new MeshD3D11(device, "", "cube");
-    cat->BindMeshBuffers(immediateContext);
-    objs.push_back(cat);
-
-
-    Transform transformCat;
-    objsWorldMatrices.push_back( XMMatrixTranslation(transformCat.position[0], transformCat.position[1], transformCat.position[2]) * XMMatrixRotationY(0.0f));
-
-    //XMFLOAT4X4 catMatrix;
-    //XMStoreFloat4x4(&catMatrix, XMMatrixTranspose(objsWorldMatrices.back()));
-    //objsWorldMatrixBuffers.back().Initialize(device, sizeof(XMFLOAT4X4), &catMatrix);
+    SetupDepthStencil();
+    SetupViewport();
+    // End of SetupD3D11
 
     SimpleVertex simpleQuad[] =
     {
@@ -68,15 +55,9 @@ bool Renderer::Initialize() {
         { {-1.0, -1.0f, 0.0f}, {0, 0, -1}, {0, 1} },
         { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
     };
-    //CreateVertexBuffer(device, vertexBufferD3D11, 4, triangle);
 
-    //SimpleVertex quad2[] =
-    //{
-    //    { {-1.5f, -1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
-    //    { {-1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 0} },
-    //    { {-1.5, -1.5f, 0.0f}, {0, 0, -1}, {0, 1} },
-    //    { {-1.0f, -1.5f, 0.0f}, {0, 0, -1}, {1, 1} }
-    //};
+    loadObjects();
+
 
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -91,7 +72,7 @@ bool Renderer::Initialize() {
     vertexBuffers[0].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
     ID3D11Buffer* buffer = vertexBuffers[0].GetBuffer();
     HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
-   
+
     vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
     buffer = vertexBuffers[1].GetBuffer();
     hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
@@ -105,13 +86,19 @@ bool Renderer::Initialize() {
     };
     Transform transform2 =
     {
-        {0, 0, 0},
-        {0, 0, 0},
-        {1, 1, 1},
+        {0, 0, 10},
+        { 0, 3.141592f, 0},
+        { 1, 1, 1}
     };
 
-    worldMatrices[0] = XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]) * XMMatrixRotationY(0.0f);
-    worldMatrices[1] = XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]) * XMMatrixRotationY(0.0f);
+    worldMatrices[0] = 
+        XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]) * 
+        XMMatrixRotationRollPitchYaw(transform1.rotation[0], transform1.rotation[1], transform1.rotation[2]) * 
+        XMMatrixScaling(transform1.scale[0], transform1.scale[1], transform1.scale[2]);
+    worldMatrices[1] =
+        XMMatrixRotationRollPitchYaw(transform2.rotation[0], transform2.rotation[1], transform2.rotation[2]) *
+        XMMatrixScaling(transform2.scale[0], transform2.scale[1], transform2.scale[2]) *
+        XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]);
 
     DirectX::XMFLOAT4X4 worldTransform;
 
@@ -174,7 +161,7 @@ void Renderer::Render() {
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 2; i++)
     {
 	    // Bind and set pipeline states, then draw
         vertexBuffer = vertexBuffers[i].GetBuffer();
@@ -210,20 +197,21 @@ void Renderer::Render() {
     for (int i = 0; i < objs.size(); i++)
     {
         // Bind and set pipeline states, then draw
-        //vertexBuffer = objs[i];
 
-        //immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
+        immediateContext->VSSetShader(vShader, nullptr, 0);
+        immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
         immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
         immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
         objs[i]->BindMeshBuffers(immediateContext);
+
         for (int j = 0; j < objs[i]->GetNrOfSubMeshes(); j++)
         {
             objs[i]->PerformSubMeshDrawCall(immediateContext, j);
 
         }
+
 
         //immediateContext->IASetInputLayout(inputLayout);
 
@@ -252,6 +240,64 @@ void Renderer::Render() {
     }
 
     swapChain->Present(0, 0);
+}
+
+void Renderer::loadObjects()
+{
+    MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
+    objs.push_back(cat);
+    MeshD3D11* horse = new MeshD3D11(device, "Horse/", "horse");
+    objs.push_back(horse);
+    MeshD3D11* fish = new MeshD3D11(device, "Fish/", "anglerfish");
+    objs.push_back(fish);
+
+    std::vector<Transform> transforms;
+
+    // Cat
+    transforms.push_back(
+        {
+            { 0, -5, 10.0f },
+            { -3.141592f / 2.0f, 3.141592f, 0 },
+            { 0.051f, 0.051f, 0.051f },
+        }
+    );
+
+    // Horse
+    transforms.push_back(
+        {
+            { 0, 0, 10 },
+            { 0, 0, 0 },
+            { 1, 1, 1 }
+        }
+    );
+
+    // Anglerfish
+    transforms.push_back(
+    {
+        { 0, 0, 0 },
+        { 0, 0, 0 },
+        { 1, 1, 1 }
+    });
+    
+
+    for (auto& transform : transforms)
+    {
+        XMMATRIX worldMatrix =
+            XMMatrixRotationRollPitchYaw(transform.rotation[0], transform.rotation[1], transform.rotation[2]) *
+            XMMatrixScaling(transform.scale[0], transform.scale[1], transform.scale[2]) *
+            XMMatrixTranslation(transform.position[0], transform.position[1], transform.position[2]);
+
+        XMFLOAT4X4 objWorldT;
+        DirectX::XMStoreFloat4x4(&objWorldT, DirectX::XMMatrixTranspose(worldMatrix));
+        ConstantBufferD3D11* objBuffer = new ConstantBufferD3D11(device, sizeof(XMFLOAT4), &objWorldT);
+
+        objsWorldMatrixBuffers.push_back(objBuffer);
+
+        objBuffer->~ConstantBufferD3D11();
+    }
+
+
+
 }
 
 CameraD3D11& Renderer::GetCamera()

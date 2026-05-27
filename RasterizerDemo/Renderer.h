@@ -21,6 +21,8 @@ public:
     bool Initialize();
     void Render();
 
+	void loadObjects();
+
 	CameraD3D11& GetCamera();
 private:
     Window& window;
@@ -47,7 +49,7 @@ private:
 
 	std::vector<MeshD3D11*> objs;
 	std::vector<DirectX::XMMATRIX> objsWorldMatrices;
-	std::vector<ConstantBufferD3D11> objsWorldMatrixBuffers;
+	std::vector<ConstantBufferD3D11*> objsWorldMatrixBuffers;
 
 
 	RenderTargetD3D11 renderTargetD3D11;
