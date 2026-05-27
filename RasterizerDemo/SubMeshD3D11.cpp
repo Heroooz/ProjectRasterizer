@@ -22,17 +22,8 @@ void SubMeshD3D11::PerformDrawCall(ID3D11DeviceContext* context) const
     context->DrawIndexed((INT)this->nrOfIndices, (UINT)this->startIndex, 0);
 }
 
-ID3D11ShaderResourceView* SubMeshD3D11::GetAmbientSRV() const
-{
-    return this->ambientTexture;
-}
+ID3D11ShaderResourceView* SubMeshD3D11::GetAmbientSRV() const { return this->ambientTexture; }
 
-ID3D11ShaderResourceView* SubMeshD3D11::GetDiffuseSRV() const
-{
-    return this->diffuseTexture;
-}
+ID3D11ShaderResourceView* SubMeshD3D11::GetDiffuseSRV() const { return this->diffuseTexture; }
 
-ID3D11ShaderResourceView* SubMeshD3D11::GetSpecularSRV() const
-{
-    return this->specularTexture;
-}
+ID3D11ShaderResourceView* SubMeshD3D11::GetSpecularSRV() const { return this->specularTexture; }

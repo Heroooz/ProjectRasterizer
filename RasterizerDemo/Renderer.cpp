@@ -49,7 +49,7 @@ bool Renderer::Initialize() {
 	// End of SetupD3D11
 
 
-    MeshD3D11* cat = new MeshD3D11(device, "", "box");
+    MeshD3D11* cat = new MeshD3D11(device, "", "cube");
     cat->BindMeshBuffers(immediateContext);
     objs.push_back(cat);
 
@@ -105,7 +105,7 @@ bool Renderer::Initialize() {
     };
     Transform transform2 =
     {
-        {4, 4, 0},
+        {0, 0, 0},
         {0, 0, 0},
         {1, 1, 1},
     };
@@ -174,7 +174,7 @@ void Renderer::Render() {
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
     {
 	    // Bind and set pipeline states, then draw
         vertexBuffer = vertexBuffers[i].GetBuffer();
@@ -214,6 +214,10 @@ void Renderer::Render() {
 
         //immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 
+        immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
+        immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
         objs[i]->BindMeshBuffers(immediateContext);
         for (int j = 0; j < objs[i]->GetNrOfSubMeshes(); j++)
         {
@@ -221,10 +225,7 @@ void Renderer::Render() {
 
         }
 
-        //objs.front()->BindMeshBuffers(immediateContext);
-
         //immediateContext->IASetInputLayout(inputLayout);
-        //immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ);
 
         //// Sending stuff to VS
         //immediateContext->VSSetShader(vShader, nullptr, 0);
