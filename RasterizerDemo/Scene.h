@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Transform.h"
-#include "MeshD3D11.h"
+#include "Objects.h"
 #include "Light.h"
 
 
 class Scene
 {
-	std::vector<MeshD3D11*> objects;
+	std::vector<Objects*> objects;
 	std::vector<lightStruct*> lights;
 
 
@@ -17,21 +17,13 @@ public:
 
 	void Initialize();
 
-	void AddObject();
+	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
 	void AddLight();
 
 	void DrawScene(ID3D11DeviceContext* context);
 
-	void RemoveObjectFromScene();
+	void RemoveObjectFromScene(int index);
 
 	int getNrOfObjects();
 	int getNrOfLight();
 };
-
-Scene::Scene()
-{
-}
-
-Scene::~Scene()
-{
-}

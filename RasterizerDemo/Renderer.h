@@ -11,7 +11,8 @@
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
 #include "MeshD3D11.h"
-#include "Objects.h"
+//#include "Objects.h"
+#include "Scene.h"
 
 
 class Renderer {
@@ -63,6 +64,7 @@ private:
 	VertexBufferD3D11 vertexBufferD3D11;
 
 	CameraD3D11 camera;
+	Scene *scene = new Scene();
 
 	ConstantBufferD3D11 worldMatrixBuffer;
 	ID3D11Buffer* pWorldMatrix;

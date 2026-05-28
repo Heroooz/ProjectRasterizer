@@ -1,7 +1,17 @@
 #include "Scene.h"
 
-void Scene::AddObject()
+Scene::Scene()
 {
+}
+
+Scene::~Scene()
+{
+}
+
+void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
+{
+	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, SRT);
+	objects.push_back(obj);
 }
 
 void Scene::AddLight()
@@ -12,17 +22,11 @@ void Scene::DrawScene(ID3D11DeviceContext* context)
 {
 	for (auto& obj : objects)
 	{
-		obj->BindMeshBuffers(context);
-
-		int nrOfSubMeshes = obj->GetNrOfSubMeshes();
-		for (int i = 0; i < nrOfSubMeshes; i++)
-		{
-			obj->PerformSubMeshDrawCall(context, i);
-		}
+		obj->drawObject(context);
 	}
 }
 
-void Scene::RemoveObjectFromScene()
+void Scene::RemoveObjectFromScene(int index)
 {
 }
 
