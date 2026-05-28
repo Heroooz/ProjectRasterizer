@@ -34,6 +34,11 @@ Renderer::~Renderer() {
 	if (swapChain) swapChain->Release();
 	if (immediateContext) immediateContext->Release();
 	if (device) device->Release();
+    
+
+    if (scene) scene->~Scene();
+    if (pCamera) pCamera->Release();
+    if (pWorldMatrix) pWorldMatrix->Release();
 }
 
 bool Renderer::Initialize() {
