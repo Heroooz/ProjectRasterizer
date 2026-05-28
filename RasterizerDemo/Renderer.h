@@ -52,9 +52,9 @@ private:
 	DirectX::XMMATRIX worldMatrices[10];
 	ConstantBufferD3D11 worldMatriceBuffers[10];
 
-	std::vector<Objects*> objs;
-	std::vector<DirectX::XMMATRIX> objsWorldMatrices;
-	std::vector<ConstantBufferD3D11*> objsWorldMatrixBuffers;
+	//std::vector<Objects*> objs;
+	//std::vector<DirectX::XMMATRIX> objsWorldMatrices;
+	//std::vector<ConstantBufferD3D11*> objsWorldMatrixBuffers;
 
 
 	RenderTargetD3D11 renderTargetD3D11;
