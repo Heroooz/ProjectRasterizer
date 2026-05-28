@@ -14,6 +14,8 @@ private:
 	ID3D11ShaderResourceView* diffuseTexture = nullptr;
 	ID3D11ShaderResourceView* specularTexture = nullptr;
 
+	ID3D11ShaderResourceView* bumpTexture = nullptr;
+
 public:
 	SubMeshD3D11() = default;
 	~SubMeshD3D11() = default;
@@ -24,7 +26,7 @@ public:
 
 	void Initialize(size_t startIndexValue, size_t nrOfIndicesInSubMesh,
 		ID3D11ShaderResourceView* ambientTextureSRV, ID3D11ShaderResourceView* diffuseTextureSRV,
-		ID3D11ShaderResourceView* specularTextureSRV);
+		ID3D11ShaderResourceView* specularTextureSRV, ID3D11ShaderResourceView* bumpTextureSRV = nullptr);
 
 	void PerformDrawCall(ID3D11DeviceContext* context) const;
 

@@ -244,23 +244,27 @@ void Renderer::Render() {
 
 void Renderer::loadObjects()
 {
-    MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
-    objs.push_back(cat);
+    //MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
+    //objs.push_back(cat);
     MeshD3D11* horse = new MeshD3D11(device, "Horse/", "horse");
     objs.push_back(horse);
     MeshD3D11* fish = new MeshD3D11(device, "Fish/", "anglerfish");
     objs.push_back(fish);
+    MeshD3D11* box = new MeshD3D11(device, "Cube/", "cube");
+    objs.push_back(box);
+    MeshD3D11* sphere = new MeshD3D11(device, "SimpleObjects/", "sphere");
+    objs.push_back(sphere);
 
     std::vector<Transform> transforms;
 
     // Cat
-    transforms.push_back(
-        {
-            { 0, -5, 10.0f },
-            { -3.141592f / 2.0f, 3.141592f, 0 },
-            { 0.051f, 0.051f, 0.051f },
-        }
-    );
+    //transforms.push_back(
+    //    {
+    //        { 0, -5, 10.0f },
+    //        { -3.141592f / 2.0f, 3.141592f, 0 },
+    //        { 0.051f, 0.051f, 0.051f },
+    //    }
+    //);
 
     // Horse
     transforms.push_back(
@@ -275,6 +279,22 @@ void Renderer::loadObjects()
     transforms.push_back(
     {
         { 0, 0, 0 },
+        { 0, 0, 0 },
+        { 1, 1, 1 }
+    });
+
+    // Box
+    transforms.push_back(
+    {
+        { -2, 2, 3 },
+        { 0, 0, 0 },
+        { 1, 1, 1 }
+    });
+
+    // Sphere
+    transforms.push_back(
+    {
+        { 9, 1, 0 },
         { 0, 0, 0 },
         { 1, 1, 1 }
     });
@@ -293,7 +313,7 @@ void Renderer::loadObjects()
 
         objsWorldMatrixBuffers.push_back(objBuffer);
 
-        objBuffer->~ConstantBufferD3D11();
+       // objBuffer->~ConstantBufferD3D11();
     }
 
 
@@ -362,7 +382,8 @@ void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& verte
 	vertexBuffer = vertexBufferD3D11.GetBuffer();
 }
 
-void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) {
+void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
+{
     DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
     DirectX::XMFLOAT4X4 worldMatrixTransposed;
     DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
@@ -381,16 +402,15 @@ void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
     //vsConstantBuffer = vsConstantBufferD3D11.GetBuffer();
 }
 
-void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) {
-
-
-
+void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) 
+{
     lightStruct light;
 	psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
     psConstantBuffer = psConstantBufferD3D11.GetBuffer();
 }
 
-DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) {
+DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) 
+{
     DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
     DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation.x);
     return DirectX::XMMatrixMultiply(translationMatrix, rotationMatrix);

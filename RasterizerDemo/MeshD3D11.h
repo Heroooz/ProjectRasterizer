@@ -8,6 +8,7 @@
 #include "SubMeshD3D11.h"
 #include "VertexBufferD3D11.h"
 #include "IndexBufferD3D11.h"
+#include "SimpleVertex.h"
 
 #include "OBJ_Loader.h"
 
@@ -36,6 +37,8 @@ struct MeshData
 		ID3D11ShaderResourceView* ambientTextureSRV;
 		ID3D11ShaderResourceView* diffuseTextureSRV;
 		ID3D11ShaderResourceView* specularTextureSRV;
+
+		ID3D11ShaderResourceView* bumpTextureSRV;
 	};
 
 	std::vector<SubMeshInfo> subMeshInfo;

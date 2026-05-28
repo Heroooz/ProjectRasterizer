@@ -11,7 +11,7 @@ struct SimpleVertex
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-			pos[i] = position[i];
+			this->pos[i] = position[i];
 			this->normal[i] = normal[i];
 		}
 

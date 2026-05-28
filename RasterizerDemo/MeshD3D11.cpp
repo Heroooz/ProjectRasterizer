@@ -1,5 +1,4 @@
 #include "MeshD3D11.h"
-#include "SimpleVertex.h"
 
 
 MeshD3D11::MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName)
@@ -43,6 +42,9 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         ID3D11ShaderResourceView* ambientTextureSRV = nullptr;
         ID3D11ShaderResourceView* diffuseTextureSRV = nullptr;
         ID3D11ShaderResourceView* specularTextureSRV = nullptr;
+        ID3D11ShaderResourceView* bumpTextureSRV = nullptr;
+
+        
 
         DirectX::XMFLOAT3 ambientColor, diffuseColor, specularColor;
         float shininess = 500.0f;
@@ -99,6 +101,18 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
 		shininess = mesh.MeshMaterial.Ns;
 		//specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f;
 
+        if (!mesh.MeshMaterial.map_bump.empty())
+        {
+            path = this->filePath + mesh.MeshMaterial.map_bump;
+            HRESULT hr = DirectX::CreateWICTextureFromFile(device,
+                std::wstring(path.begin(), path.end()).c_str(), nullptr, &bumpTextureSRV);
+            if (FAILED(hr))
+            {
+                std::cerr << "Failed to load bump texture at " << path << "!\n";
+                throw std::runtime_error("Failed to load bump texture!\n");
+
+            }
+        }
 
 		// Adding Vertices to Vertex and Bouding Box buffers
 		vertices.reserve(mesh.Vertices.size());
@@ -196,7 +210,6 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
 
 void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv)
 {
-
 }
 
 //VertexBufferD3D11 MeshD3D11::getVertexBuffer() const
