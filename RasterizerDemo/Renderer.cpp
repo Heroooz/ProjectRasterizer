@@ -80,7 +80,7 @@ bool Renderer::Initialize() {
 
     Transform transform1 =
     {
-        {0, 0, 10},
+        {0, 0, 20},
         {0, 0, 0},
         {1, 1, 1},
     };
@@ -202,15 +202,7 @@ void Renderer::Render() {
         immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
         immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
-        immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
-        objs[i]->BindMeshBuffers(immediateContext);
-
-        for (int j = 0; j < objs[i]->GetNrOfSubMeshes(); j++)
-        {
-            objs[i]->PerformSubMeshDrawCall(immediateContext, j);
-
-        }
+        objs[i]->drawObject(immediateContext);
 
 
         //immediateContext->IASetInputLayout(inputLayout);
@@ -244,18 +236,30 @@ void Renderer::Render() {
 
 void Renderer::loadObjects()
 {
+    Objects* horse1 = new Objects(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    Objects* eye1 = new Objects(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    Objects* cat = new Objects(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+
+    objs.push_back(horse1);
+    objs.push_back(eye1);
+    objs.push_back(cat);
+
+
     //MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
     //objs.push_back(cat);
-    MeshD3D11* horse = new MeshD3D11(device, "Horse/", "horse");
-    objs.push_back(horse);
-    MeshD3D11* fish = new MeshD3D11(device, "Fish/", "anglerfish");
-    objs.push_back(fish);
-    MeshD3D11* box = new MeshD3D11(device, "Cube/", "cube");
-    objs.push_back(box);
-    MeshD3D11* sphere = new MeshD3D11(device, "SimpleObjects/", "sphere");
-    objs.push_back(sphere);
+    //MeshD3D11* horse = new MeshD3D11(device, "Horse/", "horse");
+    //objs.push_back(horse);
+    //MeshD3D11* fish = new MeshD3D11(device, "Fish/", "anglerfish");
+    //objs.push_back(fish);
+    //MeshD3D11* eye = new MeshD3D11(device, "Eye/", "eyeball");
+    //objs.push_back(eye);
 
-    std::vector<Transform> transforms;
+    //MeshD3D11* box = new MeshD3D11(device, "Cube/", "cube");
+    //objs.push_back(box);
+    //MeshD3D11* sphere = new MeshD3D11(device, "SimpleObjects/", "sphere");
+    //objs.push_back(sphere);
+
+    //std::vector<Transform> transforms;
 
     // Cat
     //transforms.push_back(
@@ -267,54 +271,54 @@ void Renderer::loadObjects()
     //);
 
     // Horse
-    transforms.push_back(
-        {
-            { 0, 0, 10 },
-            { 0, 0, 0 },
-            { 1, 1, 1 }
-        }
-    );
+    //transforms.push_back(
+    //    {
+    //        { 0, 0, 10 },
+    //        { 0, 0, 0 },
+    //        { 1, 1, 1 }
+    //    }
+    //);
 
-    // Anglerfish
-    transforms.push_back(
-    {
-        { 0, 0, 0 },
-        { 0, 0, 0 },
-        { 1, 1, 1 }
-    });
+    //// Anglerfish
+    //transforms.push_back(
+    //{
+    //    { 0, 0, 0 },
+    //    { 0, 0, 0 },
+    //    { 1, 1, 1 }
+    //});
 
-    // Box
-    transforms.push_back(
-    {
-        { -2, 2, 3 },
-        { 0, 0, 0 },
-        { 1, 1, 1 }
-    });
+    //// Box
+    //transforms.push_back(
+    //{
+    //    { -2, 2, 3 },
+    //    { 0, 0, 0 },
+    //    { 1, 1, 1 }
+    //});
 
     // Sphere
-    transforms.push_back(
-    {
-        { 9, 1, 0 },
-        { 0, 0, 0 },
-        { 1, 1, 1 }
-    });
-    
+    //transforms.push_back(
+    //{
+    //    { 0, 0, 1 },
+    //    { 0, 0, 0 },
+    //    { 1, 1, 1 }
+    //});
+    //
 
-    for (auto& transform : transforms)
-    {
-        XMMATRIX worldMatrix =
-            XMMatrixRotationRollPitchYaw(transform.rotation[0], transform.rotation[1], transform.rotation[2]) *
-            XMMatrixScaling(transform.scale[0], transform.scale[1], transform.scale[2]) *
-            XMMatrixTranslation(transform.position[0], transform.position[1], transform.position[2]);
+    //for (auto& transform : transforms)
+    //{
+    //    XMMATRIX worldMatrix =
+    //        XMMatrixRotationRollPitchYaw(transform.rotation[0], transform.rotation[1], transform.rotation[2]) *
+    //        XMMatrixScaling(transform.scale[0], transform.scale[1], transform.scale[2]) *
+    //        XMMatrixTranslation(transform.position[0], transform.position[1], transform.position[2]);
 
-        XMFLOAT4X4 objWorldT;
-        DirectX::XMStoreFloat4x4(&objWorldT, DirectX::XMMatrixTranspose(worldMatrix));
-        ConstantBufferD3D11* objBuffer = new ConstantBufferD3D11(device, sizeof(XMFLOAT4), &objWorldT);
+    //    XMFLOAT4X4 objWorldT;
+    //    DirectX::XMStoreFloat4x4(&objWorldT, DirectX::XMMatrixTranspose(worldMatrix));
+    //    ConstantBufferD3D11* objBuffer = new ConstantBufferD3D11(device, sizeof(XMFLOAT4), &objWorldT);
 
-        objsWorldMatrixBuffers.push_back(objBuffer);
+    //    objsWorldMatrixBuffers.push_back(objBuffer);
 
-       // objBuffer->~ConstantBufferD3D11();
-    }
+    //   // objBuffer->~ConstantBufferD3D11();
+    //}
 
 
 
