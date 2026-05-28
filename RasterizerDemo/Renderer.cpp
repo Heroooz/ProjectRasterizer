@@ -194,55 +194,66 @@ void Renderer::Render() {
         immediateContext->Draw(4, 0);
     }
 
-    for (int i = 0; i < objs.size(); i++)
-    {
-        // Bind and set pipeline states, then draw
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    scene->DrawScene(immediateContext);
 
-        immediateContext->VSSetShader(vShader, nullptr, 0);
-        immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-        immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    //for (int i = 0; i < objs.size(); i++)
+    //{
+    //    // Bind and set pipeline states, then draw
 
-        objs[i]->drawObject(immediateContext);
+    //    immediateContext->VSSetShader(vShader, nullptr, 0);
+    //    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
+    //    immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-        //immediateContext->IASetInputLayout(inputLayout);
-
-        //// Sending stuff to VS
-        //immediateContext->VSSetShader(vShader, nullptr, 0);
-        //immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
+    //    objs[i]->drawObject(immediateContext);
 
 
-        //XMFLOAT4X4 worldMatrixT;
-        //DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[1]));
-        //worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldMatrixT);
-        //pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
+    //    //immediateContext->IASetInputLayout(inputLayout);
+
+    //    //// Sending stuff to VS
+    //    //immediateContext->VSSetShader(vShader, nullptr, 0);
+    //    //immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
 
 
-        //immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
-        //immediateContext->RSSetViewports(1, &viewport);
+    //    //XMFLOAT4X4 worldMatrixT;
+    //    //DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[1]));
+    //    //worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldMatrixT);
+    //    //pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
 
-        //// Sending stuff to PS
-        //immediateContext->PSSetShader(pShader, nullptr, 0);
-        //immediateContext->PSSetShaderResources(0, 1, &srv);
-        //immediateContext->PSSetSamplers(0, 1, &samplerState);
-        //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
 
-        //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
-        //immediateContext->Draw(345, 0);
-    }
+    //    //immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
+    //    //immediateContext->RSSetViewports(1, &viewport);
+
+    //    //// Sending stuff to PS
+    //    //immediateContext->PSSetShader(pShader, nullptr, 0);
+    //    //immediateContext->PSSetShaderResources(0, 1, &srv);
+    //    //immediateContext->PSSetSamplers(0, 1, &samplerState);
+    //    //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
+    //    //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+    //    //immediateContext->Draw(345, 0);
+    //}
 
     swapChain->Present(0, 0);
 }
 
 void Renderer::loadObjects()
 {
-    Objects* horse1 = new Objects(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    Objects* eye1 = new Objects(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    Objects* cat = new Objects(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+    
 
-    objs.push_back(horse1);
-    objs.push_back(eye1);
-    objs.push_back(cat);
+
+
+    //Objects* horse1 = new Objects(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    //Objects* eye1 = new Objects(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    //Objects* cat = new Objects(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+
+    //objs.push_back(horse1);
+    //objs.push_back(eye1);
+    //objs.push_back(cat);
 
 
     //MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
