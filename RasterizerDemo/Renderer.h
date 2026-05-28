@@ -11,6 +11,7 @@
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
 #include "MeshD3D11.h"
+#include "Objects.h"
 
 
 class Renderer {
@@ -25,6 +26,9 @@ public:
 
 	CameraD3D11& GetCamera();
 private:
+
+	double PI = 3.14159265358979323846;
+
     Window& window;
 	ID3D11Device* device;
 	ID3D11DeviceContext* immediateContext;
@@ -47,7 +51,7 @@ private:
 	DirectX::XMMATRIX worldMatrices[10];
 	ConstantBufferD3D11 worldMatriceBuffers[10];
 
-	std::vector<MeshD3D11*> objs;
+	std::vector<Objects*> objs;
 	std::vector<DirectX::XMMATRIX> objsWorldMatrices;
 	std::vector<ConstantBufferD3D11*> objsWorldMatrixBuffers;
 

@@ -134,7 +134,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         {
             indices.emplace_back(static_cast<uint32_t>(index + indexOffset));
         }
-        indexOffset += mesh.Indices.size();
+        indexOffset += mesh.Vertices.size();
         subMesh.Initialize(startIndex, mesh.Indices.size(), ambientTextureSRV, diffuseTextureSRV, specularTextureSRV);
 		this->subMeshes.emplace_back(std::move(subMesh));
     }
