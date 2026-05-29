@@ -2,6 +2,7 @@
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include <vector>
+#include <iostream>
 
 #include "Window.h"
 #include "Time.h"
@@ -12,9 +13,12 @@
 #include "ConstantBufferD3D11.h"
 #include "ShaderResourceTextureD3D11.h"
 #include "GBuffer.h"
-//#include "MeshD3D11.h"
-//#include "Objects.h"
 #include "Scene.h"
+
+#include "PipelineHelper.h"
+#include "SimpleVertex.h"
+#include "Light.h"
+#include "Transform.h"
 
 
 class Renderer {
@@ -25,7 +29,11 @@ public:
     bool Initialize();
     void Render();
 
+	bool CreateUnorderedAccessView();
 	void loadObjects();
+
+	void GeometryPass();
+	void ComputeShaderPass();
 
 	CameraD3D11& GetCamera();
 private:
@@ -44,7 +52,11 @@ private:
 	D3D11_VIEWPORT viewport;
 
 	ID3D11RenderTargetView* rtvArr[2];
+	ID3D11UnorderedAccessView* uav;
 
+	ShaderD3D11* vsShader;
+	ShaderD3D11* psShader;
+	//ShaderD3D11* csShader;
 	ID3D11VertexShader* vShader;
 	ID3D11PixelShader* pShader;
 	ID3D11InputLayout* inputLayout;

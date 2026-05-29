@@ -65,7 +65,6 @@ PSOutPut main(PSInput input)
     float4 diffuse = float4(diffuseFactor, 0) * lightColor * saturate(dot(normal, lightDirection));
     float4 specular = float4(specularFactor, 0) * lightColor * pow(saturate(dot(normal, halfVector)), shininess);
     
-    
     PSOutPut output;
     
     output.position = input.worldPosition;

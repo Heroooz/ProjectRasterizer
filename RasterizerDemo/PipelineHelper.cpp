@@ -7,52 +7,60 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool LoadShaders(ID3D11Device* device, ID3D11VertexShader*& vShader, ID3D11PixelShader*& pShader, std::string& vShaderByteCode)
+bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, std::string& vShaderByteCode)
 {
-	std::string shaderData;
-	std::ifstream reader;
-	reader.open("VertexShader.cso", std::ios::binary | std::ios::ate);
-	if (!reader.is_open())
-	{
-		std::cerr << "Could not open VS file!" << std::endl;
-		return false;
-	}
+	//std::string shaderData;
+	//std::ifstream reader;
 
-	reader.seekg(0, std::ios::end);
-	shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
-	reader.seekg(0, std::ios::beg);
+	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
+	pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
 
-	shaderData.assign((std::istreambuf_iterator<char>(reader)),
-		std::istreambuf_iterator<char>());
-
-	if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vShader)))
-	{
-		std::cerr << "Failed to create vertex shader!" << std::endl;
-		return false;
-	}
-
-	vShaderByteCode = shaderData;
-	shaderData.clear();
-	reader.close();
-	reader.open("DeferredPS.cso", std::ios::binary | std::ios::ate);
-	if (!reader.is_open())
-	{
-		std::cerr << "Could not open PS file!" << std::endl;
-		return false;
-	}
-
-	reader.seekg(0, std::ios::end);
-	shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
-	reader.seekg(0, std::ios::beg);
-
-	shaderData.assign((std::istreambuf_iterator<char>(reader)),
-		std::istreambuf_iterator<char>());
-
-	if (FAILED(device->CreatePixelShader(shaderData.c_str(), shaderData.length(), nullptr, &pShader)))
-	{
-		std::cerr << "Failed to create pixel shader!" << std::endl;
-		return false;
-	}
+	//reader.open("VertexShader.cso", std::ios::binary | std::ios::ate);
+	//if (!reader.is_open())
+	//{
+	//	std::cerr << "Could not open VS file!" << std::endl;
+	//	return false;
+	//}
+	//
+	//reader.seekg(0, std::ios::end);
+	//shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
+	//reader.seekg(0, std::ios::beg);
+	//
+	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
+	//	std::istreambuf_iterator<char>());
+	//
+	//if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vShader)))
+	//{
+	//	std::cerr << "Failed to create vertex shader!" << std::endl;
+	//	return false;
+	//}
+	//
+	//vShaderByteCode = shaderData;
+	//shaderData.clear();
+	//
+	//
+	//
+	//
+	//reader.close();
+	//reader.open("DeferredPS.cso", std::ios::binary | std::ios::ate);
+	//if (!reader.is_open())
+	//{
+	//	std::cerr << "Could not open PS file!" << std::endl;
+	//	return false;
+	//}
+	//
+	//reader.seekg(0, std::ios::end);
+	//shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
+	//reader.seekg(0, std::ios::beg);
+	//
+	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
+	//	std::istreambuf_iterator<char>());
+	//
+	//if (FAILED(device->CreatePixelShader(shaderData.c_str(), shaderData.length(), nullptr, &pShader)))
+	//{
+	//	std::cerr << "Failed to create pixel shader!" << std::endl;
+	//	return false;
+	//}
 
 	return true;
 }
@@ -133,7 +141,7 @@ bool CreateSamplerState(ID3D11Device* device, ID3D11SamplerState*& sampler)
 	return !FAILED(hr);
 }
 
-bool SetupPipeline(ID3D11Device* device, ID3D11VertexShader*& vShader, ID3D11PixelShader*& pShader, ID3D11InputLayout*& inputLayout,
+bool SetupPipeline(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ID3D11InputLayout*& inputLayout,
 	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
 {
 

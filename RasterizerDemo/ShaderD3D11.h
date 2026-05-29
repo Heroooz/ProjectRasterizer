@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <fstream>
+#include <vector>
 #include <d3d11_4.h>
 
 enum class ShaderType
@@ -28,6 +31,7 @@ private:
 		ID3D11ComputeShader* compute;
 	} shader;
 
+	std::vector<char> shaderData;
 	ID3DBlob* shaderBlob = nullptr;
 
 public:

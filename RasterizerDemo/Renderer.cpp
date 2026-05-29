@@ -1,9 +1,4 @@
 #include "Renderer.h"
-#include "PipelineHelper.h"
-#include <iostream>
-#include "SimpleVertex.h"
-#include "Light.h"
-#include "Transform.h"
 
 using namespace DirectX;
 
@@ -57,6 +52,8 @@ bool Renderer::Initialize() {
 	rtvArr[0] = rtvGbuffer1.GetRTV();
 	rtvArr[1] = rtvGbuffer2.GetRTV();
 	immediateContext->OMSetRenderTargets(2, rtvArr, dsView);
+
+	CreateUnorderedAccessView();
 
     // End of SetupD3D11
 
@@ -125,7 +122,7 @@ bool Renderer::Initialize() {
 
 
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device, vShader, pShader, inputLayout, texture, srv, samplerState)) {
+    if (!SetupPipeline(device, vsShader, psShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         return false;
     }
@@ -159,6 +156,7 @@ void Renderer::Render() {
     //pWorldMatrix = worldMatrixBuffer.GetBuffer();
 
     pCamera = camera.GetConstantBuffer();
+    
 
     //DirectX::XMMATRIX worldViewProjectionMatrix = DirectX::XMMatrixMultiplyTranspose(CreateWorldMatrix(0.0f), camera.GetViewProjectionMatrix());
     //DirectX::XMStoreFloat4x4(&matrixArr[0], worldMatrix);
@@ -180,10 +178,11 @@ void Renderer::Render() {
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
 
+
+    //immediateContext->OMSetRenderTargets(0, nullptr, dsView);
+
     for (int i = 0; i < 2; i++)
     {
-        
-
 	    // Bind and set pipeline states, then draw
         vertexBuffer = vertexBuffers[i].GetBuffer();
 
@@ -192,7 +191,8 @@ void Renderer::Render() {
         immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	    // Sending stuff to VS
-        immediateContext->VSSetShader(vShader, nullptr, 0);
+		vsShader->BindShader(immediateContext);
+        //immediateContext->VSSetShader(vShader, nullptr, 0);
         immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
 
 
@@ -206,7 +206,8 @@ void Renderer::Render() {
         immediateContext->RSSetViewports(1, &viewport);
 
         // Sending stuff to PS
-        immediateContext->PSSetShader(pShader, nullptr, 0);
+        psShader->BindShader(immediateContext);
+        //immediateContext->PSSetShader(pShader, nullptr, 0);
         immediateContext->PSSetShaderResources(1, 1, &srv);
         immediateContext->PSSetSamplers(0, 1, &samplerState);
 
@@ -215,7 +216,6 @@ void Renderer::Render() {
         immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
 
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
-
         
 
         immediateContext->OMSetRenderTargets(1, &rtv, dsView);
@@ -225,44 +225,33 @@ void Renderer::Render() {
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     scene->DrawScene(immediateContext);
 
-    //for (int i = 0; i < objs.size(); i++)
-    //{
-    //    // Bind and set pipeline states, then draw
-
-    //    immediateContext->VSSetShader(vShader, nullptr, 0);
-    //    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-    //    immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    //    objs[i]->drawObject(immediateContext);
-
-
-    //    //immediateContext->IASetInputLayout(inputLayout);
-
-    //    //// Sending stuff to VS
-    //    //immediateContext->VSSetShader(vShader, nullptr, 0);
-    //    //immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-
-
-    //    //XMFLOAT4X4 worldMatrixT;
-    //    //DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[1]));
-    //    //worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldMatrixT);
-    //    //pWorldMatrix = worldMatriceBuffers[1].GetBuffer();
-
-
-    //    //immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
-    //    //immediateContext->RSSetViewports(1, &viewport);
-
-    //    //// Sending stuff to PS
-    //    //immediateContext->PSSetShader(pShader, nullptr, 0);
-    //    //immediateContext->PSSetShaderResources(0, 1, &srv);
-    //    //immediateContext->PSSetSamplers(0, 1, &samplerState);
-    //    //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
-
-    //    //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
-    //    //immediateContext->Draw(345, 0);
-    //}
+    ComputeShaderPass();
 
     swapChain->Present(0, 0);
+}
+
+bool Renderer::CreateUnorderedAccessView()
+{
+    ID3D11Texture2D* backbuffer = nullptr;
+	if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backbuffer)))) {
+		std::cerr << "Failed to get back buffer for UAV creation!" << std::endl;
+		return -1;
+	}
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+    desc.Texture2DArray = { 0, 0, 1 };
+
+
+	if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, &uav))) {
+        backbuffer->Release();
+		std::cerr << "Failed to create UAV!" << std::endl;
+        return -1;
+	}
+
+    backbuffer->Release();
+    return true;
 }
 
 void Renderer::loadObjects()
@@ -275,94 +264,19 @@ void Renderer::loadObjects()
     scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
     scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3(PI, 0, 0), XMFLOAT3(3, 3, 3));
 
+}
 
+void Renderer::GeometryPass()
+{
 
-    //Objects* horse1 = new Objects(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    //Objects* eye1 = new Objects(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    //Objects* cat = new Objects(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+}
 
-    //objs.push_back(horse1);
-    //objs.push_back(eye1);
-    //objs.push_back(cat);
-
-
-    //MeshD3D11* cat = new MeshD3D11(device, "Cat/", "12221_Cat_v1_l3");
-    //objs.push_back(cat);
-    //MeshD3D11* horse = new MeshD3D11(device, "Horse/", "horse");
-    //objs.push_back(horse);
-    //MeshD3D11* fish = new MeshD3D11(device, "Fish/", "anglerfish");
-    //objs.push_back(fish);
-    //MeshD3D11* eye = new MeshD3D11(device, "Eye/", "eyeball");
-    //objs.push_back(eye);
-
-    //MeshD3D11* box = new MeshD3D11(device, "Cube/", "cube");
-    //objs.push_back(box);
-    //MeshD3D11* sphere = new MeshD3D11(device, "SimpleObjects/", "sphere");
-    //objs.push_back(sphere);
-
-    //std::vector<Transform> transforms;
-
-    // Cat
-    //transforms.push_back(
-    //    {
-    //        { 0, -5, 10.0f },
-    //        { -3.141592f / 2.0f, 3.141592f, 0 },
-    //        { 0.051f, 0.051f, 0.051f },
-    //    }
-    //);
-
-    // Horse
-    //transforms.push_back(
-    //    {
-    //        { 0, 0, 10 },
-    //        { 0, 0, 0 },
-    //        { 1, 1, 1 }
-    //    }
-    //);
-
-    //// Anglerfish
-    //transforms.push_back(
-    //{
-    //    { 0, 0, 0 },
-    //    { 0, 0, 0 },
-    //    { 1, 1, 1 }
-    //});
-
-    //// Box
-    //transforms.push_back(
-    //{
-    //    { -2, 2, 3 },
-    //    { 0, 0, 0 },
-    //    { 1, 1, 1 }
-    //});
-
-    // Sphere
-    //transforms.push_back(
-    //{
-    //    { 0, 0, 1 },
-    //    { 0, 0, 0 },
-    //    { 1, 1, 1 }
-    //});
-    //
-
-    //for (auto& transform : transforms)
-    //{
-    //    XMMATRIX worldMatrix =
-    //        XMMatrixRotationRollPitchYaw(transform.rotation[0], transform.rotation[1], transform.rotation[2]) *
-    //        XMMatrixScaling(transform.scale[0], transform.scale[1], transform.scale[2]) *
-    //        XMMatrixTranslation(transform.position[0], transform.position[1], transform.position[2]);
-
-    //    XMFLOAT4X4 objWorldT;
-    //    DirectX::XMStoreFloat4x4(&objWorldT, DirectX::XMMatrixTranspose(worldMatrix));
-    //    ConstantBufferD3D11* objBuffer = new ConstantBufferD3D11(device, sizeof(XMFLOAT4), &objWorldT);
-
-    //    objsWorldMatrixBuffers.push_back(objBuffer);
-
-    //   // objBuffer->~ConstantBufferD3D11();
-    //}
-
-
-
+void Renderer::ComputeShaderPass()
+{
+	immediateContext->CSSetShaderResources(0, 1, &srv);
+	immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    immediateContext->CSSetShaderResources(0, 1, &nullSRV);
 }
 
 CameraD3D11& Renderer::GetCamera()
@@ -389,7 +303,8 @@ bool Renderer::SetupDeviceAndSwapChain() {
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.SampleDesc.Quality = 0;
 
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    //swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.BufferUsage = DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.BufferCount = 1;
     swapChainDesc.OutputWindow = window.GetHWND();
     swapChainDesc.Windowed = true;
