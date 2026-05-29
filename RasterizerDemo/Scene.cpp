@@ -8,8 +8,12 @@ Scene::~Scene()
 {
 	for (auto& object : objects)
 	{
-		object->~Objects();
+		if (object != nullptr)
+		{
+			object->~Objects();
+		}
 	}
+	this->objects.clear();
 }
 
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
@@ -29,9 +33,9 @@ void Scene::DrawScene(ID3D11DeviceContext* context)
 {
 	for (auto& light : lights)
 	{ 
-		ID3D11Buffer* pLight = light->GetBuffer()->GetBuffer();
 		light->UpdateBuffer(context);
-		context->VSSetConstantBuffers(1, 1, &pLight);
+		ID3D11Buffer* pLight = light->GetBuffer()->GetBuffer();
+		context->PSSetConstantBuffers(1, 1, &pLight);
 	}
 	for (auto& obj : objects)
 	{

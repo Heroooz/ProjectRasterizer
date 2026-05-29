@@ -12,8 +12,7 @@ Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::
 
 Objects::~Objects()
 {
-	this->mesh->~MeshD3D11();
-	
+	if (this->mesh) { delete this->mesh; }
 }
 
 void Objects::Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
@@ -46,7 +45,7 @@ void Objects::drawObject(ID3D11DeviceContext* context)
 	ID3D11Buffer *pMatrix = this->worldMatrix.GetBuffer();
 	context->VSSetConstantBuffers(1, 1, &pMatrix);
 	this->mesh->BindMeshBuffers(context);
-	int nrOfSubMeshes = this->mesh->GetNrOfSubMeshes();
+	size_t nrOfSubMeshes = this->mesh->GetNrOfSubMeshes();
 
 	for (size_t i = 0; i < nrOfSubMeshes; i++)
 	{

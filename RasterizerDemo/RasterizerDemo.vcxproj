@@ -169,6 +169,7 @@
     <ClCompile Include="PipelineHelper.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderTargetD3D11.cpp" />
+    <ClCompile Include="SamplerD3D11.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShaderD3D11.cpp" />
     <ClCompile Include="ShaderResourceTextureD3D11.cpp" />

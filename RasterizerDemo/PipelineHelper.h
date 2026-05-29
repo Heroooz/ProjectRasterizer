@@ -5,9 +5,10 @@
 #include <DirectXMath.h>
 #include "ShaderD3D11.h"
 #include "InputLayoutD3D11.h"
+#include "SamplerD3D11.h"
 
 
 
 bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
-	ID3D11Texture2D*& texture, ID3D11ShaderResourceView *& srv, ID3D11SamplerState *& sampler);
+	ID3D11Texture2D*& texture, ID3D11ShaderResourceView *& srv, SamplerD3D11*& samplerState);
 //bool SetupPipeline(ID3D11Device* device, ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler);

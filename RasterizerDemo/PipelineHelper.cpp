@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <optional>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -12,6 +13,7 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pSha
 
 	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
+	//pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "PixelShader.cso");
 	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
 	//std::string shaderData;
@@ -129,29 +131,33 @@ bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int
 	return true;
 }
 
-bool CreateSamplerState(ID3D11Device* device, ID3D11SamplerState*& sampler)
+bool CreateSamplerState(ID3D11Device* device, SamplerD3D11*& samplerState)
 {
-	D3D11_SAMPLER_DESC samplerDesc;
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	HRESULT hr = device->CreateSamplerState(&samplerDesc, &sampler);
-	return !FAILED(hr);
+	D3D11_TEXTURE_ADDRESS_MODE addressmode = D3D11_TEXTURE_ADDRESS_WRAP;
+	std::optional<std::array<float, 4>> borderColour;
+	borderColour = { 1,1,1,1 };
+	samplerState = new SamplerD3D11(device, addressmode, borderColour);
+	//D3D11_SAMPLER_DESC samplerDesc;
+	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.MipLODBias = 0;
+	//samplerDesc.MaxAnisotropy = 1;
+	//samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	//samplerDesc.BorderColor[0] = 0;
+	//samplerDesc.BorderColor[1] = 0;
+	//samplerDesc.BorderColor[2] = 0;
+	//samplerDesc.BorderColor[3] = 0;
+	//samplerDesc.MinLOD = 0;
+	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	//HRESULT hr = device->CreateSamplerState(&samplerDesc, &sampler);
+	//return !FAILED(hr);
+	return true;
 }
 
 bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
-	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
+	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, SamplerD3D11*& samplerState)
 {
 	if (!LoadShaders(device, vShader, pShader, cShader))
 	{
@@ -170,7 +176,7 @@ bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D
 		return false;
 	}
 
-	if (!CreateSamplerState(device, sampler)) {
+	if (!CreateSamplerState(device, samplerState)) {
 		std::cerr << "Error creating sampler!" << std::endl;
 		return false;
 	}

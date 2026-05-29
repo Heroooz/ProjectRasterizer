@@ -143,7 +143,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
     }
 
     // Initialize buffers
-    this->vertexBuffer.Initialize(device, sizeof(SimpleVertex), vertices.size(), vertices.data());
+    this->vertexBuffer.Initialize(device, sizeof(SimpleVertex), (UINT)vertices.size(), vertices.data());
     this->indexBuffer.Initialize(device, indices.size(), indices.data());
     this->boundingBox.CreateFromPoints(this->boundingBox, bbVertices.size(), bbVertices.data(), sizeof(DirectX::XMFLOAT3));
 
@@ -216,7 +216,7 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
     int width, height, channel;
     width = height = 2;
     channel = 4;
-    UINT8 imageData[4] = 
+    u_int imageData[4] = 
     {
         0XFFFFFFFF,     // R
         0XC9C9C9C9,     // G

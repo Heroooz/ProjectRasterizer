@@ -65,7 +65,8 @@ private:
 	ID3D11Buffer* vsConstantBuffer;
 	ID3D11Buffer* psConstantBuffer;
 	ID3D11ShaderResourceView* srv;
-	ID3D11SamplerState* samplerState;
+	SamplerD3D11* samplerState;
+	//ID3D11SamplerState* samplerState;
 	ID3D11Buffer* vertexBuffer;
 
 	VertexBufferD3D11 vertexBuffers[10];
