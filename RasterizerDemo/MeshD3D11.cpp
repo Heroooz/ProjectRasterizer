@@ -42,6 +42,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         ID3D11ShaderResourceView* ambientTextureSRV = nullptr;
         ID3D11ShaderResourceView* diffuseTextureSRV = nullptr;
         ID3D11ShaderResourceView* specularTextureSRV = nullptr;
+        ID3D11ShaderResourceView* normalTextureSRV = nullptr;
         ID3D11ShaderResourceView* bumpTextureSRV = nullptr;
 
         
@@ -80,7 +81,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         }
         else
         {
-            
+            createTexture(device, &diffuseTextureSRV);
         }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
 
@@ -135,7 +136,9 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             indices.emplace_back(static_cast<uint32_t>(index + indexOffset));
         }
         indexOffset += mesh.Vertices.size();
-        subMesh.Initialize(startIndex, mesh.Indices.size(), ambientTextureSRV, diffuseTextureSRV, specularTextureSRV);
+        subMesh.Initialize(device, startIndex, mesh.Indices.size(), 
+            ambientTextureSRV, diffuseTextureSRV, specularTextureSRV, bumpTextureSRV, normalTextureSRV,
+            ambientColor, diffuseColor, specularColor, shininess);
 		this->subMeshes.emplace_back(std::move(subMesh));
     }
 
@@ -210,6 +213,53 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
 
 void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv)
 {
+    int width, height, channel;
+    width = height = 2;
+    channel = 4;
+    UINT8 imageData[4] = 
+    {
+        0XFFFFFFFF,     // R
+        0XC9C9C9C9,     // G
+        0XEEEEEEEE,     // B
+        0XFFFFFFFF      // A
+    };
+
+    // Texture2D Description
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Height = height;
+    textureDesc.Width = width;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    // Subresource Data
+    D3D11_SUBRESOURCE_DATA subresourceData = {};
+    subresourceData.pSysMem = imageData;
+    subresourceData.SysMemPitch = width * 4;
+
+    // Creating the texture
+    ID3D11Texture2D* texture = nullptr;
+    if (FAILED(device->CreateTexture2D(&textureDesc, &subresourceData, &texture)))
+    {
+        std::cerr << "Failed to create texture!" << std::endl;
+        texture->Release();
+        throw std::runtime_error("Failed to create texture");
+    }
+
+    // Creating shader resource view
+    if (FAILED(device->CreateShaderResourceView(texture, nullptr, srv)))
+    {
+        std::cerr << "Failed to create shader resource view!" << std::endl;
+        texture->Release();
+        throw std::runtime_error("Failed to create shader resource view!");
+    }
+
 }
 
 //VertexBufferD3D11 MeshD3D11::getVertexBuffer() const

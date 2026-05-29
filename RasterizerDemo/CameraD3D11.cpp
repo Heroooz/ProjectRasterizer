@@ -67,6 +67,13 @@ const XMFLOAT3& CameraD3D11::GetRight() const { return this->right; }
 
 const XMFLOAT3& CameraD3D11::GetUp() const { return this->up; }
 
+void CameraD3D11::ResetUp()
+{
+    this->forward = { 0, 0, 1 };
+    this->right = { 1, 0, 0 };
+    this->up = { 0, 1, 0 };
+}
+
 void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
 {
     XMMATRIX viewMatrix = XMMatrixLookAtLH(

@@ -79,9 +79,34 @@ private:
 	ConstantBufferD3D11 cameraBuffer;
 	ID3D11Buffer* pCamera;
 
+	ID3D11Buffer* lightPS;
+
+
 	Time time;
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
+
+
+	struct CameraBuffer
+	{
+		XMFLOAT4X4 viewProjMatrix;
+		XMFLOAT3 cameraPosition;
+		float padding;
+	};
+
+	//struct LightBuffer
+	//{
+	//	XMFLOAT4 lightColor;
+	//	XMFLOAT3 lightPosition;
+	//	float intensity;
+	//};
+
+	//struct MaterialBuffer
+	//{
+	//	XMFLOAT3 ambient;
+	//};
+
+
 
     bool SetupDeviceAndSwapChain();
     void SetupRenderTarget();

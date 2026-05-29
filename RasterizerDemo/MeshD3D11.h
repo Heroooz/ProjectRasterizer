@@ -11,6 +11,7 @@
 #include "SimpleVertex.h"
 
 #include "OBJ_Loader.h"
+#include "stb_image.h"
 
 #include <WICTextureLoader.h>
 #include <wrl/client.h>

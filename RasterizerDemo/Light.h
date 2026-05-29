@@ -4,10 +4,8 @@
 
 struct lightStruct
 {
-    DirectX::XMFLOAT4 lightPosition = { 0.0f, 0.5f, -2.0f, 0.0f };
-    DirectX::XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
-    DirectX::XMFLOAT4 cameraPosition = { 0.0f, 0.0f, -2.0f, 1.0f };
+    XMFLOAT4 lightColour = {1.0f, 1.0f, 1.0f, 1.0f};
+    XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
     float lightIntensity = 0.7f;
-    float shininess = 100.0f;
-    char padding[8] = { ' ' };
 };
+    //float shininess = 100.0f;

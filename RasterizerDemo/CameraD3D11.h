@@ -53,6 +53,8 @@ public:
 	const DirectX::XMFLOAT3& GetRight() const;
 	const DirectX::XMFLOAT3& GetUp() const;
 
+
+	void ResetUp();
 	void UpdateInternalConstantBuffer(ID3D11DeviceContext* context);
 	ID3D11Buffer* GetConstantBuffer() const;
 
