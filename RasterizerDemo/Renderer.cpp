@@ -51,6 +51,13 @@ bool Renderer::Initialize() {
     SetupRenderTarget();
     SetupDepthStencil();
     SetupViewport();
+
+	GBuffer rtvGbuffer1(device, window.GetWidth(), window.GetHeight());
+	GBuffer rtvGbuffer2(device, window.GetWidth(), window.GetHeight());
+	rtvArr[0] = rtvGbuffer1.GetRTV();
+	rtvArr[1] = rtvGbuffer2.GetRTV();
+	immediateContext->OMSetRenderTargets(2, rtvArr, dsView);
+
     // End of SetupD3D11
 
     SimpleVertex simpleQuad[] =
