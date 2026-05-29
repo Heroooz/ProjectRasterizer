@@ -166,8 +166,17 @@ void Renderer::Render() {
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
+
+    CameraBuffer camPS = {};
+    camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
+    camPS.cameraPosition = camera.GetPosition();
+    camPS.padding = 0.0f;
+    ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
+
     for (int i = 0; i < 2; i++)
     {
+        
+
 	    // Bind and set pipeline states, then draw
         vertexBuffer = vertexBuffers[i].GetBuffer();
 
@@ -191,9 +200,16 @@ void Renderer::Render() {
 
         // Sending stuff to PS
         immediateContext->PSSetShader(pShader, nullptr, 0);
-        immediateContext->PSSetShaderResources(0, 1, &srv);
+        immediateContext->PSSetShaderResources(1, 1, &srv);
         immediateContext->PSSetSamplers(0, 1, &samplerState);
-        immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
+        pCamera = camBufferPS.GetBuffer();
+        immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
+        immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
+
+        //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
+
+        
 
         immediateContext->OMSetRenderTargets(1, &rtv, dsView);
         immediateContext->Draw(4, 0);
@@ -244,11 +260,13 @@ void Renderer::Render() {
 
 void Renderer::loadObjects()
 {
-    scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 0), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
-    scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
-    
+    //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
+    scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
+    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3(PI, 0, 0), XMFLOAT3(3, 3, 3));
 
 
 
@@ -426,7 +444,7 @@ void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psCon
 {
     lightStruct light;
 	psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
-    psConstantBuffer = psConstantBufferD3D11.GetBuffer();
+    lightPS = psConstantBufferD3D11.GetBuffer();
 }
 
 DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) 
