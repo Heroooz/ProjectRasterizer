@@ -41,6 +41,7 @@ bool Renderer::Initialize() {
     // SetupD3D11
     if (!SetupDeviceAndSwapChain()) {
         std::cerr << "Failed to setup device and swap chain!" << std::endl;
+        throw std::runtime_error("Failed to setup device and swap chain!");
         return false;
     }
     SetupRenderTarget();
@@ -122,8 +123,9 @@ bool Renderer::Initialize() {
 
 
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device, vsShader, psShader, inputLayout, texture, srv, samplerState)) {
+    if (!SetupPipeline(device, vsShader, psShader, csShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
+        throw std::runtime_error("Failed to setup pipeline!");
         return false;
     }
 
@@ -235,7 +237,7 @@ bool Renderer::CreateUnorderedAccessView()
     ID3D11Texture2D* backbuffer = nullptr;
 	if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backbuffer)))) {
 		std::cerr << "Failed to get back buffer for UAV creation!" << std::endl;
-		return -1;
+		return false;
 	}
 
     D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
@@ -247,7 +249,7 @@ bool Renderer::CreateUnorderedAccessView()
 	if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, &uav))) {
         backbuffer->Release();
 		std::cerr << "Failed to create UAV!" << std::endl;
-        return -1;
+        return false;
 	}
 
     backbuffer->Release();

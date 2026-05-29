@@ -2,6 +2,30 @@
 
 ShaderD3D11::~ShaderD3D11()
 {
+	shaderData.clear();
+	switch (this->type)
+	{
+	case ShaderType::VERTEX_SHADER:
+		if (this->shader.vertex != nullptr) { this->shader.vertex->Release(); }
+		break;
+	case ShaderType::HULL_SHADER:
+		if (this->shader.hull != nullptr) { this->shader.hull->Release(); }
+		break;
+	case ShaderType::DOMAIN_SHADER:
+		if (this->shader.domain != nullptr) { this->shader.domain->Release(); }
+		break;
+	case ShaderType::GEOMETRY_SHADER:
+		if (this->shader.geometry != nullptr) { this->shader.geometry->Release(); }
+		break;
+	case ShaderType::PIXEL_SHADER:
+		if (this->shader.pixel != nullptr) { this->shader.pixel->Release(); }
+		break;
+	case ShaderType::COMPUTE_SHADER:
+		if (this->shader.compute != nullptr) { this->shader.compute->Release(); }
+		break;
+	default:
+		break;
+	}
 }
 
 ShaderD3D11::ShaderD3D11(ID3D11Device* device, ShaderType shaderType, const void* dataPtr, size_t dataSize) : type(shaderType)
@@ -57,12 +81,12 @@ void ShaderD3D11::Initialize(ID3D11Device* device, ShaderType shaderType, const 
 void ShaderD3D11::Initialize(ID3D11Device* device, ShaderType shaderType, const char* csoPath)
 {
 	std::ifstream reader;
-	reader.open(csoPath, std::ios::binary | std::ios::ate);
 
+	reader.open(csoPath, std::ios::binary | std::ios::ate);
 	if (!reader.is_open())
 	{
-		std::cerr << "Could not open VS file!" << std::endl;
-		throw std::runtime_error("Could not open VS file!");
+		std::cerr << "Could not open Shader file!" << std::endl;
+		throw std::runtime_error("Could not open Shader file!");
 	}
 
 	reader.seekg(0, std::ios::end);
@@ -72,14 +96,15 @@ void ShaderD3D11::Initialize(ID3D11Device* device, ShaderType shaderType, const 
 	shaderData.assign((std::istreambuf_iterator<char>(reader)),
 		std::istreambuf_iterator<char>());
 
-	Initialize(device, shaderType, shaderData.data(), shaderData.size());
+	Initialize(device, shaderType, shaderData.c_str(), shaderData.length());
 
 	reader.close();
 }
 
-const void* ShaderD3D11::GetShaderByteData() const
+
+const std::string* ShaderD3D11::GetShaderByteData() const
 {
-	return shaderData.data();
+	return &this->shaderData;;
 }
 
 size_t ShaderD3D11::GetShaderByteSize() const

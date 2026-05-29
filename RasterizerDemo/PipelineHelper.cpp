@@ -7,14 +7,18 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, std::string& vShaderByteCode)
+bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, std::string& vShaderByteCode)
 {
-	//std::string shaderData;
-	//std::ifstream reader;
 
 	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
+	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
+	vShaderByteCode = *vShader->GetShaderByteData();
+
+
+	//std::string shaderData;
+	//std::ifstream reader;
 	//reader.open("VertexShader.cso", std::ios::binary | std::ios::ate);
 	//if (!reader.is_open())
 	//{
@@ -29,7 +33,9 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pSha
 	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
 	//	std::istreambuf_iterator<char>());
 	//
-	//if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vShader)))
+	//ID3D11VertexShader* vs;
+
+	//if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vs)))
 	//{
 	//	std::cerr << "Failed to create vertex shader!" << std::endl;
 	//	return false;
@@ -56,7 +62,8 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pSha
 	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
 	//	std::istreambuf_iterator<char>());
 	//
-	//if (FAILED(device->CreatePixelShader(shaderData.c_str(), shaderData.length(), nullptr, &pShader)))
+	//ID3D11PixelShader* ps;
+	//if (FAILED(device->CreatePixelShader(shaderData.c_str(), shaderData.length(), nullptr, &ps)))
 	//{
 	//	std::cerr << "Failed to create pixel shader!" << std::endl;
 	//	return false;
@@ -141,12 +148,12 @@ bool CreateSamplerState(ID3D11Device* device, ID3D11SamplerState*& sampler)
 	return !FAILED(hr);
 }
 
-bool SetupPipeline(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ID3D11InputLayout*& inputLayout,
+bool SetupPipeline(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, ID3D11InputLayout*& inputLayout,
 	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
 {
 
 	std::string vShaderByteCode;
-	if (!LoadShaders(device, vShader, pShader, vShaderByteCode))
+	if (!LoadShaders(device, vShader, pShader, cShader, vShaderByteCode))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;
