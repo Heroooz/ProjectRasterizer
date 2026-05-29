@@ -31,15 +31,14 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 		return;
 	}
 
-	hr = device->CreateShaderResourceView(texture, nullptr, &this->srv);
+	hr = device->CreateShaderResourceView(this->texture, nullptr, &this->srv);
 	if (FAILED(hr))
 	{
 		std::cerr << "Failed to create G-buffer srv" << std::endl;
 		return;
 	}
 
-	ID3D11RenderTargetView* rtv = nullptr;
-	hr = device->CreateRenderTargetView(texture, nullptr, &rtv);
+	hr = device->CreateRenderTargetView(this->texture, nullptr, &this->rtv);
 	if (FAILED(hr))
 	{
 		std::cerr << "Failed to create G-buffer rtv" << std::endl;

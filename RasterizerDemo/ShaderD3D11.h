@@ -1,5 +1,9 @@
 #pragma once
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 #include <d3d11_4.h>
 
 enum class ShaderType
@@ -28,6 +32,7 @@ private:
 		ID3D11ComputeShader* compute;
 	} shader;
 
+	std::string shaderData;
 	ID3DBlob* shaderBlob = nullptr;
 
 public:
@@ -43,7 +48,7 @@ public:
 	void Initialize(ID3D11Device* device, ShaderType shaderType, const void* dataPtr, size_t dataSize);
 	void Initialize(ID3D11Device* device, ShaderType shaderType, const char* csoPath);
 
-	const void* GetShaderByteData() const;
+	const std::string* GetShaderByteData() const;
 	size_t GetShaderByteSize() const;
 
 	void BindShader(ID3D11DeviceContext* context) const;
