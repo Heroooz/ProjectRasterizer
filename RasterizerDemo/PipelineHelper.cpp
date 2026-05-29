@@ -7,15 +7,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, std::string& vShaderByteCode)
+bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader)
 {
 
 	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
 	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
-
-	vShaderByteCode = *vShader->GetShaderByteData();
-
 
 	//std::string shaderData;
 	//std::ifstream reader;
@@ -34,18 +31,14 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pSha
 	//	std::istreambuf_iterator<char>());
 	//
 	//ID3D11VertexShader* vs;
-
 	//if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vs)))
 	//{
 	//	std::cerr << "Failed to create vertex shader!" << std::endl;
 	//	return false;
 	//}
 	//
-	//vShaderByteCode = shaderData;
+	//vsstring = shaderData;
 	//shaderData.clear();
-	//
-	//
-	//
 	//
 	//reader.close();
 	//reader.open("DeferredPS.cso", std::ios::binary | std::ios::ate);
@@ -72,19 +65,28 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pSha
 	return true;
 }
 
-bool CreateInputLayout(ID3D11Device* device, ID3D11InputLayout*& inputLayout, std::string& vShaderByteCode)
+bool CreateInputLayout(ID3D11Device* device, ID3D11DeviceContext* context, InputLayoutD3D11*& inputLayout, ShaderD3D11*& vShader)
 {
-	D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	inputLayout = new InputLayoutD3D11();
 
-	};
+	size_t inputSlot = 0;
+	inputLayout->AddInputElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT, inputSlot);
+	inputSlot += 12;
+	inputLayout->AddInputElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT, inputSlot);
+	inputSlot += 12;
+	inputLayout->AddInputElement("UV", DXGI_FORMAT_R32G32_FLOAT, inputSlot);
 
-	HRESULT hr = device->CreateInputLayout(inputDesc, sizeof(inputDesc) / sizeof(D3D10_INPUT_ELEMENT_DESC), vShaderByteCode.c_str(), vShaderByteCode.size(), &inputLayout);
+	inputLayout->FinalizeInputLayout(device, vShader->GetShaderByteData(), vShader->GetShaderByteSize());
 
-	return !FAILED(hr);
+	//D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
+	//{
+	//	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	//	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	//	{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	//};
+	//HRESULT hr = device->CreateInputLayout(inputDesc, sizeof(inputDesc) / sizeof(D3D10_INPUT_ELEMENT_DESC), vsstring.c_str(), vsstring.size(), &inputLayout);
+	//return !FAILED(hr);
+	return true;
 }
 
 bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int comp, 
@@ -148,18 +150,16 @@ bool CreateSamplerState(ID3D11Device* device, ID3D11SamplerState*& sampler)
 	return !FAILED(hr);
 }
 
-bool SetupPipeline(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, ID3D11InputLayout*& inputLayout,
+bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
 	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler)
 {
-
-	std::string vShaderByteCode;
-	if (!LoadShaders(device, vShader, pShader, cShader, vShaderByteCode))
+	if (!LoadShaders(device, vShader, pShader, cShader))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;
 	}
 	
-	if (!CreateInputLayout(device, inputLayout, vShaderByteCode))
+	if (!CreateInputLayout(device, context, inputLayout, vShader))
 	{
 		std::cerr << "Error creating input layout!" << std::endl;
 		return false;

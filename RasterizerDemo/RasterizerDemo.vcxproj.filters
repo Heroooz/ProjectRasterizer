@@ -109,6 +109,7 @@
     </FxCompile>
     <FxCompile Include="DeferredPS.hlsl" />
     <FxCompile Include="DeferredVS.hlsl" />
+    <FxCompile Include="ComputeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WindowHelper.h">

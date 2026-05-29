@@ -59,7 +59,8 @@ private:
 	ShaderD3D11* csShader;
 	ID3D11VertexShader* vShader;
 	ID3D11PixelShader* pShader;
-	ID3D11InputLayout* inputLayout;
+	//ID3D11InputLayout* inputLayout;
+	InputLayoutD3D11* inputLayout;
 	ID3D11Texture2D* texture;
 	ID3D11Buffer* vsConstantBuffer;
 	ID3D11Buffer* psConstantBuffer;

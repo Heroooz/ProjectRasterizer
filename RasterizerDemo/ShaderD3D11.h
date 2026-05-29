@@ -33,7 +33,7 @@ private:
 	} shader;
 
 	std::string shaderData;
-	ID3DBlob* shaderBlob = nullptr;
+	//ID3DBlob* shaderBlob = nullptr;
 
 public:
 	ShaderD3D11() = default;
@@ -48,7 +48,7 @@ public:
 	void Initialize(ID3D11Device* device, ShaderType shaderType, const void* dataPtr, size_t dataSize);
 	void Initialize(ID3D11Device* device, ShaderType shaderType, const char* csoPath);
 
-	const std::string* GetShaderByteData() const;
+	const void* GetShaderByteData() const;
 	size_t GetShaderByteSize() const;
 
 	void BindShader(ID3D11DeviceContext* context) const;

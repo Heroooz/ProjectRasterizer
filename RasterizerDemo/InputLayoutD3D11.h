@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+
 #include <d3d11_4.h>
 
 class InputLayoutD3D11
@@ -21,7 +22,7 @@ public:
 	InputLayoutD3D11(InputLayoutD3D11&& other) = delete;
 	InputLayoutD3D11& operator=(InputLayoutD3D11&& other) = delete;
 
-	void AddInputElement(const char* semanticName, DXGI_FORMAT format);
+	void AddInputElement(const char* semanticName, DXGI_FORMAT format, size_t inputSlot);
 	void FinalizeInputLayout(ID3D11Device* device, const void* vsDataPtr, size_t vsDataSize);
 
 	ID3D11InputLayout* GetInputLayout() const;
