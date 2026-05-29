@@ -36,8 +36,9 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 	this->worldMatrix.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
 }
 
-void Objects::UpdateObject()
+void Objects::UpdateObject(ID3D11DeviceContext* context)
 {
+	//this->worldMatrix.UpdateBuffer(context, &this.);
 }
 
 void Objects::drawObject(ID3D11DeviceContext* context)

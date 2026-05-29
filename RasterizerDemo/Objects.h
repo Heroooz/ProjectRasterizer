@@ -18,7 +18,7 @@ public:
 
 	void Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
 
-	void UpdateObject();
+	void UpdateObject(ID3D11DeviceContext* context);
 	void drawObject(ID3D11DeviceContext* context);
 
 };

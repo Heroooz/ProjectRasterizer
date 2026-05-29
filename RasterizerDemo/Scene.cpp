@@ -18,12 +18,21 @@ void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const 
 	objects.push_back(obj);
 }
 
-void Scene::AddLight()
+void Scene::AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity)
 {
+	Light* light = new Light(device, color, position, intensity);
+	lights.push_back(light);
 }
+
 
 void Scene::DrawScene(ID3D11DeviceContext* context)
 {
+	for (auto& light : lights)
+	{ 
+		ID3D11Buffer* pLight = light->GetBuffer()->GetBuffer();
+		light->UpdateBuffer(context);
+		context->VSSetConstantBuffers(1, 1, &pLight);
+	}
 	for (auto& obj : objects)
 	{
 		obj->drawObject(context);

@@ -158,6 +158,7 @@
     <ClCompile Include="GBuffer.cpp" />
     <ClCompile Include="IndexBufferD3D11.cpp" />
     <ClCompile Include="InputLayoutD3D11.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MeshD3D11.cpp" />
     <ClCompile Include="Objects.cpp" />

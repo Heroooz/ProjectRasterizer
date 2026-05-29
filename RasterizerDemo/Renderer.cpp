@@ -212,7 +212,7 @@ void Renderer::Render() {
 
         pCamera = camBufferPS.GetBuffer();
         immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
-        immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
+        //immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
 
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
 
@@ -449,9 +449,13 @@ void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
 
 void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) 
 {
-    lightStruct light;
-	psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
-    lightPS = psConstantBufferD3D11.GetBuffer();
+    XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
+    XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
+    float lightIntensity = 0.7f;
+    scene->AddLight(device, lightColour, lightPosition, lightIntensity);
+    //lightStruct light;
+	//psConstantBufferD3D11.Initialize(device, sizeof(lightStruct), &light);
+    //lightPS = psConstantBufferD3D11.GetBuffer();
 }
 
 DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) 
