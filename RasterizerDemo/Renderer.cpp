@@ -269,7 +269,7 @@ void Renderer::loadObjects()
 {
     //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
     //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
     scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
     scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
