@@ -10,7 +10,9 @@
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
-#include "MeshD3D11.h"
+#include "ShaderResourceTextureD3D11.h"
+#include "GBuffer.h"
+//#include "MeshD3D11.h"
 //#include "Objects.h"
 #include "Scene.h"
 
@@ -28,6 +30,8 @@ public:
 	CameraD3D11& GetCamera();
 private:
 
+	const unsigned int NR_OF_GBUFFERS = 2;
+
 	double PI = 3.14159265358979323846;
 
     Window& window;
@@ -38,6 +42,9 @@ private:
 	ID3D11Texture2D* dsTexture;
 	ID3D11DepthStencilView* dsView;
 	D3D11_VIEWPORT viewport;
+
+	ID3D11RenderTargetView* rtvArr[2];
+
 	ID3D11VertexShader* vShader;
 	ID3D11PixelShader* pShader;
 	ID3D11InputLayout* inputLayout;
