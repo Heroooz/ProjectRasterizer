@@ -34,7 +34,7 @@ bool LoadShaders(ID3D11Device* device, ID3D11VertexShader*& vShader, ID3D11Pixel
 	vShaderByteCode = shaderData;
 	shaderData.clear();
 	reader.close();
-	reader.open("PixelShader.cso", std::ios::binary | std::ios::ate);
+	reader.open("DeferredPS.cso", std::ios::binary | std::ios::ate);
 	if (!reader.is_open())
 	{
 		std::cerr << "Could not open PS file!" << std::endl;
