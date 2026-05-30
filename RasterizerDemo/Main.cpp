@@ -4,6 +4,8 @@
 #include "Window.h"
 #include "Renderer.h"
 
+
+
 #define _CRTDBG_MAP_ALLOC // Memory leak detection
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
@@ -16,6 +18,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	Renderer renderer(window);
 	MSG msg = { };
 
+	//float deltatime = renderer.GetDeltaTime();
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 0.003f;
 	float rotationspeed = 0.0005f;

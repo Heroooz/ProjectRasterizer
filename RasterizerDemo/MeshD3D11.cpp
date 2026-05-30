@@ -164,13 +164,11 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
 
 void MeshD3D11::BindMeshBuffers(ID3D11DeviceContext* context) const
 {
-    // Bind vertex buffer
+    // Bind vertex & index buffer
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
     ID3D11Buffer* vb = vertexBuffer.GetBuffer();
     context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-
-    // Bind index buffer
     context->IASetIndexBuffer(this->indexBuffer.GetBuffer(), DXGI_FORMAT_R32_UINT, 0);
 }
 

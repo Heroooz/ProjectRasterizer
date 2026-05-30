@@ -1,10 +1,5 @@
 #include "Objects.h"
 
-Objects::Objects()
-{
-	
-}
-
 Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
 {
 	Initialize(device, folderPath, objFile, position, rotation, scale, SRT);
@@ -27,22 +22,23 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 		RT = XMMatrixMultiply(XMMatrixTranslation(position.x, position.y, position.z), XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z));
 	world = XMMatrixMultiply(world, RT);
 
+	this->worldMatrix = world;
 
 	//XMMATRIX world = XMMatrixScaling(1, 1, 1) * XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(1, 1, 10);
 
 	XMFLOAT4X4 world4x4T;
 	XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
-	this->worldMatrix.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
+	this->worldMatrixBuffer.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
 }
 
-void Objects::UpdateObject(ID3D11DeviceContext* context)
+void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 {
-	//this->worldMatrix.UpdateBuffer(context, &this.);
+
 }
 
 void Objects::drawObject(ID3D11DeviceContext* context)
 {
-	ID3D11Buffer *pMatrix = this->worldMatrix.GetBuffer();
+	ID3D11Buffer *pMatrix = this->worldMatrixBuffer.GetBuffer();
 	context->VSSetConstantBuffers(1, 1, &pMatrix);
 	this->mesh->BindMeshBuffers(context);
 	size_t nrOfSubMeshes = this->mesh->GetNrOfSubMeshes();
