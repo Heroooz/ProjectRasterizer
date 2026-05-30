@@ -8,11 +8,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader)
+bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& defpShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader)
 {
 
 	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
-	pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
+	defpShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
 	//pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "PixelShader.cso");
 	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
@@ -156,10 +156,10 @@ bool CreateSamplerState(ID3D11Device* device, SamplerD3D11*& samplerState)
 	return true;
 }
 
-bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
+bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& deferredPShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
 	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, SamplerD3D11*& samplerState)
 {
-	if (!LoadShaders(device, vShader, pShader, cShader))
+	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;

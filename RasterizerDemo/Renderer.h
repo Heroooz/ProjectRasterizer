@@ -23,11 +23,11 @@
 
 class Renderer {
 public:
-    Renderer(Window& window);
-    ~Renderer();
+	Renderer(Window& window);
+	~Renderer();
 
-    bool Initialize();
-    void Render();
+	bool Initialize();
+	void Render();
 
 	CameraD3D11& GetCamera();
 private:
@@ -36,7 +36,7 @@ private:
 
 	double PI = 3.14159265358979323846;
 
-    Window& window;
+	Window& window;
 	ID3D11Device* device;
 	ID3D11DeviceContext* immediateContext;
 	IDXGISwapChain* swapChain;
@@ -49,7 +49,7 @@ private:
 	//ID3D11UnorderedAccessView* uav;
 
 	ShaderD3D11* vsShader;
-	ShaderD3D11* psShader;
+	ShaderD3D11* psShader[2];
 	ShaderD3D11* csShader;
 	ID3D11VertexShader* vShader;
 	ID3D11PixelShader* pShader;
