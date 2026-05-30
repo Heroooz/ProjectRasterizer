@@ -39,12 +39,10 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         SubMeshD3D11 subMesh;
         size_t startIndex = indices.size();
 
-        ID3D11ShaderResourceView* ambientTextureSRV = nullptr;
-        ID3D11ShaderResourceView* diffuseTextureSRV = nullptr;
-        ID3D11ShaderResourceView* specularTextureSRV = nullptr;
-        ID3D11ShaderResourceView* normalTextureSRV = nullptr;
-        ID3D11ShaderResourceView* bumpTextureSRV = nullptr;
-
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ambientTextureSRV = nullptr;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTextureSRV = nullptr;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV = nullptr;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
         
 
         DirectX::XMFLOAT3 ambientColor, diffuseColor, specularColor;
@@ -100,19 +98,20 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         }
 		specularColor = { mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z };
 		shininess = mesh.MeshMaterial.Ns;
-		//specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f;
+		specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f;
 
+        // Load Normal Texture
         if (!mesh.MeshMaterial.map_bump.empty())
         {
             path = this->filePath + mesh.MeshMaterial.map_bump;
             HRESULT hr = DirectX::CreateWICTextureFromFile(device,
-                std::wstring(path.begin(), path.end()).c_str(), nullptr, &bumpTextureSRV);
+                std::wstring(path.begin(), path.end()).c_str(), nullptr, &normalTextureSRV);
             if (FAILED(hr))
             {
                 std::cerr << "Failed to load bump texture at " << path << "!\n";
                 throw std::runtime_error("Failed to load bump texture!\n");
-
             }
+
         }
 
 		// Adding Vertices to Vertex and Bouding Box buffers
@@ -124,9 +123,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
                 std::array<float, 3>{ vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z },
                 std::array<float, 2>{ vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y }
                 });
-            //vertices.emplace_back(vertex);
             bbVertices.emplace_back(DirectX::XMFLOAT3(vertex.Position.X, vertex.Position.Y, vertex.Position.Z));
-            //bbVertices.push_back({ vertex.Position.X, vertex.Position.Y, vertex.Position.Z });
 		}
 
 		// Adding Indices to Index buffer
@@ -137,7 +134,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         }
         indexOffset += mesh.Vertices.size();
         subMesh.Initialize(device, startIndex, mesh.Indices.size(), 
-            ambientTextureSRV, diffuseTextureSRV, specularTextureSRV, bumpTextureSRV, normalTextureSRV,
+            ambientTextureSRV, diffuseTextureSRV, specularTextureSRV, normalTextureSRV,
             ambientColor, diffuseColor, specularColor, shininess);
 		this->subMeshes.emplace_back(std::move(subMesh));
     }
@@ -257,7 +254,7 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
         texture->Release();
         throw std::runtime_error("Failed to create shader resource view!");
     }
-
+    texture->Release();
 }
 
 //VertexBufferD3D11 MeshD3D11::getVertexBuffer() const

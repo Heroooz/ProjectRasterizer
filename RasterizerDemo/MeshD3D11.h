@@ -16,35 +16,6 @@
 #include <WICTextureLoader.h>
 #include <wrl/client.h>
 
-struct MeshData
-{
-	//struct VertexInfo
-	//{
-	//	size_t sizeOfVertex;
-	//	size_t nrOfVerticesInBuffer;
-	//	void* vertexData;
-	//} vertexInfo;
-
-	//struct IndexInfo
-	//{
-	//	size_t nrOfIndicesInBuffer;
-	//	uint32_t* indexData;
-	//} indexInfo;
-
-	//struct SubMeshInfo
-	//{
-	//	size_t startIndexValue;
-	//	size_t nrOfIndicesInSubMesh;
-	//	ID3D11ShaderResourceView* ambientTextureSRV;
-	//	ID3D11ShaderResourceView* diffuseTextureSRV;
-	//	ID3D11ShaderResourceView* specularTextureSRV;
-
-	//	ID3D11ShaderResourceView* bumpTextureSRV;
-	//};
-
-	//std::vector<SubMeshInfo> subMeshInfo;
-};
-
 class MeshD3D11
 {
 private:

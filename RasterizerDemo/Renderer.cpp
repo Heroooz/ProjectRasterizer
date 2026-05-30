@@ -24,7 +24,8 @@ Renderer::~Renderer() {
 	if (vsConstantBuffer) vsConstantBuffer->Release();
 	//if (inputLayout) inputLayout->Release();
 
-    if (psShader) psShader->~ShaderD3D11();
+    if (psShader[0]) psShader[0]->~ShaderD3D11();
+    if (psShader[1]) psShader[1]->~ShaderD3D11();
     if (vsShader) vsShader->~ShaderD3D11();
     if (csShader) csShader->~ShaderD3D11();
 
@@ -53,7 +54,7 @@ bool Renderer::Initialize() {
         return false;
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device, immediateContext, vsShader, psShader, csShader, inputLayout, texture, srv, samplerState)) {
+    if (!SetupPipeline(device, immediateContext, vsShader, psShader[0], psShader[1], csShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
         return false;
@@ -171,26 +172,29 @@ void Renderer::Render() {
 
 	time.Update(); // Update frame timing
 
-    camera.UpdateInternalConstantBuffer(immediateContext);
-    pCamera = camera.GetConstantBuffer();
     
     ClearBuffers();
     //float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
     //immediateContext->ClearRenderTargetView(rtv, clearColour);
     //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
+
+    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
+
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
 
+    camera.UpdateInternalConstantBuffer(immediateContext);
     CameraBuffer camPS = {};
     camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
     camPS.cameraPosition = camera.GetPosition();
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
+    pCamera = camBufferPS.GetBuffer();
+    immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
 
-
-    GeometryPass();
+    //GeometryPass();
 
 
 
@@ -203,7 +207,6 @@ void Renderer::Render() {
         vertexBuffer = vertexBuffers[i].GetBuffer();
 
         immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-        immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
 
 	    // Sending stuff to VS
 		vsShader->BindShader(immediateContext);
@@ -221,15 +224,14 @@ void Renderer::Render() {
         immediateContext->RSSetViewports(1, &viewport);
 
         // Sending stuff to PS
-        psShader->BindShader(immediateContext);
+        psShader[0]->BindShader(immediateContext);
         //immediateContext->PSSetShader(pShader, nullptr, 0);
-        //immediateContext->PSSetShaderResources(1, 1, &srv); 
+        immediateContext->PSSetShaderResources(1, 1, &srv); 
         
         ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
         immediateContext->PSSetSamplers(0, 1, &pSamplerState);
 
-        pCamera = camBufferPS.GetBuffer();
-        immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
+
         //immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
 
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
@@ -250,9 +252,9 @@ void Renderer::Render() {
 void Renderer::GeometryPass()
 {
     immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
-    //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
-
     immediateContext->PSSetShaderResources(0, 3, srvNULL);
+
+    //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
 	//immediateContext->CSSetShaderResources(0, 3, srvNULL);
 	//immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
  //   //ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -262,12 +264,26 @@ void Renderer::GeometryPass()
 
 void Renderer::LightPass()
 {
+    immediateContext->OMSetRenderTargets(0, nullptr, dsView);
     immediateContext->CSSetShaderResources(0, 3, srvArr);
+    immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+    csShader->BindShader(immediateContext);
+
+    // Dispatching threads to CS
+    UINT dispatchX = (window.GetWidth() + 7) / 8;
+    UINT dispatchY = (window.GetHeight() + 7) / 8;
+    immediateContext->Dispatch(dispatchX, dispatchY, 1);
+
+    // Unbinding
+    immediateContext->CSSetShaderResources(0, 3, srvNULL);
+    immediateContext->CSSetUnorderedAccessViews(0, 1, nullptr, nullptr);
 }
 
 void Renderer::ClearBuffers()
 {
     float clearColor[4] = { 0.7f, 0.4f, 0.5f, 1 };
+
+    immediateContext->ClearRenderTargetView(rtv, clearColor);
 
     for (int i = 0; i < 3; i++)
     {

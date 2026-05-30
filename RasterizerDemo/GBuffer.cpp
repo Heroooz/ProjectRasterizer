@@ -5,13 +5,6 @@ GBuffer::GBuffer(ID3D11Device* device, UINT width, UINT height)
 	Initialize(device, width, height);
 }
 
-GBuffer::~GBuffer()
-{
-	if (this->texture)	this->texture->Release();
-	if (this->srv)		this->srv->Release();
-	if (this->rtv)		this->rtv->Release();
-}
-
 void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 {
 	D3D11_TEXTURE2D_DESC desc = {};
@@ -27,20 +20,20 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
-	HRESULT hr = device->CreateTexture2D(&desc, nullptr, &this->texture);
+	HRESULT hr = device->CreateTexture2D(&desc, nullptr, this->texture.GetAddressOf());
 	if (FAILED(hr))
 	{
 		std::cerr << "Failed to create G-buffer texture" << std::endl;
 		return;
 	}
-	hr = device->CreateShaderResourceView(this->texture, nullptr, &this->srv);
+	hr = device->CreateShaderResourceView(this->texture.Get(), nullptr, this->srv.GetAddressOf());
 	if (FAILED(hr))
 	{
 		std::cerr << "Failed to create G-buffer srv" << std::endl;
 		return;
 	}
 
-	hr = device->CreateRenderTargetView(this->texture, nullptr, &this->rtv);
+	hr = device->CreateRenderTargetView(this->texture.Get(), nullptr, this->rtv.GetAddressOf());
 	if (FAILED(hr))
 	{
 		std::cerr << "Failed to create G-buffer rtv" << std::endl;
@@ -48,8 +41,8 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 	}
 }
 
-ID3D11Texture2D* GBuffer::GetTexture() const { return this->texture; }
+ID3D11Texture2D* GBuffer::GetTexture() const { return this->texture.Get(); }
 
-ID3D11ShaderResourceView* GBuffer::GetSRV() const { return this->srv; }
+ID3D11ShaderResourceView* GBuffer::GetSRV() const { return this->srv.Get(); }
 
-ID3D11RenderTargetView* GBuffer::GetRTV() const { return this->rtv; }
+ID3D11RenderTargetView* GBuffer::GetRTV() const { return this->rtv.Get(); }
