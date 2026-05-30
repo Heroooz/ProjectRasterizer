@@ -33,7 +33,7 @@ Renderer::~Renderer() {
 	if (vShader) vShader->Release();
 	if (dsView) dsView->Release();
 	if (dsTexture) dsTexture->Release();
-	if (rtv) rtv->Release();
+	//if (rtv) rtv->Release();
 	if (swapChain) swapChain->Release();
 	if (immediateContext) immediateContext->Release();
 	if (device) device->Release();
@@ -63,11 +63,25 @@ bool Renderer::Initialize() {
     SetupDepthStencil();
     SetupViewport();
 
-	GBuffer rtvGbuffer1(device, window.GetWidth(), window.GetHeight());
-	GBuffer rtvGbuffer2(device, window.GetWidth(), window.GetHeight());
-	rtvArr[0] = rtvGbuffer1.GetRTV();
-	rtvArr[1] = rtvGbuffer2.GetRTV();
-	immediateContext->OMSetRenderTargets(2, rtvArr, dsView);
+	//GBuffer rtvGbuffer1(device, window.GetWidth(), window.GetHeight());
+	//GBuffer rtvGbuffer2(device, window.GetWidth(), window.GetHeight());
+	//rtvArr[0] = rtvGbuffer1.GetRTV();
+	//rtvArr[1] = rtvGbuffer2.GetRTV();
+	//immediateContext->OMSetRenderTargets(3, this->rtvArr, dsView);
+
+    // G-Buffers
+    this->positionBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
+    this->normalBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
+    this->diffuseBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
+
+    this->rtvArr[0] = this->positionBuffer.GetRTV();
+    this->rtvArr[1] = this->normalBuffer.GetRTV();
+    this->rtvArr[2] = this->diffuseBuffer.GetRTV();
+
+    this->srvArr[0] = this->positionBuffer.GetSRV();
+    this->srvArr[1] = this->normalBuffer.GetSRV();
+    this->srvArr[2] = this->diffuseBuffer.GetSRV();
+
 
 	CreateUnorderedAccessView();
 
@@ -81,7 +95,7 @@ bool Renderer::Initialize() {
         { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
     };
 
-    loadObjects();
+    LoadObjects();
 
 
     D3D11_BUFFER_DESC bufferDesc = {};
@@ -160,10 +174,10 @@ void Renderer::Render() {
     camera.UpdateInternalConstantBuffer(immediateContext);
     pCamera = camera.GetConstantBuffer();
     
-
-    float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
-    immediateContext->ClearRenderTargetView(rtv, clearColour);
-    immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+    ClearBuffers();
+    //float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
+    //immediateContext->ClearRenderTargetView(rtv, clearColour);
+    //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
@@ -176,8 +190,13 @@ void Renderer::Render() {
     ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
 
 
+    GeometryPass();
+
+
+
     //immediateContext->OMSetRenderTargets(0, nullptr, dsView);
 
+    immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     for (int i = 0; i < 2; i++)
     {
 	    // Bind and set pipeline states, then draw
@@ -185,7 +204,6 @@ void Renderer::Render() {
 
         immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
         immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
-        immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	    // Sending stuff to VS
 		vsShader->BindShader(immediateContext);
@@ -205,7 +223,7 @@ void Renderer::Render() {
         // Sending stuff to PS
         psShader->BindShader(immediateContext);
         //immediateContext->PSSetShader(pShader, nullptr, 0);
-        immediateContext->PSSetShaderResources(1, 1, &srv); 
+        //immediateContext->PSSetShaderResources(1, 1, &srv); 
         
         ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
         immediateContext->PSSetSamplers(0, 1, &pSamplerState);
@@ -216,72 +234,51 @@ void Renderer::Render() {
 
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
         
-
         immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+        //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
         immediateContext->Draw(4, 0);
     }
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    scene->DrawScene(immediateContext);
-
-    ComputeShaderPass();
+    scene->DrawObjects(immediateContext);
 
     swapChain->Present(0, 0);
 }
 
-bool Renderer::CreateUnorderedAccessView()
-{
-    ID3D11Texture2D* backbuffer = nullptr;
-	if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backbuffer)))) {
-		std::cerr << "Failed to get back buffer for UAV creation!" << std::endl;
-		return false;
-	}
 
-    D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-    desc.Texture2DArray = { 0, 0, 1 };
-
-
-	if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, &uav))) {
-        backbuffer->Release();
-		std::cerr << "Failed to create UAV!" << std::endl;
-        return false;
-	}
-
-    backbuffer->Release();
-    return true;
-}
-
-void Renderer::loadObjects()
-{
-    //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
-    //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, (float)PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
-    scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3((float)PI, 0, 0), XMFLOAT3(3, 3, 3));
-
-}
 
 void Renderer::GeometryPass()
 {
+    immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
+    //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
+
+    immediateContext->PSSetShaderResources(0, 3, srvNULL);
+	//immediateContext->CSSetShaderResources(0, 3, srvNULL);
+	//immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+ //   //ID3D11ShaderResourceView* nullSRV = nullptr;
+ //   immediateContext->CSSetShaderResources(0, 3, srvNULL);
 
 }
 
-void Renderer::ComputeShaderPass()
+void Renderer::LightPass()
 {
-	immediateContext->CSSetShaderResources(0, 1, &srv);
-	immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
-    ID3D11ShaderResourceView* nullSRV = nullptr;
-    immediateContext->CSSetShaderResources(0, 1, &nullSRV);
+    immediateContext->CSSetShaderResources(0, 3, srvArr);
 }
 
-CameraD3D11& Renderer::GetCamera()
+void Renderer::ClearBuffers()
 {
-    return camera;
+    float clearColor[4] = { 0.7f, 0.4f, 0.5f, 1 };
+
+    for (int i = 0; i < 3; i++)
+    {
+        immediateContext->ClearRenderTargetView(rtvArr[i], clearColor);
+    }
+    immediateContext->ClearUnorderedAccessViewFloat(uav, clearColor);
+    immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
+
+
+
 
 bool Renderer::SetupDeviceAndSwapChain() {
     UINT flags = 0;
@@ -359,6 +356,47 @@ void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psCon
     scene->AddLight(device, lightColour, lightPosition, lightIntensity);
 
 }
+
+bool Renderer::CreateUnorderedAccessView()
+{
+    ID3D11Texture2D* backbuffer = nullptr;
+    if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backbuffer)))) {
+        std::cerr << "Failed to get back buffer for UAV creation!" << std::endl;
+        return false;
+    }
+
+    D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+    desc.Texture2DArray = { 0, 0, 1 };
+
+
+    if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, &uav))) {
+        backbuffer->Release();
+        std::cerr << "Failed to create UAV!" << std::endl;
+        return false;
+    }
+
+    backbuffer->Release();
+    return true;
+}
+
+void Renderer::LoadObjects()
+{
+    //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(0, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, (float)PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
+    scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
+    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3((float)PI, 0, 0), XMFLOAT3(3, 3, 3));
+
+}
+CameraD3D11& Renderer::GetCamera()
+{
+    return camera;
+}
+
 
 DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) 
 {

@@ -1,6 +1,6 @@
 #include "D3D11Helper.h"
 
-bool CreateInterfaces(ID3D11Device*& device, ID3D11DeviceContext*& immediateContext, IDXGISwapChain*& swapChain, UINT width, UINT height, HWND window)
+bool CreateInterfaces(ID3D11Device*& device, ID3D11DeviceContext*& immediateContext, IDXGISwapChain*& swapChain, UINT width, UINT height, Window*& window)
 {
 	UINT flags = 0;
 
@@ -22,7 +22,7 @@ bool CreateInterfaces(ID3D11Device*& device, ID3D11DeviceContext*& immediateCont
 
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 1;
-	swapChainDesc.OutputWindow = window;
+	swapChainDesc.OutputWindow = window->GetHWND();
 	swapChainDesc.Windowed = true;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = 0;
@@ -71,6 +71,8 @@ bool CreateDepthStencil(ID3D11Device* device, UINT width, UINT height, ID3D11Tex
 	}
 
 	HRESULT hr = device->CreateDepthStencilView(dsTexture, 0, &dsView);
+
+	dsTexture->Release();
 	return !(FAILED(hr));
 }
 
@@ -84,7 +86,7 @@ void SetViewport(D3D11_VIEWPORT& viewport, UINT width, UINT height)
 	viewport.MaxDepth = 1;
 }
 
-bool SetupD3D11(UINT width, UINT height, HWND window, ID3D11Device*& device,
+bool SetupD3D11(UINT width, UINT height, Window*& window, ID3D11Device*& device,
 	ID3D11DeviceContext*& immediateContext, IDXGISwapChain*& swapChain, ID3D11RenderTargetView*& rtv,
 	ID3D11Texture2D*& dsTexture, ID3D11DepthStencilView*& dsView, D3D11_VIEWPORT& viewport)
 {

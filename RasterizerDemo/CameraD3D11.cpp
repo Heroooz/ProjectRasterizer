@@ -25,8 +25,6 @@ void CameraD3D11::MoveInDirection(float amount, const XMFLOAT3& direction)
     this->position.x += direction.x * amount;
     this->position.y += direction.y * amount;
     this->position.z += direction.z * amount;
-
-    
 }
 
 void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)

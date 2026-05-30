@@ -7,6 +7,9 @@ GBuffer::GBuffer(ID3D11Device* device, UINT width, UINT height)
 
 GBuffer::~GBuffer()
 {
+	if (this->texture)	this->texture->Release();
+	if (this->srv)		this->srv->Release();
+	if (this->rtv)		this->rtv->Release();
 }
 
 void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
@@ -30,7 +33,6 @@ void GBuffer::Initialize(ID3D11Device* device, UINT width, UINT height)
 		std::cerr << "Failed to create G-buffer texture" << std::endl;
 		return;
 	}
-
 	hr = device->CreateShaderResourceView(this->texture, nullptr, &this->srv);
 	if (FAILED(hr))
 	{

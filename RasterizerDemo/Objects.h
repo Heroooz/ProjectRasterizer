@@ -8,17 +8,18 @@ using namespace DirectX;
 
 class Objects
 {
-	ConstantBufferD3D11 worldMatrix;
+	XMMATRIX worldMatrix;
+	ConstantBufferD3D11 worldMatrixBuffer;
 	MeshD3D11 *mesh;
 
 public:
-	Objects();
+	Objects() = default;
 	Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
 	~Objects();
 
 	void Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
 
-	void UpdateObject(ID3D11DeviceContext* context);
+	void UpdateObject(ID3D11DeviceContext* context, float deltatime);
 	void drawObject(ID3D11DeviceContext* context);
 
 };

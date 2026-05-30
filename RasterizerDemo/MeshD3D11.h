@@ -56,6 +56,8 @@ private:
 	objl::Loader loader;
 	std::string filePath = "objs/";
 
+	void createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv);
+
 public:
 	MeshD3D11() = default;
 	MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName);
@@ -74,7 +76,6 @@ public:
 	ID3D11ShaderResourceView* GetAmbientSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetDiffuseSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetSpecularSRV(size_t subMeshIndex) const;
-	void createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv);
 
 	//VertexBufferD3D11 getVertexBuffer() const;
 	//IndexBufferD3D11 getIndexBuffer() const;

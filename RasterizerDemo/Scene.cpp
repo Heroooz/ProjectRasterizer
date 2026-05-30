@@ -29,14 +29,26 @@ void Scene::AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, fl
 }
 
 
+void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
+{
+}
+
 void Scene::DrawScene(ID3D11DeviceContext* context)
 {
 	for (auto& light : lights)
-	{ 
+	{
 		light->UpdateBuffer(context);
 		ID3D11Buffer* pLight = light->GetBuffer()->GetBuffer();
 		context->PSSetConstantBuffers(1, 1, &pLight);
+		for (auto& obj : objects)
+		{
+			obj->drawObject(context);
+		}
 	}
+}
+
+void Scene::DrawObjects(ID3D11DeviceContext* context)
+{
 	for (auto& obj : objects)
 	{
 		obj->drawObject(context);

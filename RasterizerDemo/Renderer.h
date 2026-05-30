@@ -29,12 +29,6 @@ public:
     bool Initialize();
     void Render();
 
-	bool CreateUnorderedAccessView();
-	void loadObjects();
-
-	void GeometryPass();
-	void ComputeShaderPass();
-
 	CameraD3D11& GetCamera();
 private:
 
@@ -51,8 +45,8 @@ private:
 	ID3D11DepthStencilView* dsView;
 	D3D11_VIEWPORT viewport;
 
-	ID3D11RenderTargetView* rtvArr[2];
-	ID3D11UnorderedAccessView* uav;
+	//ID3D11RenderTargetView* rtvArr[2];
+	//ID3D11UnorderedAccessView* uav;
 
 	ShaderD3D11* vsShader;
 	ShaderD3D11* psShader;
@@ -69,13 +63,22 @@ private:
 	//ID3D11SamplerState* samplerState;
 	ID3D11Buffer* vertexBuffer;
 
+
+	// FOr the quads
 	VertexBufferD3D11 vertexBuffers[10];
 	DirectX::XMMATRIX worldMatrices[10];
 	ConstantBufferD3D11 worldMatriceBuffers[10];
 
-	//std::vector<Objects*> objs;
-	//std::vector<DirectX::XMMATRIX> objsWorldMatrices;
-	//std::vector<ConstantBufferD3D11*> objsWorldMatrixBuffers;
+	// G-Buffers and null-buffers
+	GBuffer positionBuffer;
+	GBuffer normalBuffer;
+	GBuffer diffuseBuffer;
+	ID3D11RenderTargetView* rtvArr[3];
+	ID3D11RenderTargetView* rtvNULL[3] = { nullptr, nullptr, nullptr };;
+	ID3D11ShaderResourceView* srvArr[3];
+	ID3D11ShaderResourceView* srvNULL[3] = { nullptr, nullptr, nullptr };;
+	ID3D11UnorderedAccessView* uav;
+	ID3D11UnorderedAccessView* uavNULL = nullptr;
 
 
 	RenderTargetD3D11 renderTargetD3D11;
@@ -108,30 +111,22 @@ private:
 		float padding;
 	};
 
-	//struct LightBuffer
-	//{
-	//	XMFLOAT4 lightColor;
-	//	XMFLOAT3 lightPosition;
-	//	float intensity;
-	//};
-
-	//struct MaterialBuffer
-	//{
-	//	XMFLOAT3 ambient;
-	//};
-
+	void ClearBuffers();
+	void GeometryPass();
+	void LightPass();
 
 
     bool SetupDeviceAndSwapChain();
     void SetupRenderTarget();
     void SetupDepthStencil();
 	void SetupViewport();
+	bool CreateUnorderedAccessView();
 
 	void CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
 	void CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
 	void CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& lightConstantBuffer);
-};
 
-DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);
-//DirectX::XMMATRIX CreateViewMatrix();
-//DirectX::XMMATRIX CreateProjectionMatrix(const float fovAngle, const float aspectRatio, const float nearZ, const float farZ);
+	void LoadObjects();
+};
+	DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);
+
