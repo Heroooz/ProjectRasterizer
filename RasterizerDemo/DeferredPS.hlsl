@@ -33,7 +33,7 @@ struct PSOutPut
 {
     float4 position : SV_Target0;       // Position + Ambient Factor
     float4 normal   : SV_Target1;       // Normal   + Specualr Factor
-    float4 diffuse    : SV_Target2;     // Diffuse
+    float4 diffuse  : SV_Target2;       // Diffuse
 };
 
 struct PSInput
@@ -41,7 +41,6 @@ struct PSInput
     float4 position : SV_POSITION;
     float4 worldPosition : WORLD_POSITION;
     float3 normal : NORMAL;
-    float3 tangent : TANGENT;
     float2 uv : UV;
 };
 
@@ -50,30 +49,31 @@ static const float layerDepth = 1.0f / 16.9f;
 PSOutPut main(PSInput input)
 {
     // For the objs, UV-y must be flipped :)
-    float2 uv;
-    uv.x = input.uv.x;
-    uv.y = -input.uv.y;
-    
-    float4 position = input.worldPosition;
+    float2 uv = input.uv;
+    uv.y = -uv.y;
+ 
+    // Standard Normal
     float3 normal = normalize(input.normal.xyz);
     
-    float ambient = ambientFactor;
-    if (hasAmbientTexture)
+    float ambient = defAmb * (ambientFactor.x + ambientFactor.y + ambientFactor. z) / 3;
+    if (hasAmbientTexture == 1)
     {
-        ambient *= ambientTexture.Sample(samplerState, uv).x;
+        ambient *= ambientTexture.Sample(samplerState, uv).r;
     }
-    float specular = specularFactor;
-    if (hasSpecularTexture)
+    float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
+    if (hasSpecularTexture == 1)
     {
         specular *= specularTexture.Sample(samplerState, uv);
     }
     
-    float4 diffuse = float4(diffuseTexture.Sample(samplerState, uv));;
+    float4 diffuse = float4(diffuseFactor, 1);
+    if (hasDiffuseTexture == 1)
+        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));;
     
-    float2 samplePoint = uv;;
     
     // Calculating normal map and parallaxing
-    if (hasNormalTexture)
+    float2 samplePoint = uv;
+    if (hasNormalTexture == 1)
     {
         // Calculating the tangent and bitangent of the vertex
         float3 tangent;
@@ -121,22 +121,10 @@ PSOutPut main(PSInput input)
     
     
     PSOutPut output;
-    output.position = float4(input.worldPosition.xyz, ambient);         // Position XYZ + Ambient W
-    output.normal = float4(normal, specular);                           // Normal XYZ + Specular W
-    output.diffuse = float4(diffuseTexture.Sample(samplerState, uv));   // Diffuse
-    
+    output.position = float4(input.worldPosition.xyz, ambient); // Position XYZ + Ambient W
+    output.normal = float4(normal, specular); // Normal XYZ + Specular W
+    output.diffuse = diffuse;
     return output;
-    
-    //float3 lightDirection = normalize(lightPosition.xyz - input.worldPosition.xyz);
-    //float3 viewDirection = normalize(cameraPosition.xyz - input.worldPosition.xyz);
-    //float3 halfVector = normalize(lightDirection + viewDirection);
-    //float4 ambient = float4(ambientFactor, 0) * lightColor * intensity;
-    //float4 diffuse = float4(diffuseFactor, 0) * lightColor * saturate(dot(normal, lightDirection));
-    //float4 specular = float4(specularFactor, 0) * lightColor * pow(saturate(dot(normal, halfVector)), shininess);
-    
-    //float4 ambient = float4(ambientFactor * defAmb, 1) * diffuseTexture.Sample(samplerState, input.uv);
-    //float4 diffuse = float4(diffuseFactor, 1) * diffuseTexture.Sample(samplerState, input.uv);
-    //float4 specular = float4(specularFactor, 1);// * pow(saturate(dot(normal, halfVector)), shininess);
 };
 
 void ComputeTBN(in float3 worldPos, in float3 normal, in float2 uv, out float3 tangent, out float3 bitangent)

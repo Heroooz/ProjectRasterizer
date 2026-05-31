@@ -11,7 +11,7 @@
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
-#include "ShaderResourceTextureD3D11.h"
+//#include "ShaderResourceTextureD3D11.h"
 #include "GBuffer.h"
 #include "Scene.h"
 
@@ -30,6 +30,7 @@ public:
 	void Render();
 
 	CameraD3D11& GetCamera();
+	float GetDeltatime();
 private:
 
 	const unsigned int NR_OF_GBUFFERS = 2;
@@ -124,7 +125,7 @@ private:
 
 	void CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
 	void CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
-	void CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& lightConstantBuffer);
+	void CreatePointLight(ID3D11Device* device);
 
 	void LoadObjects();
 };

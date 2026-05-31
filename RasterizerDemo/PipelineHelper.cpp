@@ -13,7 +13,7 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& defp
 
 	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	defpShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
-	//pShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "PixelShader.cso");
+	//defpShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "PixelShader.cso");
 	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
 	//std::string shaderData;

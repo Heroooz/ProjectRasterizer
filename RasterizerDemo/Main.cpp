@@ -18,10 +18,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	Renderer renderer(window);
 	MSG msg = { };
 
-	//float deltatime = renderer.GetDeltaTime();
+	float deltatime = renderer.GetDeltatime();
+
 	// TEMPORARY SPEED VARIABLE
-	float movespeed = 0.003f;
-	float rotationspeed = 0.0005f;
+	float movespeed = 0.003f * deltatime;
+	float rotationspeed = 0.0005f * deltatime;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);

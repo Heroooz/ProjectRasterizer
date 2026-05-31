@@ -19,10 +19,10 @@ private:
 		float parallax = 0.0f;
 		DirectX::XMFLOAT3 specularFactor;
 		float padding3 = 0.0f;
-		int hasAmbientTexture = false;
-		int hasDiffuseTexture = false;
-		int hasSpecularTexture = false;
-		int hasNormalTexture = false;
+		int hasAmbientTexture = 0;
+		int hasDiffuseTexture = 0;
+		int hasSpecularTexture = 0;
+		int hasNormalTexture = 0;
 	};
 
 	size_t startIndex = 0;

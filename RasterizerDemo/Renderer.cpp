@@ -96,6 +96,25 @@ bool Renderer::Initialize() {
         { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
     };
 
+    struct MaterialBuffer
+    {
+        DirectX::XMFLOAT3 ambientFactor = { 0.5f, 0.5f, 0.5f };
+        float shininess = 100.0f;
+        DirectX::XMFLOAT3 diffuseFactor = { 0.5f, 0.5f, 0.5f };
+        float parallax = 0.0f;
+        DirectX::XMFLOAT3 specularFactor = { 0.2f, 0.2f, 0.2f };
+        float padding3 = 0.0f;
+        int hasAmbientTexture = 0;
+        int hasDiffuseTexture = 1;
+        int hasSpecularTexture = 0;
+        int hasNormalTexture = 0;
+    } quadMaterial;
+    psConstantBufferD3D11.Initialize(device, sizeof(MaterialBuffer), &quadMaterial);
+    psConstantBuffer = psConstantBufferD3D11.GetBuffer();
+    
+    
+
+
     LoadObjects();
 
 
@@ -155,7 +174,7 @@ bool Renderer::Initialize() {
 
 	// Setup constant buffers (for vertex shader and pixel shader)
     CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
-    CreatePointLight(device, psConstantBufferD3D11);
+    CreatePointLight(device);
 
 	// Setup camera (projection info and initialize)
     ProjectionInfo projInfo;
@@ -173,10 +192,10 @@ void Renderer::Render() {
 	time.Update(); // Update frame timing
 
     
-    ClearBuffers();
-    //float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
-    //immediateContext->ClearRenderTargetView(rtv, clearColour);
-    //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+    //ClearBuffers();
+    float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
+    immediateContext->ClearRenderTargetView(rtv, clearColour);
+    immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
 
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
@@ -226,7 +245,8 @@ void Renderer::Render() {
         // Sending stuff to PS
         psShader[0]->BindShader(immediateContext);
         //immediateContext->PSSetShader(pShader, nullptr, 0);
-        immediateContext->PSSetShaderResources(1, 1, &srv); 
+        immediateContext->PSSetShaderResources(1, 1, &srv);
+        immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
         
         ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
         immediateContext->PSSetSamplers(0, 1, &pSamplerState);
@@ -241,6 +261,7 @@ void Renderer::Render() {
         immediateContext->Draw(4, 0);
     }
 
+    
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     scene->DrawObjects(immediateContext);
 
@@ -253,6 +274,8 @@ void Renderer::GeometryPass()
 {
     immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
     immediateContext->PSSetShaderResources(0, 3, srvNULL);
+    
+
 
     //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
 	//immediateContext->CSSetShaderResources(0, 3, srvNULL);
@@ -364,7 +387,7 @@ void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11&
     pWorldMatrix = worldMatrixBuffer.GetBuffer();
 }
 
-void Renderer::CreatePointLight(ID3D11Device* device, ConstantBufferD3D11& psConstantBufferD3D11) 
+void Renderer::CreatePointLight(ID3D11Device* device) 
 {
     XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
     XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
@@ -411,6 +434,12 @@ void Renderer::LoadObjects()
 CameraD3D11& Renderer::GetCamera()
 {
     return camera;
+}
+
+float Renderer::GetDeltatime()
+{
+    this->time.Update();
+    return this->time.GetDeltaTime();
 }
 
 

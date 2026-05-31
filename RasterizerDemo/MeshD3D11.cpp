@@ -80,7 +80,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         }
         else
         {
-            createTexture(device, &diffuseTextureSRV);
+            //createTexture(device, &diffuseTextureSRV);
         }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
 
@@ -214,10 +214,10 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
     channel = 4;
     u_int imageData[4] = 
     {
-        0XFFFFFFFF,     // R
-        0XC9C9C9C9,     // G
-        0XEEEEEEEE,     // B
-        0XFFFFFFFF      // A
+        0X7F7F7F7F,     // R
+        0X7F7F7F7F,     // G
+        0X7F7F7F7F,     // B
+        0XAAAAAAAA// A
     };
 
     // Texture2D Description
