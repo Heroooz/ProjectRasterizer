@@ -10,6 +10,21 @@
 class SubMeshD3D11
 {
 private:
+
+	struct MaterialBuffer
+	{
+		DirectX::XMFLOAT3 ambientFactor;
+		float shininess = 100.0f;
+		DirectX::XMFLOAT3 diffuseFactor;
+		float parallax = 0.0f;
+		DirectX::XMFLOAT3 specularFactor;
+		float padding3 = 0.0f;
+		int hasAmbientTexture = false;
+		int hasDiffuseTexture = false;
+		int hasSpecularTexture = false;
+		int hasNormalTexture = false;
+	};
+
 	size_t startIndex = 0;
 	size_t nrOfIndices = 0;
 
@@ -30,23 +45,12 @@ public:
 
 	void Initialize(ID3D11Device* device, size_t startIndexValue, size_t nrOfIndicesInSubMesh,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ambientTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTextureSRV,
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTexture,
-		DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shinisess);
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV,
+		DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shinisess = 100.0f, float parallax = 0.0f);
 
 	void PerformDrawCall(ID3D11DeviceContext* context) const;
 
 	ID3D11ShaderResourceView* GetAmbientSRV() const;
 	ID3D11ShaderResourceView* GetDiffuseSRV() const;
 	ID3D11ShaderResourceView* GetSpecularSRV() const;
-
-private:
-	struct MaterialBuffer
-	{
-		DirectX::XMFLOAT3 ambientFactor;
-		float shininess;
-		DirectX::XMFLOAT3 diffuseFactor;
-		float padding2 = 0.0f;
-		DirectX::XMFLOAT3 specularFactor;
-		float padding3 = 0.0f;
-	};
 };

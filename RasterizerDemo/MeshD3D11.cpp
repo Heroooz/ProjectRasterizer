@@ -44,10 +44,11 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV = nullptr;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV = nullptr;
         
-
+        float parallax = 0.0f;
         DirectX::XMFLOAT3 ambientColor, diffuseColor, specularColor;
         float shininess = 500.0f;
         float specularIntensity = 1.0f;
+        //float phongExp = 100.0f;
         
         // Loading ambient texture
         if (!mesh.MeshMaterial.map_Ka.empty())
@@ -97,8 +98,8 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             }
         }
 		specularColor = { mesh.MeshMaterial.Ks.X, mesh.MeshMaterial.Ks.Y, mesh.MeshMaterial.Ks.Z };
-		shininess = mesh.MeshMaterial.Ns;
-		specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f;
+		shininess = mesh.MeshMaterial.Ns;                               // Phong Exopnent
+        specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f; // illumination
 
         // Load Normal Texture
         if (!mesh.MeshMaterial.map_bump.empty())
@@ -111,7 +112,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
                 std::cerr << "Failed to load bump texture at " << path << "!\n";
                 throw std::runtime_error("Failed to load bump texture!\n");
             }
-
+            parallax = 0.05f;
         }
 
 		// Adding Vertices to Vertex and Bouding Box buffers
@@ -135,7 +136,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         indexOffset += mesh.Vertices.size();
         subMesh.Initialize(device, startIndex, mesh.Indices.size(), 
             ambientTextureSRV, diffuseTextureSRV, specularTextureSRV, normalTextureSRV,
-            ambientColor, diffuseColor, specularColor, shininess);
+            ambientColor, diffuseColor, specularColor, shininess, parallax);
 		this->subMeshes.emplace_back(std::move(subMesh));
     }
 

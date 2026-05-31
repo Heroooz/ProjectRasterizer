@@ -47,6 +47,7 @@ void ConstantBufferD3D11::Initialize(ID3D11Device* device, size_t byteSize, void
     if (FAILED(hr))
     {
         std::cerr << "Failed to create constant buffer" << std::endl;
+        //throw std::runtime_error("Failed to create constant buffer!");
     }
 }
 
@@ -62,6 +63,8 @@ void ConstantBufferD3D11::UpdateBuffer(ID3D11DeviceContext* context, void* data)
     if (FAILED(hr))
     {
         std::cout << "Failed to map constant buffer" << std::endl;
+        throw std::runtime_error("Failed to map constant buffer!");
+
     }
 
     memcpy(mappedResource.pData, data, this->bufferSize);
