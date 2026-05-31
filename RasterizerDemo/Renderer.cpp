@@ -184,6 +184,18 @@ bool Renderer::Initialize() {
 	projInfo.farZ = 100.0f;
     camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
 
+
+    // Binding To Shaders
+
+    ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
+    immediateContext->PSSetSamplers(0, 1, &pSamplerState);
+    immediateContext->CSSetSamplers(0, 1, &pSamplerState);
+
+
+    pSamplerState->Release();
+
+
+
     return true;
 }
 
@@ -192,7 +204,7 @@ void Renderer::Render() {
 	time.Update(); // Update frame timing
 
     
-    //ClearBuffers();
+    ClearBuffers();
     float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
     immediateContext->ClearRenderTargetView(rtv, clearColour);
     immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
@@ -212,8 +224,9 @@ void Renderer::Render() {
     ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();
     immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
+    immediateContext->CSSetConstantBuffers(0, 1, &pCamera);
 
-    //GeometryPass();
+    GeometryPass();
 
 
 
@@ -247,23 +260,22 @@ void Renderer::Render() {
         //immediateContext->PSSetShader(pShader, nullptr, 0);
         immediateContext->PSSetShaderResources(1, 1, &srv);
         immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
-        
-        ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
-        immediateContext->PSSetSamplers(0, 1, &pSamplerState);
 
 
         //immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
 
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
         
-        immediateContext->OMSetRenderTargets(1, &rtv, dsView);
+        //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
         //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
         immediateContext->Draw(4, 0);
     }
 
-    
+   
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     scene->DrawObjects(immediateContext);
+
+    LightPass();
 
     swapChain->Present(0, 0);
 }
@@ -273,13 +285,29 @@ void Renderer::Render() {
 void Renderer::GeometryPass()
 {
     immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
-    immediateContext->PSSetShaderResources(0, 3, srvNULL);
     
+    psShader[0]->BindShader(immediateContext);
+    immediateContext->PSSetShaderResources(0, 3, srvNULL);
+
+    csShader->BindShader(immediateContext);
+	immediateContext->CSSetShaderResources(0, 3, srvArr);
+	immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+
+    //this->scene->GetnrofLightBuffer();
+
+    ID3D11ShaderResourceView* srvSpotLight = this->scene->GetLightBufferSRV();
+    ID3D11ShaderResourceView* srvDirLight = this->scene->GetLightBufferSRV(true);
+
+    immediateContext->CSSetShaderResources(3, 1, &srvSpotLight);
+    immediateContext->CSSetShaderResources(4, 1, &srvDirLight);
+    
+
+    // Felberäkningar i Blinn-Phong är min bästa gissnign
+    //ID3D11Buffer* nrofLights = this->scene->GetnrofLightBuffer();
+    //immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
 
 
     //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
-	//immediateContext->CSSetShaderResources(0, 3, srvNULL);
-	//immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
  //   //ID3D11ShaderResourceView* nullSRV = nullptr;
  //   immediateContext->CSSetShaderResources(0, 3, srvNULL);
 
@@ -288,18 +316,21 @@ void Renderer::GeometryPass()
 void Renderer::LightPass()
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView);
+    csShader->BindShader(immediateContext);
     immediateContext->CSSetShaderResources(0, 3, srvArr);
     immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
-    csShader->BindShader(immediateContext);
 
     // Dispatching threads to CS
     UINT dispatchX = (window.GetWidth() + 7) / 8;
     UINT dispatchY = (window.GetHeight() + 7) / 8;
     immediateContext->Dispatch(dispatchX, dispatchY, 1);
 
+    scene->DrawScene(immediateContext);
+
+
     // Unbinding
     immediateContext->CSSetShaderResources(0, 3, srvNULL);
-    immediateContext->CSSetUnorderedAccessViews(0, 1, nullptr, nullptr);
+    //immediateContext->CSSetUnorderedAccessViews(0, 1, nullptr, nullptr);
 }
 
 void Renderer::ClearBuffers()
@@ -393,7 +424,10 @@ void Renderer::CreatePointLight(ID3D11Device* device)
     XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
     float lightIntensity = 0.7f;
     scene->AddLight(device, lightColour, lightPosition, lightIntensity);
-
+    scene->AddLight(device, lightColour, {1, 2, 3}, lightIntensity, true, XM_PIDIV2);
+    scene->AddLight(device, lightColour, {-5, 5, 2}, lightIntensity);
+    scene->InitializeLight(device);
+    
 }
 
 bool Renderer::CreateUnorderedAccessView()
@@ -423,12 +457,13 @@ bool Renderer::CreateUnorderedAccessView()
 void Renderer::LoadObjects()
 {
     //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-PI / 2, PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, (float)PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, (float)PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
+    scene->AddObject(device, "Fish/", "AnglerFish", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, XM_PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
     scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3((float)PI, 0, 0), XMFLOAT3(3, 3, 3));
+    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3(XM_PI, 0, 0), XMFLOAT3(3, 3, 3));
 
 }
 CameraD3D11& Renderer::GetCamera()

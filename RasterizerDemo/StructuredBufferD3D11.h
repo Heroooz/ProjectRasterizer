@@ -30,4 +30,5 @@ public:
 	UINT GetElementSize() const;
 	size_t GetNrOfElements() const;
 	ID3D11ShaderResourceView* GetSRV() const;
+	ID3D11Buffer* GetBuffer() const;
 };

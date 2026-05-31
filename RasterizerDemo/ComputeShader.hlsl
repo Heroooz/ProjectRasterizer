@@ -28,10 +28,12 @@ cbuffer CameraBuffer : register(b0)
 };
 
 
-cbuffer NrOfLights : register(b2)
+cbuffer NrOfLights : register(b1)
 {
     int nrofSpotLights;
     int nrofDirLights;
+    int padding1;
+    int padding2;
 };
 
 

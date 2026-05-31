@@ -47,7 +47,7 @@ void ConstantBufferD3D11::Initialize(ID3D11Device* device, size_t byteSize, void
     if (FAILED(hr))
     {
         std::cerr << "Failed to create constant buffer" << std::endl;
-        //throw std::runtime_error("Failed to create constant buffer!");
+        throw std::runtime_error("Failed to create constant buffer!");
     }
 }
 

@@ -44,7 +44,7 @@ struct PSInput
     float2 uv : UV;
 };
 
-static const float defAmb = 0.1;
+static const float defAmb = 0.5;
 static const float layerDepth = 1.0f / 16.9f;
 PSOutPut main(PSInput input)
 {
@@ -115,9 +115,10 @@ PSOutPut main(PSInput input)
         float3 normalMap = normalTexture.Sample(samplerState, samplePoint).rgb * 2.0f - 1.0f;
         float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * input.normal);
         
-        normal = float4(worldNormal, 0);            // Saving normal W for specular
+        normal = float4(worldNormal, 0); // Saving normal W for specular
     }
-    else normal = normalize(float4(input.normal, 0));
+    else
+        normal = normalize(float4(input.normal, 0));
     
     
     PSOutPut output;

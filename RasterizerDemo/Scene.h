@@ -8,8 +8,10 @@
 class Scene
 {
 	std::vector<Objects*> objects;
-	std::vector<Light*> lights;
+	Light spotLights;
+	Light dirLights;
 
+	ConstantBufferD3D11 nrofLights;
 
 public:
 	Scene();
@@ -18,14 +20,22 @@ public:
 	void Initialize();
 
 	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
-	void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
-
+	void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
+	void InitializeLight(ID3D11Device* device);
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
+
 	void DrawScene(ID3D11DeviceContext* context);
 	void DrawObjects(ID3D11DeviceContext* context);
-
+	//void SetNrOfLights(ID3D11Device* device);
 	void RemoveObjectFromScene(int index);
 
-	int getNrOfObjects();
-	int getNrOfLight();
+	ID3D11Buffer* GetnrofLightBuffer();
+
+	ID3D11ShaderResourceView* GetLightBufferSRV(bool isDir = false);
+	ID3D11ShaderResourceView* GetShadowMapSRV(bool isDir = false);
+
+
+	int GetNrOfObjects();
+	int GetNrOfSpotLights();
+	int GetNrOfDirLight();
 };

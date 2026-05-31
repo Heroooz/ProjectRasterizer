@@ -33,7 +33,10 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 
 void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 {
-
+	this->worldMatrix;
+	XMFLOAT4X4 world4x4;
+	XMStoreFloat4x4(&world4x4, this->worldMatrix);
+	this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
 }
 
 void Objects::drawObject(ID3D11DeviceContext* context)
