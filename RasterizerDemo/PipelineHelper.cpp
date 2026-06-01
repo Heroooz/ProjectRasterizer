@@ -93,6 +93,7 @@ bool CreateInputLayout(ID3D11Device* device, ID3D11DeviceContext* context, Input
 
 bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int comp, 
 	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv) {
+	stbi__vertically_flip_on_load = true;
 	unsigned char* textureData = stbi_load(filename, &x, &y, &comp, 4);
 	if (textureData == nullptr) {
 		std::cerr << "Failed to load texture!" << std::endl;

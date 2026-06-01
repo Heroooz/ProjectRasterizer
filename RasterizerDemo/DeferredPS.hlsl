@@ -15,7 +15,7 @@ cbuffer CameraBuffer : register(b0)
 cbuffer MaterialBuffer : register(b1)
 {
     float3 ambientFactor;
-    float shininess;
+    float shininess;        // Phong-Exponent
     float3 diffuseFactor;
     float parallax;
     float3 specularFactor;
@@ -31,9 +31,9 @@ void ComputeTBN(in float3 worldPos, in float3 normal, in float2 uv, out float3 t
 
 struct PSOutPut
 {
-    float4 position : SV_Target0;       // Position + Ambient Factor
-    float4 normal   : SV_Target1;       // Normal   + Specualr Factor
-    float4 diffuse  : SV_Target2;       // Diffuse
+    float4 position : SV_Target0;       // Position (XYZ) + Ambient Factor (W)
+    float4 normal   : SV_Target1;       // Normal (XYZ) + Specualr Factor (W)
+    float4 diffuse  : SV_Target2;       // Diffuse (XYZ)
 };
 
 struct PSInput
@@ -53,7 +53,7 @@ PSOutPut main(PSInput input)
     uv.y = -uv.y;
  
     // Standard Normal
-    float3 normal = normalize(input.normal.xyz);
+    float3 normal = normalize(input.normal);
     
     float ambient = defAmb * (ambientFactor.x + ambientFactor.y + ambientFactor. z) / 3;
     if (hasAmbientTexture == 1)
@@ -63,7 +63,7 @@ PSOutPut main(PSInput input)
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
     if (hasSpecularTexture == 1)
     {
-        specular *= specularTexture.Sample(samplerState, uv);
+        specular *= specularTexture.Sample(samplerState, uv).r;
     }
     
     float4 diffuse = float4(diffuseFactor, 1);
@@ -72,13 +72,13 @@ PSOutPut main(PSInput input)
     
     
     // Calculating normal map and parallaxing
-    float2 samplePoint = uv;
+    float2 sampelingUV = uv;    // UV for parallaxing
     if (hasNormalTexture == 1)
     {
         // Calculating the tangent and bitangent of the vertex
         float3 tangent;
         float3 bitangent;
-        ComputeTBN(input.worldPosition.xyz, normal, uv, tangent, bitangent);
+        ComputeTBN(input.worldPosition.xyz, normal, input.uv, tangent, bitangent);
         
         float3x3 tbn = float3x3(tangent, bitangent, normal);
         
@@ -99,7 +99,7 @@ PSOutPut main(PSInput input)
             current += layerDepth;
             offset += delta;
             
-            heightSample = normalTexture.Sample(samplerState, uv + offset).w;
+            heightSample = normalTexture.Sample(samplerState, uv + offset).a;
             
             // If gone too far, back up
             if (current >= heightSample)
@@ -110,43 +110,42 @@ PSOutPut main(PSInput input)
                 break;
             }
         }
-        samplePoint += offset;
+        sampelingUV += offset;
                 
-        float3 normalMap = normalTexture.Sample(samplerState, samplePoint).rgb * 2.0f - 1.0f;
-        float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * input.normal);
+        float3 normalMap = normalTexture.Sample(samplerState, sampelingUV).rgb * 2.0f - 1.0f;
         
-        normal = float4(worldNormal, 0); // Saving normal W for specular
+        float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * normal);
+        
+        normal = worldNormal; // Saving normal W for specular
     }
-    else
-        normal = normalize(float4(input.normal, 0));
-    
     
     PSOutPut output;
     output.position = float4(input.worldPosition.xyz, ambient); // Position XYZ + Ambient W
     output.normal = float4(normal, specular); // Normal XYZ + Specular W
-    output.diffuse = diffuse;
+    output.diffuse = diffuse; 
     return output;
 };
 
+// Works because only simple meshes are allowed to have normal maps :)
 void ComputeTBN(in float3 worldPos, in float3 normal, in float2 uv, out float3 tangent, out float3 bitangent)
 {
     float3 dpdx = ddx(worldPos);
     float3 dpdy = ddy(worldPos);
     float2 duvdx = ddx(uv);
     float2 duvdy = ddy(uv);
-    
+
     float det = duvdx.x * duvdy.y - duvdx.y * duvdy.x;
     if (abs(det) > 1e-6)
     {
         tangent = normalize((duvdy.y * dpdx - duvdx.y * dpdy) / det);
         bitangent = normalize((-duvdy.x * dpdx + duvdx.x * dpdy) / det);
-        
+
         tangent = normalize(tangent - normal * dot(normal, tangent));
         bitangent = normalize(bitangent - normal * dot(normal, bitangent));
     }
     else
     {
-        float3 up = abs(normal.z < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0));
+        float3 up = (abs(normal.z) < 0.999) ? float3(0, 0, 1) : float3(1, 0, 0);
         tangent = normalize(cross(up, normal));
         bitangent = normalize(cross(normal, tangent));
     }

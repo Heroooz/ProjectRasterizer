@@ -105,14 +105,26 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         if (!mesh.MeshMaterial.map_bump.empty())
         {
             path = this->filePath + mesh.MeshMaterial.map_bump;
-            HRESULT hr = DirectX::CreateWICTextureFromFile(device,
-                std::wstring(path.begin(), path.end()).c_str(), nullptr, &normalTextureSRV);
-            if (FAILED(hr))
+
+            std::string d_path = "";
+
+            // Checking for displacement map
+            if (!mesh.MeshMaterial.map_d.empty())
             {
-                std::cerr << "Failed to load bump texture at " << path << "!\n";
-                throw std::runtime_error("Failed to load bump texture!\n");
+                d_path = this->filePath + mesh.MeshMaterial.map_d;
+                parallax = 0.05f;
             }
-            parallax = 0.05f;
+
+            normalTextureSRV =  createNormalTexture(device, path, d_path);
+
+
+            //HRESULT hr = DirectX::CreateWICTextureFromFile(device,
+            //    std::wstring(path.begin(), path.end()).c_str(), nullptr, &normalTextureSRV);
+            //if (FAILED(hr))
+            //{
+            //    std::cerr << "Failed to load bump texture at " << path << "!\n";
+            //    throw std::runtime_error("Failed to load bump texture!\n");
+            //}
         }
 
 		// Adding Vertices to Vertex and Bouding Box buffers
@@ -256,6 +268,88 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
         throw std::runtime_error("Failed to create shader resource view!");
     }
     texture->Release();
+}
+
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ID3D11Device* device, std::string n_path, std::string d_path)
+{
+    int width, height, channel;
+    stbi_set_flip_vertically_on_load(false);
+    stbi_uc* normData = stbi_load(n_path.c_str(), &width, &height, &channel, 4);
+    if (!normData)
+    {
+        std::cerr << "Failed to load texture!" << std::endl;
+        stbi_image_free(normData);
+        throw std::runtime_error("Failed to normal texture at + " + n_path + "!");
+    }
+
+    if (!d_path.empty())
+    {
+        int dW, dH, dC;
+        stbi_uc* dispData = stbi_load(n_path.c_str(), &dW, &dH, &dC, 1);
+        if (!dispData)
+        {
+            std::cerr << "Failed to load displacement texture!" << std::endl;
+            stbi_image_free(dispData);
+            stbi_image_free(normData);
+            throw std::runtime_error("Failed to displacement texture at + " + d_path + "!");
+        }
+        if (dW != width || dH != height)
+        {
+            stbi_image_free(normData);
+            stbi_image_free(dispData);
+            throw std::runtime_error("Data does not match!");
+        }
+        int nrofPixels = dW * dH;
+        for (int i = 0; i < nrofPixels; i++)
+        {
+            normData[4 * i + 3] = dispData[i];  // normal alfa = displacement
+        }
+        stbi_image_free(dispData);
+    }
+
+    // Texture2D Description
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.Height = height;
+    textureDesc.Width = width;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    // Subresource Data
+    D3D11_SUBRESOURCE_DATA subresourceData = {};
+    subresourceData.pSysMem = normData;
+    subresourceData.SysMemPitch = width * 4;
+
+    // Creating the texture
+    ID3D11Texture2D* texture = nullptr;
+    HRESULT hr = device->CreateTexture2D(&textureDesc, &subresourceData, &texture);
+    if (FAILED(hr))
+    {
+        std::cerr << "Failed to create texture!" << std::endl;
+        stbi_image_free(normData);
+        throw std::runtime_error("Failed to create normal texture view!");
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv = nullptr;
+    // Creating shader resource view
+    hr = device->CreateShaderResourceView(texture, nullptr, &srv);
+    if (FAILED(hr))
+    {
+        std::cerr << "Failed to create shader resource view!" << std::endl;
+        stbi_image_free(normData);
+        texture->Release();
+        throw std::runtime_error("Failed to create shader resource view!");
+    }
+
+    stbi_image_free(normData);
+    texture->Release();
+    return(srv);
 }
 
 //VertexBufferD3D11 MeshD3D11::getVertexBuffer() const

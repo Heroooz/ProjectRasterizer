@@ -24,8 +24,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	renderer.GetScene().UpdateObjects(immediatecontext, deltatime);
 
 	// TEMPORARY SPEED VARIABLE
-	float movespeed = 2.0f;
-	float rotationspeed = 0.5f;
+	float movespeed = 3.0f;
+	float rotationspeed = 1.0f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
