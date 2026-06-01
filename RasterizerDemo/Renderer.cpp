@@ -132,9 +132,9 @@ bool Renderer::Initialize() {
     ID3D11Buffer* buffer = vertexBuffers[0].GetBuffer();
     HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
-    vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
-    buffer = vertexBuffers[1].GetBuffer();
-    hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
+    //vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
+    //buffer = vertexBuffers[1].GetBuffer();
+    //hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
 
     Transform transform1 =
@@ -205,17 +205,21 @@ void Renderer::Render() {
 
     
     ClearBuffers();
-    float clearColour[4] = { 0.7f, 0.4f, 0.5f, 1 };
-    immediateContext->ClearRenderTargetView(rtv, clearColour);
-    immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+    //float clearColour[4] = { 0.1f, 0.4f, 0.5f, 1 };
+    //immediateContext->ClearRenderTargetView(rtv, clearColour);
+    //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+
 
 
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
-
     UINT stride = sizeof(SimpleVertex);
     UINT offset = 0;
 
+    immediateContext->RSSetViewports(1, &viewport);
+	vsShader->BindShader(immediateContext);
+    psShader[0]->BindShader(immediateContext);
 
+    // Binding camera to VS, PS, CS
     camera.UpdateInternalConstantBuffer(immediateContext);
     CameraBuffer camPS = {};
     camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
@@ -223,6 +227,7 @@ void Renderer::Render() {
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();
+    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
     immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
     immediateContext->CSSetConstantBuffers(0, 1, &pCamera);
 
@@ -232,43 +237,30 @@ void Renderer::Render() {
 
     //immediateContext->OMSetRenderTargets(0, nullptr, dsView);
 
+    // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
     immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    vertexBuffer = vertexBuffers[0].GetBuffer();
+    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    immediateContext->PSSetShaderResources(1, 1, &srv);
+    immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
     for (int i = 0; i < 2; i++)
     {
 	    // Bind and set pipeline states, then draw
-        vertexBuffer = vertexBuffers[i].GetBuffer();
-
-        immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-
 	    // Sending stuff to VS
-		vsShader->BindShader(immediateContext);
         //immediateContext->VSSetShader(vShader, nullptr, 0);
-        immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-
-
         XMFLOAT4X4 worldMatrixT;
         DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[i]));
         worldMatriceBuffers[i].UpdateBuffer(immediateContext, &worldMatrixT);
         pWorldMatrix = worldMatriceBuffers[i].GetBuffer();
-        
-    
+
         immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
-        immediateContext->RSSetViewports(1, &viewport);
-
+        immediateContext->Draw(4, 0);
         // Sending stuff to PS
-        psShader[0]->BindShader(immediateContext);
         //immediateContext->PSSetShader(pShader, nullptr, 0);
-        immediateContext->PSSetShaderResources(1, 1, &srv);
-        immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
-
-
         //immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
-
         //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
-        
         //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
         //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
-        immediateContext->Draw(4, 0);
     }
 
    
@@ -335,7 +327,7 @@ void Renderer::LightPass()
 
 void Renderer::ClearBuffers()
 {
-    float clearColor[4] = { 0.7f, 0.4f, 0.5f, 1 };
+    float clearColor[4] = { 0.1f, 0.5f, 0.7f, 1.0f };
 
     immediateContext->ClearRenderTargetView(rtv, clearColor);
 
@@ -460,11 +452,23 @@ void Renderer::LoadObjects()
     //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, (float)PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
     //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
-    scene->AddObject(device, "Fish/", "AnglerFish", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, XM_PI / 2, 0), XMFLOAT3(0.5, 0.5, 0.5));
+
     scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
     scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3(XM_PI, 0, 0), XMFLOAT3(3, 3, 3));
 
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(0, 0.5, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(0, 0.5, -2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, XM_PIDIV2, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-2, 0.5, 0), XMFLOAT3(0, -XM_PIDIV2, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(1.4, 0.5, 1.4), XMFLOAT3(0, XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(1.4, 0.5, -1.4), XMFLOAT3(0, 3 * XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-1.4, 0.5, 1.4), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-1.4, 0.5, -1.4), XMFLOAT3(0, -3 * XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
+
+    scene->AddObject(device, "Fish/", "AnglerFish", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
+    scene->AddObject(device, "Fish/", "Clownfish", { -5,1,-2 }, { 0, -3 * XM_PIDIV4,0 }, { 0.5f,0.5f,0.5f });
+
+    scene->AddObject(device, "Windmill/", "low-poly-mill", { 15,0,20 }, { 0,-XM_PIDIV2,0 }, { 0.1,0.1,0.1 });
 }
 CameraD3D11& Renderer::GetCamera()
 {
