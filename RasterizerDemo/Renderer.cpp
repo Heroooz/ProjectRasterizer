@@ -185,6 +185,7 @@ bool Renderer::Initialize() {
 
 
     pSamplerState->Release();
+    buffer->Release();
 
 
 
@@ -272,29 +273,6 @@ void Renderer::GeometryPass()
     
     psShader[0]->BindShader(immediateContext);
     immediateContext->PSSetShaderResources(0, 3, srvNULL);
-
-    csShader->BindShader(immediateContext);
-	immediateContext->CSSetShaderResources(0, 3, srvArr);
-	immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
-
-    //this->scene->GetnrofLightBuffer();
-
-    ID3D11ShaderResourceView* srvSpotLight = this->scene->GetLightBufferSRV();
-    ID3D11ShaderResourceView* srvDirLight = this->scene->GetLightBufferSRV(true);
-
-    immediateContext->CSSetShaderResources(3, 1, &srvSpotLight);
-    immediateContext->CSSetShaderResources(4, 1, &srvDirLight);
-    
-
-    // Felberäkningar i Blinn-Phong är min bästa gissnign
-    //ID3D11Buffer* nrofLights = this->scene->GetnrofLightBuffer();
-    //immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
-
-
-    //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
- //   //ID3D11ShaderResourceView* nullSRV = nullptr;
- //   immediateContext->CSSetShaderResources(0, 3, srvNULL);
-
 }
 
 void Renderer::LightPass()
@@ -304,22 +282,30 @@ void Renderer::LightPass()
     immediateContext->CSSetShaderResources(0, 3, srvArr);
     immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
 
+    ID3D11ShaderResourceView* srvSpotLight = this->scene->GetLightBufferSRV();
+    ID3D11ShaderResourceView* srvDirLight = this->scene->GetLightBufferSRV(true);
+
+    immediateContext->CSSetShaderResources(3, 1, &srvSpotLight);
+    immediateContext->CSSetShaderResources(4, 1, &srvDirLight);
+
+    // Felberäkningar i Blinn-Phong är min bästa gissnign
+    ID3D11Buffer* nrofLights = this->scene->GetnrofLightBuffer();
+    immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
+
     // Dispatching threads to CS
     UINT dispatchX = (window.GetWidth() + 7) / 8;
     UINT dispatchY = (window.GetHeight() + 7) / 8;
     immediateContext->Dispatch(dispatchX, dispatchY, 1);
 
-    scene->DrawScene(immediateContext);
-
 
     // Unbinding
     immediateContext->CSSetShaderResources(0, 3, srvNULL);
-    //immediateContext->CSSetUnorderedAccessViews(0, 1, nullptr, nullptr);
+    immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
 }
 
 void Renderer::ClearBuffers()
 {
-    float clearColor[4] = { 0.1f, 0.5f, 0.7f, 1.0f };
+    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     immediateContext->ClearRenderTargetView(rtv, clearColor);
 
@@ -471,10 +457,10 @@ void Renderer::LoadObjects()
     scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
 
-    scene->AddObject(device, "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    scene->AddObject(device, "Fish/", "Clownfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
+    //scene->AddObject(device, "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    //scene->AddObject(device, "Fish/", "Clownfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
-    scene->AddObject(device, "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    //scene->AddObject(device, "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
 }
 ID3D11DeviceContext*& Renderer::GetContext()
 {
