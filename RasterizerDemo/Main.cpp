@@ -19,6 +19,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	MSG msg = { };
 
 	float deltatime = renderer.GetDeltatime();
+	ID3D11DeviceContext* immediatecontext= renderer.GetContext();
+
+	renderer.GetScene().UpdateObjects(immediatecontext, deltatime);
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 0.003f * deltatime;

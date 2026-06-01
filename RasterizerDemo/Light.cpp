@@ -1,7 +1,7 @@
 #include "Light.h"
 
 
-void Light::Initialize(ID3D11Device* device, const LightData& lightInfo, bool isDir)
+void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 {
 	CameraD3D11* lightCam = new CameraD3D11();
 	ProjectionInfo projInfo = {};

@@ -16,25 +16,18 @@ Scene::~Scene()
 	this->objects.clear();
 }
 
-void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
+void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
 {
-	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, SRT);
+	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
 	objects.push_back(obj);
 }
 
-void Scene::AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir, float angle)
-{
-	LightData data = {};
-	data.perLightInfo.initialPosition = position;
-	data.perLightInfo.color = color;
-	data.perLightInfo.intensity = intensity;
-	data.perLightInfo.angle = angle;
-	data.perLightInfo.isDir = isDir;
-	
+void Scene::AddLight(ID3D11Device* device, LightData data)
+{	
 	Light light;
-	light.Initialize(device, data, isDir);
-	if (isDir) dirLights.Initialize(device, data, isDir);
-	else spotLights.Initialize(device, data, isDir);
+	light.Initialize(device, data);
+	if (data.perLightInfo.isDir) dirLights.Initialize(device, data);
+	else spotLights.Initialize(device, data);
 }
 
 void Scene::InitializeLight(ID3D11Device* device)

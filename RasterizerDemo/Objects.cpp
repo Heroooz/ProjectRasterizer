@@ -1,8 +1,8 @@
 #include "Objects.h"
 
-Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
+Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
 {
-	Initialize(device, folderPath, objFile, position, rotation, scale, SRT);
+	Initialize(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
 }
 
 Objects::~Objects()
@@ -10,7 +10,7 @@ Objects::~Objects()
 	if (this->mesh) { delete this->mesh; }
 }
 
-void Objects::Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT)
+void Objects::Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
 {
 	this->mesh = new MeshD3D11(device, folderPath, objFile);
 
@@ -23,6 +23,12 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 	world = XMMatrixMultiply(world, RT);
 
 	this->worldMatrix = world;
+	if (!isStatic)
+	{
+		this->isStatic = false;
+		this->updateInf = { position, rotation, scale, angle };
+
+	}
 
 	//XMMATRIX world = XMMatrixScaling(1, 1, 1) * XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(1, 1, 10);
 
@@ -33,10 +39,21 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 
 void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 {
-	this->worldMatrix;
-	XMFLOAT4X4 world4x4;
-	XMStoreFloat4x4(&world4x4, this->worldMatrix);
-	this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
+	//if (!isStatic)
+	//{
+	//	this->updateInf.angle += 0.5f * deltatime;
+	//	XMVECTOR scale = XMLoadFloat3(&this->updateInf.scale);
+	//	XMVECTOR rotate = XMLoadFloat3(&this->updateInf.rotate);
+	//	XMVectorScale(rotate, this->updateInf.angle);
+	//	XMVECTOR translate = XMLoadFloat3(&this->updateInf.translate);
+	//	XMMATRIX world =
+	//		XMMatrixTranslationFromVector(translate) *
+	//		XMMatrixRotationRollPitchYawFromVector(rotate);
+	//XMFLOAT4X4 world4x4;
+	//XMStoreFloat4x4(&world4x4, world);
+	//this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
+
+	//}
 }
 
 void Objects::drawObject(ID3D11DeviceContext* context)

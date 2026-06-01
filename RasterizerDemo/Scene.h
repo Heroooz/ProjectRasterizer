@@ -19,8 +19,9 @@ public:
 
 	void Initialize();
 
-	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
-	void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
+	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic = true, float angle = 1.0f, bool SRT = true);
+	//void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
+	void AddLight(ID3D11Device* device, LightData data);
 	void InitializeLight(ID3D11Device* device);
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
 

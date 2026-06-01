@@ -64,12 +64,6 @@ bool Renderer::Initialize() {
     SetupDepthStencil();
     SetupViewport();
 
-	//GBuffer rtvGbuffer1(device, window.GetWidth(), window.GetHeight());
-	//GBuffer rtvGbuffer2(device, window.GetWidth(), window.GetHeight());
-	//rtvArr[0] = rtvGbuffer1.GetRTV();
-	//rtvArr[1] = rtvGbuffer2.GetRTV();
-	//immediateContext->OMSetRenderTargets(3, this->rtvArr, dsView);
-
     // G-Buffers
     this->positionBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
     this->normalBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
@@ -88,6 +82,8 @@ bool Renderer::Initialize() {
 
     // End of SetupD3D11
 
+
+    // Creating Quad
     SimpleVertex simpleQuad[] =
     {
         { {-1.0f, 1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
@@ -111,13 +107,7 @@ bool Renderer::Initialize() {
     } quadMaterial;
     psConstantBufferD3D11.Initialize(device, sizeof(MaterialBuffer), &quadMaterial);
     psConstantBuffer = psConstantBufferD3D11.GetBuffer();
-    
-    
-
-
-    LoadObjects();
-
-
+   
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.Usage = D3D11_USAGE_DEFAULT;
     bufferDesc.ByteWidth = sizeof(float) * 4;
@@ -132,7 +122,7 @@ bool Renderer::Initialize() {
     ID3D11Buffer* buffer = vertexBuffers[0].GetBuffer();
     HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
-    //vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
+    //vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad); // Can have same vb
     //buffer = vertexBuffers[1].GetBuffer();
     //hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
@@ -150,13 +140,13 @@ bool Renderer::Initialize() {
         { 1, 1, 1}
     };
 
-    worldMatrices[0] = 
-        XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]) * 
-        XMMatrixRotationRollPitchYaw(transform1.rotation[0], transform1.rotation[1], transform1.rotation[2]) * 
-        XMMatrixScaling(transform1.scale[0], transform1.scale[1], transform1.scale[2]);
+    worldMatrices[0] =
+        XMMatrixScaling(transform1.scale[0], transform1.scale[1], transform1.scale[2]) *
+        XMMatrixRotationRollPitchYaw(transform1.rotation[0], transform1.rotation[1], transform1.rotation[2]) *
+        XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]);
     worldMatrices[1] =
-        XMMatrixRotationRollPitchYaw(transform2.rotation[0], transform2.rotation[1], transform2.rotation[2]) *
         XMMatrixScaling(transform2.scale[0], transform2.scale[1], transform2.scale[2]) *
+        XMMatrixRotationRollPitchYaw(transform2.rotation[0], transform2.rotation[1], transform2.rotation[2]) *
         XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]);
 
     DirectX::XMFLOAT4X4 worldTransform;
@@ -173,8 +163,7 @@ bool Renderer::Initialize() {
 
 
 	// Setup constant buffers (for vertex shader and pixel shader)
-    CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
-    CreatePointLight(device);
+    //CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
 
 	// Setup camera (projection info and initialize)
     ProjectionInfo projInfo;
@@ -184,9 +173,12 @@ bool Renderer::Initialize() {
 	projInfo.farZ = 100.0f;
     camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
 
+    // Creating the Scene (w objs and light)
+    LoadObjects();
+    CreateLights(device);
 
-    // Binding To Shaders
 
+    // Binding The Sampler To The Shaders
     ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
     immediateContext->PSSetSamplers(0, 1, &pSamplerState);
     immediateContext->CSSetSamplers(0, 1, &pSamplerState);
@@ -395,31 +387,45 @@ void Renderer::SetupViewport() {
     immediateContext->RSSetViewports(1, &viewport);
 }
 
-void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
-	vertexBufferD3D11.Initialize(device, sizeof(SimpleVertex), nrOfVertices, vertexData);
-	vertexBuffer = vertexBufferD3D11.GetBuffer();
-}
+//void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
+//	vertexBufferD3D11.Initialize(device, sizeof(SimpleVertex), nrOfVertices, vertexData);
+//	vertexBuffer = vertexBufferD3D11.GetBuffer();
+//}
 
-void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
+//void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
+//{
+//    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
+//    DirectX::XMFLOAT4X4 worldMatrixTransposed;
+//    DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
+//
+//    worldMatrixBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
+//    pWorldMatrix = worldMatrixBuffer.GetBuffer();
+//}
+
+void Renderer::CreateLights(ID3D11Device* device) 
 {
-    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
-    DirectX::XMFLOAT4X4 worldMatrixTransposed;
-    DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
+    LightData data1 = {};
+    data1.perLightInfo.initialPosition = { 1.0f, 1.0f, 1.0f };
+    data1.perLightInfo.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    data1.perLightInfo.intensity = 0.7f;
+    data1.perLightInfo.angle = 1.0f;
 
-    worldMatrixBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
-    pWorldMatrix = worldMatrixBuffer.GetBuffer();
-}
+    LightData data2 = {};
+    data2.perLightInfo.initialPosition = { 0.0f, 0.5f, -2.0 };
+    data2.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
+    data2.perLightInfo.intensity = 0.7f;
+    data2.perLightInfo.angle = 1.0f;
+    data2.perLightInfo.isDir = true;
 
-void Renderer::CreatePointLight(ID3D11Device* device) 
-{
     XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
     XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
     float lightIntensity = 0.7f;
-    scene->AddLight(device, lightColour, lightPosition, lightIntensity);
-    scene->AddLight(device, lightColour, {1, 2, 3}, lightIntensity, true, XM_PIDIV2);
-    scene->AddLight(device, lightColour, {-5, 5, 2}, lightIntensity);
-    scene->InitializeLight(device);
     
+
+    scene->AddLight(device, data1);
+    scene->AddLight(device, data2);
+
+    scene->InitializeLight(device);
 }
 
 bool Renderer::CreateUnorderedAccessView()
@@ -453,26 +459,35 @@ void Renderer::LoadObjects()
     //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene->AddObject(device, "Fountain/", "fountain", XMFLOAT3(0, 0, 0), XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "Circle/", "circle", XMFLOAT3(0, 0.5, 0), XMFLOAT3(XM_PI, 0, 0), XMFLOAT3(3, 3, 3));
+    scene->AddObject(device, "Fountain/", "fountain", { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 });
+    scene->AddObject(device, "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
 
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(0, 0.5, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(0, 0.5, -2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(2, 0.5, 0), XMFLOAT3(0, XM_PIDIV2, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-2, 0.5, 0), XMFLOAT3(0, -XM_PIDIV2, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(1.4, 0.5, 1.4), XMFLOAT3(0, XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(1.4, 0.5, -1.4), XMFLOAT3(0, 3 * XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-1.4, 0.5, 1.4), XMFLOAT3(0, -XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
-    scene->AddObject(device, "Duck/", "rubberduckie", XMFLOAT3(-1.4, 0.5, -1.4), XMFLOAT3(0, -3 * XM_PIDIV4, 0), XMFLOAT3(0.2, 0.2, 0.2));
+    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.5f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.5f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 2.0f, 0.5f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -2.0f, 0.5f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.5f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.5f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
 
-    scene->AddObject(device, "Fish/", "AnglerFish", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, XM_PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    scene->AddObject(device, "Fish/", "Clownfish", { -5,1,-2 }, { 0, -3 * XM_PIDIV4,0 }, { 0.5f,0.5f,0.5f });
+    scene->AddObject(device, "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    scene->AddObject(device, "Fish/", "Clownfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
-    scene->AddObject(device, "Windmill/", "low-poly-mill", { 15,0,20 }, { 0,-XM_PIDIV2,0 }, { 0.1,0.1,0.1 });
+    scene->AddObject(device, "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+}
+ID3D11DeviceContext*& Renderer::GetContext()
+{
+    return this->immediateContext;
 }
 CameraD3D11& Renderer::GetCamera()
 {
-    return camera;
+    return this->camera;
+}
+
+Scene& Renderer::GetScene()
+{
+    return *this->scene;
 }
 
 float Renderer::GetDeltatime()

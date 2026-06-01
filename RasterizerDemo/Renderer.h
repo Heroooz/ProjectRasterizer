@@ -29,7 +29,9 @@ public:
 	bool Initialize();
 	void Render();
 
+	ID3D11DeviceContext*& GetContext();
 	CameraD3D11& GetCamera();
+	Scene& GetScene();
 	float GetDeltatime();
 private:
 
@@ -125,8 +127,8 @@ private:
 
 	void CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
 	void CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
-	void CreatePointLight(ID3D11Device* device);
 
+	void CreateLights(ID3D11Device* device);
 	void LoadObjects();
 };
 	DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);

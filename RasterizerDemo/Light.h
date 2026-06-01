@@ -77,7 +77,7 @@ public:
 	Light(Light&& other) = delete;
 	Light& operator=(DepthBufferD3D11&& other) = delete;
 
-	void Initialize(ID3D11Device* device, const LightData& lightInfo, bool isDir = false);
+	void Initialize(ID3D11Device* device, const LightData& lightInfo);
 	void InitializeBuffers(ID3D11Device* device);
     //void InitiaLightlize(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
     void UpdateBuffers(ID3D11DeviceContext* context);

@@ -6,18 +6,28 @@
 
 using namespace DirectX;
 
+struct UpdateInfo
+{
+	XMFLOAT3 translate;
+	XMFLOAT3 rotate;
+	XMFLOAT3 scale;
+	float angle = 0.0f;
+};
+
 class Objects
 {
 	XMMATRIX worldMatrix;
 	ConstantBufferD3D11 worldMatrixBuffer;
 	MeshD3D11 *mesh;
+	bool isStatic = true;
+	UpdateInfo updateInf;
 
 public:
 	Objects() = default;
-	Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
+	Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT);
 	~Objects();
 
-	void Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool SRT = true);
+	void Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT);
 
 	void UpdateObject(ID3D11DeviceContext* context, float deltatime);
 	void drawObject(ID3D11DeviceContext* context);
