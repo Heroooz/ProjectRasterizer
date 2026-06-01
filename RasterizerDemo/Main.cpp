@@ -24,8 +24,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	renderer.GetScene().UpdateObjects(immediatecontext, deltatime);
 
 	// TEMPORARY SPEED VARIABLE
-	float movespeed = 0.003f * deltatime;
-	float rotationspeed = 0.0005f * deltatime;
+	float movespeed = 2.0f;
+	float rotationspeed = 0.5f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
@@ -46,40 +46,42 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			DispatchMessage(&msg);
 		}
 
+		deltatime = renderer.GetDeltatime();
+
 		if (GetKeyState('W') & 0x8000) {
-			renderer.GetCamera().MoveForward(movespeed);
+			renderer.GetCamera().MoveForward(movespeed * deltatime);
 		}
 		if (GetKeyState('S') & 0x8000) {
-			renderer.GetCamera().MoveForward(-movespeed);
+			renderer.GetCamera().MoveForward(-movespeed * deltatime);
 		}
 		if (GetKeyState('A') & 0x8000) {
-			renderer.GetCamera().MoveRight(-movespeed);
+			renderer.GetCamera().MoveRight(-movespeed * deltatime);
 		}
 		if (GetKeyState('D') & 0x8000) {
-			renderer.GetCamera().MoveRight(movespeed);
+			renderer.GetCamera().MoveRight(movespeed * deltatime);
 		}
 		if (GetKeyState(VK_SPACE) & 0x8000) {
-			renderer.GetCamera().MoveUp(movespeed);
+			renderer.GetCamera().MoveUp(movespeed * deltatime);
 		}
 		if (GetKeyState(VK_CONTROL) & 0x8000) {
-			renderer.GetCamera().MoveUp(-movespeed);
+			renderer.GetCamera().MoveUp(-movespeed * deltatime);
 		}
 
 		if (GetKeyState(VK_UP) & 0x8000) 
 		{
-			renderer.GetCamera().RotateRight(-rotationspeed);
+			renderer.GetCamera().RotateRight(-rotationspeed * deltatime);
 		}
 		if (GetKeyState(VK_DOWN) & 0x8000)
 		{
-			renderer.GetCamera().RotateRight(rotationspeed);
+			renderer.GetCamera().RotateRight(rotationspeed * deltatime);
 		}
 		if (GetKeyState(VK_LEFT) & 0x8000)
 		{
-			renderer.GetCamera().RotateUp(-rotationspeed);
+			renderer.GetCamera().RotateUp(-rotationspeed * deltatime);
 		}
 		if (GetKeyState(VK_RIGHT) & 0x8000)
 		{
-			renderer.GetCamera().RotateUp(rotationspeed);
+			renderer.GetCamera().RotateUp(rotationspeed * deltatime);
 		}
 		if (GetKeyState('R') & 0x8000)
 		{
