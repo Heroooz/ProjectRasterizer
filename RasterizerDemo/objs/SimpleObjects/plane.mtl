@@ -8,3 +8,7 @@ Kd 0.8 0.8 0.8
 Ks 0.8 0.8 0.8
 d 1
 illum 2
+map_Ka BrickWall29_1K_AO.png
+map_Kd BrickWall29_1K_BaseColor.png
+map_bump BrickWall29_1K_Normal.png
+map_d BrickWall29_1K_Height.png

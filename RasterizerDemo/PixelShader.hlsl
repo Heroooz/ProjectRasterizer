@@ -4,7 +4,6 @@ Texture2D ambientTexture : register(t0);
 Texture2D diffuseTexture : register(t1);
 Texture2D specularTexture : register(t2);
 Texture2D normalTexture : register(t3);
-//Texture2D bumpTexture       : register(t3);
 
 cbuffer CameraBuffer : register(b0)
 {
@@ -67,7 +66,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
     {
         ambient *= ambientTexture.Sample(samplerState, uv).x;
     }
-    float specular = specularFactor * shininess * diffuseTexture.Sample(samplerState, uv).xyz;
+    float specular = specularFactor * diffuseTexture.Sample(samplerState, uv).xyz;
     if (hasSpecularTexture == 1)
     {
         specular *= specularTexture.Sample(samplerState, uv);

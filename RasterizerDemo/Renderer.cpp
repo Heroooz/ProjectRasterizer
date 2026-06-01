@@ -236,7 +236,7 @@ void Renderer::Render() {
     immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     immediateContext->PSSetShaderResources(1, 1, &srv);
     immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 0; i++)
     {
 	    // Bind and set pipeline states, then draw
 	    // Sending stuff to VS
@@ -301,6 +301,11 @@ void Renderer::LightPass()
     // Unbinding
     immediateContext->CSSetShaderResources(0, 3, srvNULL);
     immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
+
+    srvSpotLight->Release();
+    srvDirLight->Release();
+    nrofLights->Release();
+    
 }
 
 void Renderer::ClearBuffers()
@@ -391,22 +396,17 @@ void Renderer::SetupViewport() {
 void Renderer::CreateLights(ID3D11Device* device) 
 {
     LightData data1 = {};
-    data1.perLightInfo.initialPosition = { 1.0f, 1.0f, 1.0f };
-    data1.perLightInfo.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    data1.perLightInfo.initialPosition = { 3.0f, 20.0f, -2.5f };
+    data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
     data1.perLightInfo.intensity = 0.7f;
-    data1.perLightInfo.angle = 1.0f;
+    data1.perLightInfo.angle = XM_PI;
 
     LightData data2 = {};
-    data2.perLightInfo.initialPosition = { 0.0f, 0.5f, -2.0 };
-    data2.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
+    data2.perLightInfo.initialPosition = { 0.2f, 5.0f, -10.0f };
+    data2.perLightInfo.color = { 0.0f,1.0f,0.0f,1.0f };
     data2.perLightInfo.intensity = 0.7f;
-    data2.perLightInfo.angle = 1.0f;
+    data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
-
-    XMFLOAT4 lightColour = { 1.0f, 1.0f, 1.0f, 1.0f };
-    XMFLOAT3 lightPosition = { 0.0f, 0.5f, -2.0f };
-    float lightIntensity = 0.7f;
-    
 
     scene->AddLight(device, data1);
     scene->AddLight(device, data2);
@@ -441,24 +441,27 @@ bool Renderer::CreateUnorderedAccessView()
 void Renderer::LoadObjects()
 {
     //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    //scene->AddObject(device, "Eye/", "eyeball", XMFLOAT3(-5, 2, 2), XMFLOAT3(0, (float)PI, 0), XMFLOAT3(0.7f, 0.7f, 0.7f));
-    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 20), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    scene->AddObject(device, "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
+    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene->AddObject(device, "Fountain/", "fountain", { 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 });
+    scene->AddObject(device, "Torch/", "torch", { 0.2f, 5.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
+
+    scene->AddObject(device, "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene->AddObject(device, "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
 
-    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.5f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.5f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 2.0f, 0.5f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -2.0f, 0.5f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.5f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.5f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.5f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+
 
     //scene->AddObject(device, "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    //scene->AddObject(device, "Fish/", "Clownfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
+    //scene->AddObject(device, "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
     //scene->AddObject(device, "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
 }

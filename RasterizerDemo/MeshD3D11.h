@@ -28,6 +28,7 @@ private:
 	std::string filePath = "objs/";
 
 	void createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv);
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> createNormalTexture(ID3D11Device* device, std::string n_path, std::string d_path);
 
 public:
 	MeshD3D11() = default;
