@@ -44,7 +44,7 @@ struct PSInput
     float2 uv : UV;
 };
 
-static const float defAmb = 0.5;
+static const float defAmb = 1.0f;
 static const float layerDepth = 1.0f / 16.9f;
 PSOutPut main(PSInput input)
 {

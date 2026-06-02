@@ -23,7 +23,9 @@ bool Renderer::Initialize() {
         return false;
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, inputLayout, texture, srv, samplerState)) {
+    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader,
+                    inputLayout, texture, srv, samplerState)) 
+    {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
         return false;
@@ -152,6 +154,8 @@ bool Renderer::Initialize() {
     immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
     immediateContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
+    //D3D11_FILL_WIREFRAME;
+
     return true;
 }
 
@@ -188,9 +192,6 @@ void Renderer::Render() {
     immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
     GeometryPass();
-
-
-
     //immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
@@ -219,9 +220,23 @@ void Renderer::Render() {
         //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
     }
 
-   
-    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    scene->DrawObjects(immediateContext.Get());
+
+    if (ShouldTesselate)
+    {
+        hullShader->BindShader(immediateContext.Get());
+        domainShader->BindShader(immediateContext.Get());
+
+        
+        immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+        immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+    }
+    else
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+    scene->DrawObjects(immediateContext.Get(), ShouldTesselate);
 
     LightPass();
 
@@ -384,23 +399,29 @@ bool Renderer::CreateUnorderedAccessView()
 void Renderer::LoadObjects()
 {
     //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
+    //scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
     scene->AddObject(device.Get(), "Torch/", "torch", { 0.2f, 5.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
+    scene->AddObject(device.Get(), "FarmAnimals/", "armadillo", { -5.0f, 2.0f, 7.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene->AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    scene->AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
 
-    scene->AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
-    scene->AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
 
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+
+    //scene->AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
+    //scene->AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
+
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 1.0f, 1.0f, 1.0f }, false);
 
 
     //scene->AddObject(device.Get(), "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });

@@ -4,7 +4,7 @@
 #include "Objects.h"
 #include "Light.h"
 #include "DCEM.h"
-
+#include "ShaderD3D11.h"
 
 class Scene
 {
@@ -29,7 +29,7 @@ public:
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
 
 	void DrawScene(ID3D11DeviceContext* context);
-	void DrawObjects(ID3D11DeviceContext* context);
+	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
 	void DrawDCEM(ID3D11DeviceContext* context);
 	//void SetNrOfLights(ID3D11Device* device);
 	void RemoveObjectFromScene(int index);
