@@ -19,7 +19,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	MSG msg = { };
 
 	float deltatime = renderer.GetDeltatime();
-	ID3D11DeviceContext* immediatecontext= renderer.GetContext();
+	ComPtr<ID3D11DeviceContext> immediatecontext = renderer.GetContext();
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 3.0f;
@@ -35,6 +35,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	POINT lastMousePos = center;
 	float sensitivity = 0.01f; // Adjust after prefrence
+
+	Scene* scene = renderer.GetScene();
 
 	while (!(GetKeyState(VK_ESCAPE) & 0x8000) && msg.message != WM_QUIT)
 	{
@@ -86,6 +88,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			renderer.GetCamera().ResetUp();
 		}
 
+		// Update scene (objects and lights)
+		scene->UpdateObjects(immediatecontext.Get(), deltatime);
+
 
 		// Mouse panning-movement
 		//POINT currentPos;
@@ -101,6 +106,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		renderer.Render();
 	}
+
+	scene->~Scene();
 
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtDumpMemoryLeaks();

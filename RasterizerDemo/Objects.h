@@ -12,6 +12,7 @@ struct UpdateInfo
 	XMFLOAT3 rotate = { 0,0,0 };
 	XMFLOAT3 scale{ 1,1,1 };
 	float angle = 0.0f;
+	float orbitPhase = 0.0f;
 };
 
 class Objects

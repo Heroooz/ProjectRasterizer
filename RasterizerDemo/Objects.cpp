@@ -39,25 +39,34 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 	XMFLOAT4X4 world4x4T;
 	XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
 	this->worldMatrixBuffer.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
+
+
+	this->updateInf.orbitPhase = atan2(this->updateInf.translate.x, this->updateInf.translate.z);
 }
 
 void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 {
-	//if (!isStatic)
-	//{
-	//	this->updateInf.angle += 0.5f * deltatime;
-	//	XMVECTOR scale = XMLoadFloat3(&this->updateInf.scale);
-	//	XMVECTOR rotate = XMLoadFloat3(&this->updateInf.rotate);
-	//	XMVectorScale(rotate, this->updateInf.angle);
-	//	XMVECTOR translate = XMLoadFloat3(&this->updateInf.translate);
-	//	XMMATRIX world =
-	//		XMMatrixTranslationFromVector(translate) *
-	//		XMMatrixRotationRollPitchYawFromVector(rotate);
-	//XMFLOAT4X4 world4x4;
-	//XMStoreFloat4x4(&world4x4, world);
-	//this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
+	if (!isStatic)
+	{
+		this->updateInf.angle += 0.3f * deltatime;
+		this->updateInf.angle = fmod(this->updateInf.angle, XM_2PI);
 
-	//}
+		this->updateInf.translate.x = 2 * sin(this->updateInf.angle + this->updateInf.orbitPhase);
+		this->updateInf.translate.z = 2 * cos(this->updateInf.angle + this->updateInf.orbitPhase);
+		this->updateInf.translate.y = 0.1f * sin(this->updateInf.angle * 1.5f) + 0.4f;
+
+ 		XMVECTOR scale = XMLoadFloat3(&this->updateInf.scale);
+		XMFLOAT3 rotate = this->updateInf.rotate;
+		rotate.y += updateInf.angle;
+		
+		XMMATRIX world =
+			XMMatrixScalingFromVector(scale) *
+			XMMatrixRotationRollPitchYaw(rotate.x, rotate.y, rotate.z) *
+			XMMatrixTranslation(this->updateInf.translate.x, this->updateInf.translate.y, this->updateInf.translate.z);
+		XMFLOAT4X4 world4x4;
+		XMStoreFloat4x4(&world4x4, XMMatrixTranspose(world));
+		this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
+	}
 }
 
 void Objects::drawObject(ID3D11DeviceContext* context)

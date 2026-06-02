@@ -31,14 +31,9 @@ public:
 
 	ID3D11DeviceContext* GetContext();
 	CameraD3D11& GetCamera();
-	Scene& GetScene();
+	Scene* GetScene();
 	float GetDeltatime();
 private:
-
-	const unsigned int NR_OF_GBUFFERS = 2;
-
-	double PI = 3.14159265358979323846;
-
 	Window& window;
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> immediateContext;
@@ -119,11 +114,6 @@ private:
 	void SetupViewport();
 	bool CreateUnorderedAccessView();
 
-	void CreateVertexBuffer(ComPtr<ID3D11Device> device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
-	void CreateVSConstantBuffer(ComPtr<ID3D11Device> device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
-
 	void CreateLights(ComPtr<ID3D11Device> device);
 	void LoadObjects();
 };
-	DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);
-

@@ -336,21 +336,6 @@ void Renderer::SetupViewport() {
     immediateContext->RSSetViewports(1, &viewport);
 }
 
-//void Renderer::CreateVertexBuffer(ComPtr<ID3D11Device> device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
-//	vertexBufferD3D11.Initialize(device.Get(), sizeof(SimpleVertex), nrOfVertices, vertexData);
-//	vertexBuffer = vertexBufferD3D11.GetBuffer();
-//}
-
-//void Renderer::CreateVSConstantBuffer(ComPtr<ID3D11Device> device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
-//{
-//    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
-//    DirectX::XMFLOAT4X4 worldMatrixTransposed;
-//    DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
-//
-//    worldMatrixBuffer.Initialize(device.Get(), sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
-//    pWorldMatrix = worldMatrixBuffer.GetBuffer();
-//}
-
 void Renderer::CreateLights(ComPtr<ID3D11Device> device) 
 {
     LightData data1 = {};
@@ -432,21 +417,13 @@ CameraD3D11& Renderer::GetCamera()
     return this->camera;
 }
 
-Scene& Renderer::GetScene()
+Scene* Renderer::GetScene()
 {
-    return *this->scene;
+    return this->scene.get();
 }
 
 float Renderer::GetDeltatime()
 {
     this->time.Update();
     return this->time.GetDeltaTime();
-}
-
-
-DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale) 
-{
-    DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslation(position.x, position.y, position.z);
-    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation.x);
-    return DirectX::XMMatrixMultiply(translationMatrix, rotationMatrix);
 }
