@@ -1,5 +1,9 @@
 #include "SubMeshD3D11.h"
 
+SubMeshD3D11::~SubMeshD3D11()
+{
+}
+
 void SubMeshD3D11::Initialize(ID3D11Device* device, size_t startIndexValue, size_t nrOfIndicesInSubMesh,
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ambientTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTextureSRV,
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV,

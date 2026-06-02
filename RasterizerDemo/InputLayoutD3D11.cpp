@@ -4,7 +4,7 @@ InputLayoutD3D11::~InputLayoutD3D11()
 { 
 	if (this->inputLayout)
 	{
-		this->inputLayout->Release(); 
+		inputLayout->Release();
 		this->inputLayout = nullptr;
 	}
 }
