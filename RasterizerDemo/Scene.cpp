@@ -10,10 +10,10 @@ Scene::~Scene()
 	{
 		if (object != nullptr)
 		{
-			object->~Objects();
+			delete object;
+			object = nullptr;
 		}
 	}
-	this->objects.clear();
 }
 
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)

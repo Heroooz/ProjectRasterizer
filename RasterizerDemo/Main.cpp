@@ -1,3 +1,4 @@
+#define _CRTDBG_MAP_ALLOC // Memory leak detection
 #include <Windows.h>
 #include <iostream>
 
@@ -5,8 +6,7 @@
 #include "Renderer.h"
 
 
-
-#define _CRTDBG_MAP_ALLOC // Memory leak detection
+//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	_In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
@@ -20,8 +20,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	float deltatime = renderer.GetDeltatime();
 	ID3D11DeviceContext* immediatecontext= renderer.GetContext();
-
-	renderer.GetScene().UpdateObjects(immediatecontext, deltatime);
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 3.0f;

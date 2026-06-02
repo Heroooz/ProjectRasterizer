@@ -3,10 +3,10 @@
 using namespace DirectX;
 
 Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
-                                     dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), vertexBuffer(nullptr), 
+                                     dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), pvertexBuffer(nullptr), 
                                      vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
                                      renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
-                                     vertexBufferD3D11(), camera(), rotation(0.0f) {
+                                     camera(), rotation(0.0f) {
 
     if (!Renderer::Initialize()) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -16,33 +16,50 @@ Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateC
 
 Renderer::~Renderer() {
 	//if (samplerState) samplerState->Release();
-    if (samplerState) samplerState->~SamplerD3D11();
-	if (srv) srv->Release();
-	if (texture) texture->Release();
-	if (vertexBuffer) vertexBuffer->Release();
-	if (psConstantBuffer) psConstantBuffer->Release();
-	if (vsConstantBuffer) vsConstantBuffer->Release();
-	//if (inputLayout) inputLayout->Release();
+    if (pvertexBuffer) { pvertexBuffer->Release(); pvertexBuffer = nullptr; }
+    //if (samplerState) samplerState->~SamplerD3D11();
+    if (samplerState) { delete samplerState; samplerState = nullptr; }
+    if (srv) { srv->Release(); srv = nullptr; }
+    if (psConstantBuffer) { psConstantBuffer->Release(); psConstantBuffer = nullptr; }
+    if (vsConstantBuffer) { vsConstantBuffer->Release(); vsConstantBuffer = nullptr; }
+    if (texture) { texture->Release(); texture = nullptr; }
 
-    if (psShader[0]) psShader[0]->~ShaderD3D11();
-    if (psShader[1]) psShader[1]->~ShaderD3D11();
-    if (vsShader) vsShader->~ShaderD3D11();
-    if (csShader) csShader->~ShaderD3D11();
-
-    if (inputLayout) inputLayout->~InputLayoutD3D11();
+    //if (inputLayout) inputLayout->~InputLayoutD3D11();
+    if (inputLayout) delete inputLayout;
 	if (pShader) pShader->Release();
 	if (vShader) vShader->Release();
-	if (dsView) dsView->Release();
-	if (dsTexture) dsTexture->Release();
-	//if (rtv) rtv->Release();
-	if (swapChain) swapChain->Release();
-	if (immediateContext) immediateContext->Release();
-	if (device) device->Release();
-    
 
-    if (scene) scene->~Scene();
-    if (pCamera) pCamera->Release();
-    if (pWorldMatrix) pWorldMatrix->Release();
+
+    if (csShader) { delete csShader; csShader = nullptr; }
+    if (psShader[0]) { delete psShader[0]; psShader[0] = nullptr; }
+    if (psShader[1]) { delete psShader[1]; psShader[1] = nullptr; }
+    if (vsShader) { delete vsShader; }
+
+    // Orsakar krasher för VertexBufferD3D11? AHhh G-Buffer?
+    //for (int i = 0; i < 3; i++)
+    //{
+    //    //if (rtvArr[i]) rtvArr[i]->Release();
+    //    //if (srvArr[i]) srvArr[i]->Release();
+    //}
+    //if (uav) uav->Release();
+
+
+
+    // DO NOT DELETE!
+    //if (pWorldMatrix) pWorldMatrix->Release();
+    //if (pCamera) pCamera->Release();
+    //if (lightPS) lightPS->Release();
+
+
+
+    if (dsView) { dsView->Release(); dsView = nullptr; }
+    if (dsTexture) { dsTexture->Release(); dsTexture = nullptr; }
+    if (swapChain) { swapChain->Release(); swapChain = nullptr; }
+    if (immediateContext) immediateContext->Release(); { immediateContext = nullptr; }
+    if (device) { device->Release(); device = nullptr; }
+    
+    if (scene) { delete scene; scene = nullptr; }
+
 }
 
 bool Renderer::Initialize() {
@@ -118,8 +135,8 @@ bool Renderer::Initialize() {
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = simpleQuad;
 
-    vertexBuffers[0].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
-    ID3D11Buffer* buffer = vertexBuffers[0].GetBuffer();
+    vertexBuffer.Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
+    ID3D11Buffer* buffer = vertexBuffer.GetBuffer();
     HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
     //vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad); // Can have same vb
@@ -232,8 +249,8 @@ void Renderer::Render() {
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
     immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    vertexBuffer = vertexBuffers[0].GetBuffer();
-    immediateContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    pvertexBuffer = vertexBuffer.GetBuffer();
+    immediateContext->IASetVertexBuffers(0, 1, &pvertexBuffer, &stride, &offset);
     immediateContext->PSSetShaderResources(1, 1, &srv);
     immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
     for (int i = 0; i < 0; i++)
@@ -301,11 +318,6 @@ void Renderer::LightPass()
     // Unbinding
     immediateContext->CSSetShaderResources(0, 3, srvNULL);
     immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
-
-    srvSpotLight->Release();
-    srvDirLight->Release();
-    nrofLights->Release();
-    
 }
 
 void Renderer::ClearBuffers()

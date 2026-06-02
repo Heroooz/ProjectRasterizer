@@ -71,7 +71,7 @@ class Light
 public:
 	Light() = default;
 	//Light(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
-	~Light() = default;
+	~Light();
 	Light(const Light& other) = delete;
 	Light& operator=(const Light& other) = delete;
 	Light(Light&& other) = delete;

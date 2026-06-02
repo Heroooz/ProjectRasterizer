@@ -6,6 +6,18 @@ MeshD3D11::MeshD3D11(ID3D11Device* device, const std::string& path, const std::s
     Initialize(device, path, objName);
 }
 
+MeshD3D11::~MeshD3D11()
+{
+    //for (auto& submesh : subMeshes)
+    //{
+    //    if (submesh)
+    //    {
+    //        delete submesh;
+    //        submesh = nullptr;
+    //    }
+    //}
+}
+
 void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, const std::string& objName)
 {
     this->filePath += folderPath;

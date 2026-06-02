@@ -79,9 +79,9 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     }
     
     // Light Calculations for Directional Lights
-    for (int i = 0; i < nrofDirLights; i++ )
+    for (int j = 0; j < nrofDirLights; j++ )
     {
-        LightBuffer dirlight = DirLights[i];
+        LightBuffer dirlight = DirLights[j];
         
         float3 L = normalize(dirlight.direction.xyz);
         float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);

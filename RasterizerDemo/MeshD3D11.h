@@ -33,7 +33,7 @@ private:
 public:
 	MeshD3D11() = default;
 	MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName);
-	~MeshD3D11() = default;
+	~MeshD3D11();
 	MeshD3D11(const MeshD3D11 & other) = delete;
 	MeshD3D11& operator=(const MeshD3D11 & other) = delete;
 	MeshD3D11(MeshD3D11 && other) = delete;

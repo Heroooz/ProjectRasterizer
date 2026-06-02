@@ -8,9 +8,9 @@ using namespace DirectX;
 
 struct UpdateInfo
 {
-	XMFLOAT3 translate;
-	XMFLOAT3 rotate;
-	XMFLOAT3 scale;
+	XMFLOAT3 translate = { 0,0,0 };
+	XMFLOAT3 rotate = { 0,0,0 };
+	XMFLOAT3 scale{ 1,1,1 };
 	float angle = 0.0f;
 };
 

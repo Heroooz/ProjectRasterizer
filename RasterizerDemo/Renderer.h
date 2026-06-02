@@ -64,13 +64,13 @@ private:
 	ID3D11ShaderResourceView* srv;
 	SamplerD3D11* samplerState;
 	//ID3D11SamplerState* samplerState;
-	ID3D11Buffer* vertexBuffer;
+	ID3D11Buffer* pvertexBuffer;
 
 
 	// FOr the quads
-	VertexBufferD3D11 vertexBuffers[10];
-	DirectX::XMMATRIX worldMatrices[10];
-	ConstantBufferD3D11 worldMatriceBuffers[10];
+	VertexBufferD3D11 vertexBuffer;
+	DirectX::XMMATRIX worldMatrices[2];
+	ConstantBufferD3D11 worldMatriceBuffers[2];
 
 	// G-Buffers and null-buffers
 	GBuffer positionBuffer;
@@ -88,7 +88,7 @@ private:
 	DepthBufferD3D11 depthBufferD3D11;
 	ConstantBufferD3D11 vsConstantBufferD3D11;
 	ConstantBufferD3D11 psConstantBufferD3D11;
-	VertexBufferD3D11 vertexBufferD3D11;
+	//VertexBufferD3D11 vertexBufferD3D11;
 
 	CameraD3D11 camera;
 	Scene *scene = new Scene();
