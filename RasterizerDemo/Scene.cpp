@@ -16,10 +16,18 @@ Scene::~Scene()
 	}
 }
 
+void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, bool isSkyBox)
+{
+	DCEM* dcem = new DCEM(device, position);
+	dcems.push_back(dcem);
+}
+
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
 {
-	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
-	objects.push_back(obj);
+	//Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
+	//objects.push_back(obj);
+	objects.push_back(new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT));
+
 }
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
@@ -50,6 +58,8 @@ void Scene::InitializeLight(ID3D11Device* device)
 
 void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 {
+	for (auto dcem : dcems)
+		dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
 }
@@ -60,9 +70,18 @@ void Scene::DrawScene(ID3D11DeviceContext* context)
 
 void Scene::DrawObjects(ID3D11DeviceContext* context)
 {
-	for (auto& obj : objects)
+	int nrof = this->GetNrOfObjects();
+	for (int i = 0; i < nrof; ++i)
 	{
-		obj->drawObject(context);
+		objects[i]->drawObject(context);
+	}
+}
+
+void Scene::DrawDCEM(ID3D11DeviceContext* context)
+{
+	for (auto& dcem : dcems)
+	{
+		dcem->Draw(context);
 	}
 }
 
