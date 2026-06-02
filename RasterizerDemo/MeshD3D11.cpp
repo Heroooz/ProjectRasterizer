@@ -6,24 +6,13 @@ MeshD3D11::MeshD3D11(ID3D11Device* device, const std::string& path, const std::s
     Initialize(device, path, objName);
 }
 
-MeshD3D11::~MeshD3D11()
-{
-    //for (auto& submesh : subMeshes)
-    //{
-    //    if (submesh)
-    //    {
-    //        delete submesh;
-    //        submesh = nullptr;
-    //    }
-    //}
-}
-
 void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, const std::string& objName)
 {
     this->filePath += folderPath;
 
     std::string path = this->filePath + objName + ".obj";
 
+    objl::Loader loader;
     if (!loader.LoadFile(path))
     {
         std::cerr << "Failed to load OBJ at " << path << "!\n";
@@ -231,7 +220,7 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
     return nullptr;
 }
 
-void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv)
+void MeshD3D11::createTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv)
 {
     int width, height, channel;
     width = height = 2;
@@ -264,8 +253,8 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
     subresourceData.SysMemPitch = width * 4;
 
     // Creating the texture
-    ID3D11Texture2D* texture = nullptr;
-    if (FAILED(device->CreateTexture2D(&textureDesc, &subresourceData, &texture)))
+    ComPtr<ID3D11Texture2D> texture = nullptr;
+    if (FAILED(device->CreateTexture2D(&textureDesc, &subresourceData, texture.GetAddressOf())))
     {
         std::cerr << "Failed to create texture!" << std::endl;
         texture->Release();
@@ -273,7 +262,7 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
     }
 
     // Creating shader resource view
-    if (FAILED(device->CreateShaderResourceView(texture, nullptr, srv)))
+    if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
     {
         std::cerr << "Failed to create shader resource view!" << std::endl;
         texture->Release();
@@ -282,7 +271,7 @@ void MeshD3D11::createTexture(ID3D11Device* device, ID3D11ShaderResourceView** s
     texture->Release();
 }
 
-Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ID3D11Device* device, std::string n_path, std::string d_path)
+ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path)
 {
     int width, height, channel;
     stbi_set_flip_vertically_on_load(false);
@@ -339,8 +328,8 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(
     subresourceData.SysMemPitch = width * 4;
 
     // Creating the texture
-    ID3D11Texture2D* texture = nullptr;
-    HRESULT hr = device->CreateTexture2D(&textureDesc, &subresourceData, &texture);
+    ComPtr<ID3D11Texture2D> texture = nullptr;
+    HRESULT hr = device->CreateTexture2D(&textureDesc, &subresourceData, texture.GetAddressOf());
     if (FAILED(hr))
     {
         std::cerr << "Failed to create texture!" << std::endl;
@@ -350,7 +339,7 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv = nullptr;
     // Creating shader resource view
-    hr = device->CreateShaderResourceView(texture, nullptr, &srv);
+    hr = device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf());
     if (FAILED(hr))
     {
         std::cerr << "Failed to create shader resource view!" << std::endl;

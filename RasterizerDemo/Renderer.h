@@ -24,12 +24,12 @@
 class Renderer {
 public:
 	Renderer(Window& window);
-	~Renderer();
+	~Renderer() = default;
 
 	bool Initialize();
 	void Render();
 
-	ID3D11DeviceContext*& GetContext();
+	ID3D11DeviceContext* GetContext();
 	CameraD3D11& GetCamera();
 	Scene& GetScene();
 	float GetDeltatime();
@@ -40,34 +40,28 @@ private:
 	double PI = 3.14159265358979323846;
 
 	Window& window;
-	ID3D11Device* device;
-	ID3D11DeviceContext* immediateContext;
-	IDXGISwapChain* swapChain;
-	ID3D11RenderTargetView* rtv;
-	ID3D11Texture2D* dsTexture;
-	ID3D11DepthStencilView* dsView;
+	ComPtr<ID3D11Device> device;
+	ComPtr<ID3D11DeviceContext> immediateContext;
+	ComPtr<IDXGISwapChain> swapChain;
+	ComPtr<ID3D11RenderTargetView> rtv;
+	//ComPtr<ID3D11Texture2D> dsTexture;
+	ComPtr<ID3D11DepthStencilView> dsView;
 	D3D11_VIEWPORT viewport;
 
-	//ID3D11RenderTargetView* rtvArr[2];
-	//ID3D11UnorderedAccessView* uav;
+	std::unique_ptr<ShaderD3D11> vsShader;
+	std::unique_ptr<ShaderD3D11> psShader[2];
+	std::unique_ptr<ShaderD3D11> csShader;
+	//ComPtr<ID3D11VertexShader> vShader;
+	//ComPtr<ID3D11PixelShader> pShader;
+	std::unique_ptr<InputLayoutD3D11> inputLayout;
+	ComPtr<ID3D11Texture2D> texture;
+	ComPtr<ID3D11Buffer> vsConstantBuffer;
+	ComPtr<ID3D11Buffer> psConstantBuffer;
+	ComPtr<ID3D11ShaderResourceView> srv;
+	std::unique_ptr<SamplerD3D11> samplerState;
+	//Microsoft::WRL::ComPtr<ID3D11Buffer> pvertexBuffer;
 
-	ShaderD3D11* vsShader;
-	ShaderD3D11* psShader[2];
-	ShaderD3D11* csShader;
-	ID3D11VertexShader* vShader;
-	ID3D11PixelShader* pShader;
-	//ID3D11InputLayout* inputLayout;
-	InputLayoutD3D11* inputLayout;
-	ID3D11Texture2D* texture;
-	ID3D11Buffer* vsConstantBuffer;
-	ID3D11Buffer* psConstantBuffer;
-	ID3D11ShaderResourceView* srv;
-	SamplerD3D11* samplerState;
-	//ID3D11SamplerState* samplerState;
-	ID3D11Buffer* pvertexBuffer;
-
-
-	// FOr the quads
+	// For the quads
 	VertexBufferD3D11 vertexBuffer;
 	DirectX::XMMATRIX worldMatrices[2];
 	ConstantBufferD3D11 worldMatriceBuffers[2];
@@ -76,12 +70,12 @@ private:
 	GBuffer positionBuffer;
 	GBuffer normalBuffer;
 	GBuffer diffuseBuffer;
-	ID3D11RenderTargetView* rtvArr[3];
-	ID3D11RenderTargetView* rtvNULL[3] = { nullptr, nullptr, nullptr };;
-	ID3D11ShaderResourceView* srvArr[3];
-	ID3D11ShaderResourceView* srvNULL[3] = { nullptr, nullptr, nullptr };;
-	ID3D11UnorderedAccessView* uav;
-	ID3D11UnorderedAccessView* uavNULL = nullptr;
+	ComPtr<ID3D11RenderTargetView> rtvArr[3];
+	ComPtr<ID3D11RenderTargetView> rtvNULL[3] = { nullptr, nullptr, nullptr };;
+	ComPtr<ID3D11ShaderResourceView> srvArr[3];
+	ComPtr<ID3D11ShaderResourceView> srvNULL[3] = { nullptr, nullptr, nullptr };;
+	ComPtr<ID3D11UnorderedAccessView> uav;
+	ComPtr<ID3D11UnorderedAccessView> uavNULL = nullptr;
 
 
 	RenderTargetD3D11 renderTargetD3D11;
@@ -91,15 +85,15 @@ private:
 	//VertexBufferD3D11 vertexBufferD3D11;
 
 	CameraD3D11 camera;
-	Scene *scene = new Scene();
+	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
 
 	ConstantBufferD3D11 worldMatrixBuffer;
-	ID3D11Buffer* pWorldMatrix;
+	ComPtr<ID3D11Buffer> pWorldMatrix;
 
 	ConstantBufferD3D11 cameraBuffer;
-	ID3D11Buffer* pCamera;
+	ComPtr<ID3D11Buffer> pCamera;
 
-	ID3D11Buffer* lightPS;
+	ComPtr<ID3D11Buffer> lightPS;
 
 
 	Time time;
@@ -125,10 +119,10 @@ private:
 	void SetupViewport();
 	bool CreateUnorderedAccessView();
 
-	void CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
-	void CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
+	void CreateVertexBuffer(ComPtr<ID3D11Device> device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData);
+	void CreateVSConstantBuffer(ComPtr<ID3D11Device> device, ConstantBufferD3D11& vsConstantBuffer, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT);
 
-	void CreateLights(ID3D11Device* device);
+	void CreateLights(ComPtr<ID3D11Device> device);
 	void LoadObjects();
 };
 	DirectX::XMMATRIX CreateWorldMatrix(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 rotation, DirectX::XMFLOAT3 scale);

@@ -5,11 +5,6 @@ SamplerD3D11::SamplerD3D11(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adre
     Initialize(device, adressMode, borderColour);
 }
 
-SamplerD3D11::~SamplerD3D11()
-{
-    if (this->sampler) this->sampler->Release();
-}
-
 void SamplerD3D11::Initialize(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adressMode, std::optional<std::array<float, 4>> borderColour)
 {
 	D3D11_SAMPLER_DESC samplerDesc;
@@ -27,12 +22,12 @@ void SamplerD3D11::Initialize(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE a
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	if (FAILED(device->CreateSamplerState(&samplerDesc, &this->sampler)))
+	if (FAILED(device->CreateSamplerState(&samplerDesc, this->sampler.GetAddressOf())))
 		throw std::runtime_error("Failed Createing Sampler!");
 
 }
 
 ID3D11SamplerState* SamplerD3D11::GetSamplerState() const
 {
-    return this->sampler;
+    return this->sampler.Get();
 }

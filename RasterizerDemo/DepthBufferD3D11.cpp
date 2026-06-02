@@ -6,10 +6,6 @@ DepthBufferD3D11::DepthBufferD3D11(ID3D11Device* device, UINT width, UINT height
     Initialize(device, width, height, hasSRV);
 }
 
-DepthBufferD3D11::~DepthBufferD3D11()
-{
-}
-
 void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height, bool hasSRV, UINT arraySize)
 {
     depthStencilViews.clear();
@@ -27,7 +23,7 @@ void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height,
     desc.CPUAccessFlags = 0;
     desc.MiscFlags = 0;
 
-    if (FAILED(device->CreateTexture2D(&desc, nullptr, &texture)))
+    if (FAILED(device->CreateTexture2D(&desc, nullptr, texture.GetAddressOf())))
     {
         throw std::runtime_error("Failed to create depth buffer texture");
     }
@@ -35,7 +31,7 @@ void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height,
     depthStencilViews.resize(arraySize);
     for (UINT i = 0; i < arraySize; ++i)
     {
-        if (FAILED(device->CreateDepthStencilView(texture.Get(), nullptr, &depthStencilViews[i])))
+        if (FAILED(device->CreateDepthStencilView(texture.Get(), nullptr, depthStencilViews[i].GetAddressOf())))
         {
             throw std::range_error("Failed to create depth stencil view");
         }
@@ -43,7 +39,7 @@ void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height,
 
     if (hasSRV)
     {
-        if (FAILED(device->CreateShaderResourceView(texture.Get(), 0, &srv)))
+        if (FAILED(device->CreateShaderResourceView(texture.Get(), 0, srv.GetAddressOf())))
         {
             throw std::runtime_error("Failed to create texture reasource view!");
         }

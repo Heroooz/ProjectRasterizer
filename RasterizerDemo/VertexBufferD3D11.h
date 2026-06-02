@@ -14,7 +14,7 @@ private:
 public:
 	VertexBufferD3D11() = default;
 	VertexBufferD3D11(ID3D11Device* device, UINT sizeOfVertex, UINT nrOfVerticesInBuffer, void* vertexData);
-	~VertexBufferD3D11();
+	~VertexBufferD3D11() = default;
 	VertexBufferD3D11(const VertexBufferD3D11& other) = delete;
 	VertexBufferD3D11& operator=(const VertexBufferD3D11& other) = delete;
 	VertexBufferD3D11(VertexBufferD3D11&& other) = delete;

@@ -7,10 +7,6 @@ StructuredBufferD3D11::StructuredBufferD3D11(ID3D11Device* device, UINT sizeOfEl
     Initialize(device, sizeOfElement, nrOfElementsInBuffer, bufferData, dynamic);
 }
 
-StructuredBufferD3D11::~StructuredBufferD3D11()
-{
-}
-
 void StructuredBufferD3D11::Initialize(ID3D11Device* device, UINT sizeOfElement,
     size_t nrOfElementsInBuffer, void* bufferData, bool dynamic)
 {
@@ -28,7 +24,7 @@ void StructuredBufferD3D11::Initialize(ID3D11Device* device, UINT sizeOfElement,
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = bufferData;
 
-    HRESULT hr = device->CreateBuffer(&bufferDesc, bufferData ? &initData : nullptr, &buffer);
+    HRESULT hr = device->CreateBuffer(&bufferDesc, bufferData ? &initData : nullptr, buffer.GetAddressOf());
     if (FAILED(hr))
     {
         throw std::runtime_error("Failed to create structured buffer");
@@ -40,7 +36,7 @@ void StructuredBufferD3D11::Initialize(ID3D11Device* device, UINT sizeOfElement,
     srvDesc.Buffer.FirstElement = 0;
     srvDesc.Buffer.NumElements = static_cast<UINT>(nrOfElements);
 
-    hr = device->CreateShaderResourceView(this->buffer.Get(), &srvDesc, &this->srv);
+    hr = device->CreateShaderResourceView(this->buffer.Get(), &srvDesc, this->srv.GetAddressOf());
     if (FAILED(hr))
     {
         throw std::runtime_error("Failed to create shader resource view for structured buffer");

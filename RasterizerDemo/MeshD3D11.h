@@ -24,16 +24,15 @@ private:
 	IndexBufferD3D11 indexBuffer;
 	DirectX::BoundingBox boundingBox;
 
-	objl::Loader loader;
 	std::string filePath = "objs/";
 
-	void createTexture(ID3D11Device* device, ID3D11ShaderResourceView** srv);
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> createNormalTexture(ID3D11Device* device, std::string n_path, std::string d_path);
+	void createTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
+	ComPtr<ID3D11ShaderResourceView> createNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path);
 
 public:
 	MeshD3D11() = default;
 	MeshD3D11(ID3D11Device* device, const std::string& path, const std::string& objName);
-	~MeshD3D11();
+	~MeshD3D11() = default;
 	MeshD3D11(const MeshD3D11 & other) = delete;
 	MeshD3D11& operator=(const MeshD3D11 & other) = delete;
 	MeshD3D11(MeshD3D11 && other) = delete;

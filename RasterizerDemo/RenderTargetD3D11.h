@@ -8,12 +8,12 @@ class RenderTargetD3D11
 {
 private:
 	ComPtr<ID3D11Texture2D> texture = nullptr;
-	ComPtr < ID3D11RenderTargetView> rtv = nullptr;
-	ComPtr < ID3D11ShaderResourceView> srv = nullptr;
+	ComPtr<ID3D11RenderTargetView> rtv = nullptr;
+	ComPtr<ID3D11ShaderResourceView> srv = nullptr;
 
 public:
 	RenderTargetD3D11() = default;
-	~RenderTargetD3D11();
+	~RenderTargetD3D11() = default;
 	RenderTargetD3D11(const RenderTargetD3D11& other) = delete;
 	RenderTargetD3D11& operator=(const RenderTargetD3D11& other) = delete;
 	RenderTargetD3D11(RenderTargetD3D11&& other) = delete;

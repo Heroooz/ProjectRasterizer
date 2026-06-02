@@ -1,23 +1,18 @@
 #include "RenderTargetD3D11.h"
 #include <stdexcept>
 
-RenderTargetD3D11::~RenderTargetD3D11()
-{
-}
-
 void RenderTargetD3D11::Initialize(ID3D11Device* device, IDXGISwapChain* swapChain, UINT width, UINT height, DXGI_FORMAT format, bool hasSRV)
 {
-    ID3D11Texture2D* backBuffer = nullptr;
-    if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer))))
+    ComPtr<ID3D11Texture2D> backBuffer = nullptr;
+    if (FAILED(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()))))
     {
         throw std::runtime_error("Failed to get swapchain buffer");
     }
 
-    if (FAILED(device->CreateRenderTargetView(backBuffer, nullptr, &rtv)))
+    if (FAILED(device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtv.GetAddressOf())))
     {
         throw std::runtime_error("Failed to create render target view");
     }
-	backBuffer->Release();
 
     if (hasSRV)
     {
@@ -27,7 +22,7 @@ void RenderTargetD3D11::Initialize(ID3D11Device* device, IDXGISwapChain* swapCha
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = 1;
 
-        if (FAILED(device->CreateShaderResourceView(texture.Get(), &srvDesc, &srv)))
+        if (FAILED(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.GetAddressOf())))
         {
             throw std::runtime_error("Failed to create shader resource view");
         }

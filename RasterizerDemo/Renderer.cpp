@@ -2,8 +2,8 @@
 
 using namespace DirectX;
 
-Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr), dsTexture(nullptr),
-                                     dsView(nullptr), viewport(), vShader(nullptr), pShader(nullptr), inputLayout(nullptr), pvertexBuffer(nullptr), 
+Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr),
+                                     dsView(nullptr), viewport(), inputLayout(nullptr), 
                                      vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
                                      renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
                                      camera(), rotation(0.0f) {
@@ -12,54 +12,6 @@ Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateC
         std::cerr << "Failed to initialize renderer!" << std::endl;
         throw std::runtime_error("Failed to initialize renderer!");
     }
-}
-
-Renderer::~Renderer() {
-	//if (samplerState) samplerState->Release();
-    if (pvertexBuffer) { pvertexBuffer->Release(); pvertexBuffer = nullptr; }
-    //if (samplerState) samplerState->~SamplerD3D11();
-    if (samplerState) { delete samplerState; samplerState = nullptr; }
-    if (srv) { srv->Release(); srv = nullptr; }
-    if (psConstantBuffer) { psConstantBuffer->Release(); psConstantBuffer = nullptr; }
-    if (vsConstantBuffer) { vsConstantBuffer->Release(); vsConstantBuffer = nullptr; }
-    if (texture) { texture->Release(); texture = nullptr; }
-
-    //if (inputLayout) inputLayout->~InputLayoutD3D11();
-    if (inputLayout) delete inputLayout;
-	if (pShader) pShader->Release();
-	if (vShader) vShader->Release();
-
-
-    if (csShader) { delete csShader; csShader = nullptr; }
-    if (psShader[0]) { delete psShader[0]; psShader[0] = nullptr; }
-    if (psShader[1]) { delete psShader[1]; psShader[1] = nullptr; }
-    if (vsShader) { delete vsShader; }
-
-    // Orsakar krasher för VertexBufferD3D11? AHhh G-Buffer?
-    //for (int i = 0; i < 3; i++)
-    //{
-    //    //if (rtvArr[i]) rtvArr[i]->Release();
-    //    //if (srvArr[i]) srvArr[i]->Release();
-    //}
-    //if (uav) uav->Release();
-
-
-
-    // DO NOT DELETE!
-    //if (pWorldMatrix) pWorldMatrix->Release();
-    //if (pCamera) pCamera->Release();
-    //if (lightPS) lightPS->Release();
-
-
-
-    if (dsView) { dsView->Release(); dsView = nullptr; }
-    if (dsTexture) { dsTexture->Release(); dsTexture = nullptr; }
-    if (swapChain) { swapChain->Release(); swapChain = nullptr; }
-    if (immediateContext) immediateContext->Release(); { immediateContext = nullptr; }
-    if (device) { device->Release(); device = nullptr; }
-    
-    if (scene) { delete scene; scene = nullptr; }
-
 }
 
 bool Renderer::Initialize() {
@@ -71,7 +23,7 @@ bool Renderer::Initialize() {
         return false;
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device, immediateContext, vsShader, psShader[0], psShader[1], csShader, inputLayout, texture, srv, samplerState)) {
+    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, inputLayout, texture, srv, samplerState)) {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
         return false;
@@ -82,9 +34,9 @@ bool Renderer::Initialize() {
     SetupViewport();
 
     // G-Buffers
-    this->positionBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
-    this->normalBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
-    this->diffuseBuffer.Initialize(device, window.GetWidth(), window.GetHeight());
+    this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
+    this->normalBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
+    this->diffuseBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
 
     this->rtvArr[0] = this->positionBuffer.GetRTV();
     this->rtvArr[1] = this->normalBuffer.GetRTV();
@@ -122,7 +74,7 @@ bool Renderer::Initialize() {
         int hasSpecularTexture = 0;
         int hasNormalTexture = 0;
     } quadMaterial;
-    psConstantBufferD3D11.Initialize(device, sizeof(MaterialBuffer), &quadMaterial);
+    psConstantBufferD3D11.Initialize(device.Get(), sizeof(MaterialBuffer), &quadMaterial);
     psConstantBuffer = psConstantBufferD3D11.GetBuffer();
    
     D3D11_BUFFER_DESC bufferDesc = {};
@@ -135,11 +87,11 @@ bool Renderer::Initialize() {
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = simpleQuad;
 
-    vertexBuffer.Initialize(device, sizeof(SimpleVertex), 4, simpleQuad);
-    ID3D11Buffer* buffer = vertexBuffer.GetBuffer();
-    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
+    vertexBuffer.Initialize(device.Get(), sizeof(SimpleVertex), 4, simpleQuad);
+    ComPtr<ID3D11Buffer> buffer = vertexBuffer.GetBuffer();
+    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, buffer.GetAddressOf());
 
-    //vertexBuffers[1].Initialize(device, sizeof(SimpleVertex), 4, simpleQuad); // Can have same vb
+    //vertexBuffers[1].Initialize(device.Get(), sizeof(SimpleVertex), 4, simpleQuad); // Can have same vb
     //buffer = vertexBuffers[1].GetBuffer();
     //hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
@@ -169,18 +121,18 @@ bool Renderer::Initialize() {
     DirectX::XMFLOAT4X4 worldTransform;
 
     DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[0]));
-    worldMatriceBuffers[0].Initialize(device, sizeof(XMFLOAT4X4), &worldTransform);
-    worldMatriceBuffers[0].UpdateBuffer(immediateContext, &worldTransform);
+    worldMatriceBuffers[0].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
+    worldMatriceBuffers[0].UpdateBuffer(immediateContext.Get(), &worldTransform);
 
 
     DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[1]));
-    worldMatriceBuffers[1].Initialize(device, sizeof(XMFLOAT4X4), &worldTransform); 
-    worldMatriceBuffers[1].UpdateBuffer(immediateContext, &worldTransform);
+    worldMatriceBuffers[1].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
+    worldMatriceBuffers[1].UpdateBuffer(immediateContext.Get(), &worldTransform);
 
 
 
 	// Setup constant buffers (for vertex shader and pixel shader)
-    //CreateVSConstantBuffer(device, vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
+    //CreateVSConstantBuffer(device.Get(), vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
 
 	// Setup camera (projection info and initialize)
     ProjectionInfo projInfo;
@@ -188,23 +140,17 @@ bool Renderer::Initialize() {
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
-    camera.Initialize(device, projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
+    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
 
     // Creating the Scene (w objs and light)
     LoadObjects();
-    CreateLights(device);
+    CreateLights(device.Get());
 
 
     // Binding The Sampler To The Shaders
-    ID3D11SamplerState* pSamplerState = samplerState->GetSamplerState();
-    immediateContext->PSSetSamplers(0, 1, &pSamplerState);
-    immediateContext->CSSetSamplers(0, 1, &pSamplerState);
-
-
-    pSamplerState->Release();
-    buffer->Release();
-
-
+    ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
+    immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+    immediateContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
     return true;
 }
@@ -226,32 +172,32 @@ void Renderer::Render() {
     UINT offset = 0;
 
     immediateContext->RSSetViewports(1, &viewport);
-	vsShader->BindShader(immediateContext);
-    psShader[0]->BindShader(immediateContext);
+	vsShader->BindShader(immediateContext.Get());
+    psShader[0]->BindShader(immediateContext.Get());
 
     // Binding camera to VS, PS, CS
-    camera.UpdateInternalConstantBuffer(immediateContext);
+    camera.UpdateInternalConstantBuffer(immediateContext.Get());
     CameraBuffer camPS = {};
     camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
     camPS.cameraPosition = camera.GetPosition();
     camPS.padding = 0.0f;
-    ConstantBufferD3D11 camBufferPS(device, sizeof(CameraBuffer), &camPS);
+    ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();
-    immediateContext->VSSetConstantBuffers(0, 1, &pCamera);
-    immediateContext->PSSetConstantBuffers(0, 1, &pCamera);
-    immediateContext->CSSetConstantBuffers(0, 1, &pCamera);
+    immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
     GeometryPass();
 
 
 
-    //immediateContext->OMSetRenderTargets(0, nullptr, dsView);
+    //immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
     immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    pvertexBuffer = vertexBuffer.GetBuffer();
+    ID3D11Buffer* pvertexBuffer = vertexBuffer.GetBuffer();
     immediateContext->IASetVertexBuffers(0, 1, &pvertexBuffer, &stride, &offset);
-    immediateContext->PSSetShaderResources(1, 1, &srv);
+    immediateContext->PSSetShaderResources(1, 1, srv.GetAddressOf());
     immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
     for (int i = 0; i < 0; i++)
     {
@@ -260,22 +206,22 @@ void Renderer::Render() {
         //immediateContext->VSSetShader(vShader, nullptr, 0);
         XMFLOAT4X4 worldMatrixT;
         DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[i]));
-        worldMatriceBuffers[i].UpdateBuffer(immediateContext, &worldMatrixT);
+        worldMatriceBuffers[i].UpdateBuffer(immediateContext.Get(), &worldMatrixT);
         pWorldMatrix = worldMatriceBuffers[i].GetBuffer();
 
-        immediateContext->VSSetConstantBuffers(1, 1, &pWorldMatrix);
+        immediateContext->VSSetConstantBuffers(1, 1, pWorldMatrix.GetAddressOf());
         immediateContext->Draw(4, 0);
         // Sending stuff to PS
         //immediateContext->PSSetShader(pShader, nullptr, 0);
-        //immediateContext->PSSetConstantBuffers(1, 1, &lightPS);
-        //immediateContext->PSSetConstantBuffers(0, 1, &psConstantBuffer);
-        //immediateContext->OMSetRenderTargets(1, &rtv, dsView);
-        //immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
+        //immediateContext->PSSetConstantBuffers(1, 1, lightPS.GetAddressOf());
+        //immediateContext->PSSetConstantBuffers(0, 1, psConstantBuffer.GetAddressOf());
+        //immediateContext->OMSetRenderTargets(1, rtv.GetAdressOf(), dsView.Get());
+        //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
     }
 
    
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    scene->DrawObjects(immediateContext);
+    scene->DrawObjects(immediateContext.Get());
 
     LightPass();
 
@@ -286,18 +232,18 @@ void Renderer::Render() {
 
 void Renderer::GeometryPass()
 {
-    immediateContext->OMSetRenderTargets(3, rtvArr, dsView);
+    immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
     
-    psShader[0]->BindShader(immediateContext);
-    immediateContext->PSSetShaderResources(0, 3, srvNULL);
+    psShader[0]->BindShader(immediateContext.Get());
+    immediateContext->PSSetShaderResources(0, 3, srvNULL->GetAddressOf());
 }
 
 void Renderer::LightPass()
 {
-    immediateContext->OMSetRenderTargets(0, nullptr, dsView);
-    csShader->BindShader(immediateContext);
-    immediateContext->CSSetShaderResources(0, 3, srvArr);
-    immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+    immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+    csShader->BindShader(immediateContext.Get());
+    immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
+    immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
     ID3D11ShaderResourceView* srvSpotLight = this->scene->GetLightBufferSRV();
     ID3D11ShaderResourceView* srvDirLight = this->scene->GetLightBufferSRV(true);
@@ -316,22 +262,22 @@ void Renderer::LightPass()
 
 
     // Unbinding
-    immediateContext->CSSetShaderResources(0, 3, srvNULL);
-    immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
+    immediateContext->CSSetShaderResources(0, 3, srvNULL->GetAddressOf());
+    immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
 }
 
 void Renderer::ClearBuffers()
 {
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    immediateContext->ClearRenderTargetView(rtv, clearColor);
+    immediateContext->ClearRenderTargetView(rtv.Get(), clearColor);
 
     for (int i = 0; i < 3; i++)
     {
-        immediateContext->ClearRenderTargetView(rtvArr[i], clearColor);
+        immediateContext->ClearRenderTargetView(rtvArr[i].Get(), clearColor);
     }
-    immediateContext->ClearUnorderedAccessViewFloat(uav, clearColor);
-    immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+    immediateContext->ClearUnorderedAccessViewFloat(uav.Get(), clearColor);
+    immediateContext->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
 
 
@@ -364,18 +310,18 @@ bool Renderer::SetupDeviceAndSwapChain() {
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
     swapChainDesc.Flags = 0;
 
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, featureLevels, 1, D3D11_SDK_VERSION, &swapChainDesc, &swapChain, &device, nullptr, &immediateContext);
+    HRESULT hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, flags, featureLevels, 1, D3D11_SDK_VERSION, &swapChainDesc, swapChain.GetAddressOf(), &device, nullptr, &immediateContext);
 
     return !(FAILED(hr));
 }
 
 void Renderer::SetupRenderTarget() {
-	renderTargetD3D11.Initialize(device, swapChain, window.GetWidth(), window.GetHeight());
+	renderTargetD3D11.Initialize(device.Get(), swapChain.Get(), window.GetWidth(), window.GetHeight());
 	rtv = renderTargetD3D11.GetRTV();
 }
 
 void Renderer::SetupDepthStencil() {
-	depthBufferD3D11.Initialize(device, window.GetWidth(), window.GetHeight());
+	depthBufferD3D11.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     dsView = depthBufferD3D11.GetDSV(0);
 }
 
@@ -390,22 +336,22 @@ void Renderer::SetupViewport() {
     immediateContext->RSSetViewports(1, &viewport);
 }
 
-//void Renderer::CreateVertexBuffer(ID3D11Device* device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
-//	vertexBufferD3D11.Initialize(device, sizeof(SimpleVertex), nrOfVertices, vertexData);
+//void Renderer::CreateVertexBuffer(ComPtr<ID3D11Device> device, VertexBufferD3D11& vertexBufferD3D11, int nrOfVertices, void* vertexData) {
+//	vertexBufferD3D11.Initialize(device.Get(), sizeof(SimpleVertex), nrOfVertices, vertexData);
 //	vertexBuffer = vertexBufferD3D11.GetBuffer();
 //}
 
-//void Renderer::CreateVSConstantBuffer(ID3D11Device* device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
+//void Renderer::CreateVSConstantBuffer(ComPtr<ID3D11Device> device, ConstantBufferD3D11& vsConstantBufferD3D11, DirectX::XMFLOAT4X4 matrixArr[], float rotation, UINT WIDTH, UINT HEIGHT) 
 //{
 //    DirectX::XMMATRIX worldMatrix = CreateWorldMatrix({0.0f, 0.0f, 0.0f}, { 0.0f, rotation, 0.0f }, { 1.0f, 1.0f, 1.0f });
 //    DirectX::XMFLOAT4X4 worldMatrixTransposed;
 //    DirectX::XMStoreFloat4x4(&worldMatrixTransposed, DirectX::XMMatrixTranspose(worldMatrix));
 //
-//    worldMatrixBuffer.Initialize(device, sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
+//    worldMatrixBuffer.Initialize(device.Get(), sizeof(DirectX::XMFLOAT4X4), &worldMatrixTransposed);
 //    pWorldMatrix = worldMatrixBuffer.GetBuffer();
 //}
 
-void Renderer::CreateLights(ID3D11Device* device) 
+void Renderer::CreateLights(ComPtr<ID3D11Device> device) 
 {
     LightData data1 = {};
     data1.perLightInfo.initialPosition = { 3.0f, 20.0f, -2.5f };
@@ -420,10 +366,10 @@ void Renderer::CreateLights(ID3D11Device* device)
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
 
-    scene->AddLight(device, data1);
-    scene->AddLight(device, data2);
+    scene->AddLight(device.Get(), data1);
+    scene->AddLight(device.Get(), data2);
 
-    scene->InitializeLight(device);
+    scene->InitializeLight(device.Get());
 }
 
 bool Renderer::CreateUnorderedAccessView()
@@ -440,7 +386,7 @@ bool Renderer::CreateUnorderedAccessView()
     desc.Texture2DArray = { 0, 0, 1 };
 
 
-    if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, &uav))) {
+    if (FAILED(device->CreateUnorderedAccessView(backbuffer, &desc, uav.GetAddressOf()))) {
         backbuffer->Release();
         std::cerr << "Failed to create UAV!" << std::endl;
         return false;
@@ -452,34 +398,34 @@ bool Renderer::CreateUnorderedAccessView()
 
 void Renderer::LoadObjects()
 {
-    //scene->AddObject(device, "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    scene->AddObject(device, "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
-    //scene->AddObject(device, "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
-    //scene->AddObject(device, "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+    //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
+    //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
+    //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene->AddObject(device, "Torch/", "torch", { 0.2f, 5.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
+    scene->AddObject(device.Get(), "Torch/", "torch", { 0.2f, 5.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
 
-    scene->AddObject(device, "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
-    scene->AddObject(device, "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
+    scene->AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
+    scene->AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
 
-    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device, "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
 
 
-    //scene->AddObject(device, "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    //scene->AddObject(device, "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
+    //scene->AddObject(device.Get(), "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    //scene->AddObject(device.Get(), "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
-    //scene->AddObject(device, "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    //scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
 }
-ID3D11DeviceContext*& Renderer::GetContext()
+ID3D11DeviceContext* Renderer::GetContext()
 {
-    return this->immediateContext;
+    return this->immediateContext.Get();
 }
 CameraD3D11& Renderer::GetCamera()
 {

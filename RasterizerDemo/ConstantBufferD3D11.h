@@ -12,7 +12,7 @@ private:
 public:
 	ConstantBufferD3D11() = default;
 	ConstantBufferD3D11(ID3D11Device* device, size_t byteSize, void* initialData = nullptr);
-	~ConstantBufferD3D11();
+	~ConstantBufferD3D11() = default;
 	ConstantBufferD3D11(const ConstantBufferD3D11& other) = delete;
 	ConstantBufferD3D11& operator=(const ConstantBufferD3D11& other) = delete;
 	ConstantBufferD3D11(ConstantBufferD3D11&& other) noexcept; // Move constructor
