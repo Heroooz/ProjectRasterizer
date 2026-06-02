@@ -18,6 +18,8 @@
 
 class MeshD3D11
 {
+
+
 private:
 	std::vector<SubMeshD3D11> subMeshes;
 	VertexBufferD3D11 vertexBuffer;

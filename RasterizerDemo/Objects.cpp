@@ -18,6 +18,9 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 {
 	this->mesh = new MeshD3D11(device, folderPath, objFile);
 
+	this->center = { { position.x, position.y, position.z, 1 } };
+	this->centerBuffer.Initialize(device, sizeof(centerBuffer), &center);
+
 	XMMATRIX world = XMMatrixScaling(scale.x, scale.y, scale.z);
 	XMMATRIX RT;
 	if (SRT)
@@ -65,6 +68,7 @@ void Objects::drawObject(ID3D11DeviceContext* context)
 	ID3D11Buffer *pMatrix = this->worldMatrixBuffer.GetBuffer();
 	context->VSSetConstantBuffers(1, 1, &pMatrix);
 	this->mesh->BindMeshBuffers(context);
+
 	size_t nrOfSubMeshes = this->mesh->GetNrOfSubMeshes();
 
 	for (size_t i = 0; i < nrOfSubMeshes; i++)
@@ -72,3 +76,5 @@ void Objects::drawObject(ID3D11DeviceContext* context)
 		this->mesh->PerformSubMeshDrawCall(context, i);
 	}
 }
+
+ID3D11Buffer* Objects::GetCenterBuffer() { return this->centerBuffer.GetBuffer(); }

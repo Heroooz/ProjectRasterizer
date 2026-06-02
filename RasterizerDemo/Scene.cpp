@@ -68,12 +68,17 @@ void Scene::DrawScene(ID3D11DeviceContext* context)
 {
 }
 
-void Scene::DrawObjects(ID3D11DeviceContext* context)
+void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 {
 	int nrof = this->GetNrOfObjects();
-	for (int i = 0; i < nrof; ++i)
+	for (auto& obj : objects)
 	{
-		objects[i]->drawObject(context);
+		if (tesselate)
+		{
+			ID3D11Buffer* center = obj->GetCenterBuffer();
+			immediatecontext->HSSetConstantBuffers(1, 1, &center);
+		}
+		obj->drawObject(immediatecontext);
 	}
 }
 

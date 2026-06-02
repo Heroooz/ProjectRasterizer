@@ -13,12 +13,17 @@ struct UpdateInfo
 	XMFLOAT3 scale{ 1,1,1 };
 	float angle = 0.0f;
 };
+struct ObjectCenterPosition {
+	XMFLOAT4 centerPosition;
+};
 
 class Objects
 {
 	XMMATRIX worldMatrix;
 	ConstantBufferD3D11 worldMatrixBuffer;
 	MeshD3D11 *mesh;
+	ObjectCenterPosition center;
+	ConstantBufferD3D11 centerBuffer;
 	bool isStatic = true;
 	UpdateInfo updateInf;
 
@@ -31,5 +36,6 @@ public:
 
 	void UpdateObject(ID3D11DeviceContext* context, float deltatime);
 	void drawObject(ID3D11DeviceContext* context);
-
+	
+	ID3D11Buffer* GetCenterBuffer();
 };

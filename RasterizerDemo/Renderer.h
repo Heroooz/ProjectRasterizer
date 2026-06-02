@@ -51,8 +51,12 @@ private:
 	std::unique_ptr<ShaderD3D11> vsShader;
 	std::unique_ptr<ShaderD3D11> psShader[2];
 	std::unique_ptr<ShaderD3D11> csShader;
-	//ComPtr<ID3D11VertexShader> vShader;
-	//ComPtr<ID3D11PixelShader> pShader;
+	std::unique_ptr<ShaderD3D11> hullShader;
+	std::unique_ptr<ShaderD3D11> domainShader;
+
+	ID3D11HullShader* pHullShader;
+	ID3D11DomainShader* pDomainShader;
+
 	std::unique_ptr<InputLayoutD3D11> inputLayout;
 	ComPtr<ID3D11Texture2D> texture;
 	ComPtr<ID3D11Buffer> vsConstantBuffer;
@@ -94,6 +98,8 @@ private:
 	ComPtr<ID3D11Buffer> pCamera;
 
 	ComPtr<ID3D11Buffer> lightPS;
+
+	bool ShouldTesselate = false;
 
 
 	Time time;
