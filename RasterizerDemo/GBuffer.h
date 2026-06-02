@@ -8,8 +8,8 @@ class GBuffer
 {
 private:
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture = nullptr;
-	Microsoft::WRL::ComPtr <ID3D11ShaderResourceView> srv = nullptr;
-	Microsoft::WRL::ComPtr <ID3D11RenderTargetView> rtv = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv = nullptr;
 
 public:
 	GBuffer() = default;

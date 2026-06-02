@@ -10,10 +10,6 @@ ShaderResourceTextureD3D11::ShaderResourceTextureD3D11(ID3D11Device* device, con
 	Initialize(device, pathToTextureFile);
 }
 
-ShaderResourceTextureD3D11::~ShaderResourceTextureD3D11()
-{
-}
-
 void ShaderResourceTextureD3D11::Initialize(ID3D11Device* device, UINT width, UINT height, void* textureData)
 {
 	D3D11_TEXTURE2D_DESC desc = {};
@@ -29,14 +25,14 @@ void ShaderResourceTextureD3D11::Initialize(ID3D11Device* device, UINT width, UI
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
-	HRESULT hr = device->CreateTexture2D(&desc, nullptr, &this->texture);
+	HRESULT hr = device->CreateTexture2D(&desc, nullptr, this->texture.GetAddressOf());
 
 	if (FAILED(hr))
 	{
 		throw std::runtime_error("Failed to create G-buffer texture");
 	}
 
-	hr = device->CreateShaderResourceView(texture, nullptr, &this->srv);
+	hr = device->CreateShaderResourceView(texture.Get(), nullptr, this->srv.GetAddressOf());
 
 	if (FAILED(hr))
 	{
@@ -44,7 +40,7 @@ void ShaderResourceTextureD3D11::Initialize(ID3D11Device* device, UINT width, UI
 	}
 
 	ID3D11RenderTargetView* rtv = nullptr;
-	hr = device->CreateRenderTargetView(texture, nullptr, &rtv);
+	hr = device->CreateRenderTargetView(texture.Get(), nullptr, &rtv);
 
 	if (FAILED(hr))
 	{
@@ -59,5 +55,5 @@ void ShaderResourceTextureD3D11::Initialize(ID3D11Device* device, const char* pa
 
 ID3D11ShaderResourceView* ShaderResourceTextureD3D11::GetSRV() const
 {
-	return nullptr;
+	return this->srv.Get();
 }

@@ -6,10 +6,6 @@ ConstantBufferD3D11::ConstantBufferD3D11(ID3D11Device* device, size_t byteSize, 
     Initialize(device, byteSize, initialData);
 }
 
-ConstantBufferD3D11::~ConstantBufferD3D11()
-{
-}
-
 ConstantBufferD3D11::ConstantBufferD3D11(ConstantBufferD3D11&& other) noexcept
     : buffer(std::move(other.buffer)), bufferSize(other.bufferSize)
 {
@@ -43,7 +39,7 @@ void ConstantBufferD3D11::Initialize(ID3D11Device* device, size_t byteSize, void
     initData.pSysMem = initialData;
     initData.SysMemPitch = 0;
     initData.SysMemSlicePitch = 0;
-    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, &this->buffer);
+    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, this->buffer.GetAddressOf());
     if (FAILED(hr))
     {
         std::cerr << "Failed to create constant buffer" << std::endl;

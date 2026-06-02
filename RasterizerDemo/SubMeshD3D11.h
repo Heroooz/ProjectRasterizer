@@ -37,7 +37,7 @@ private:
 
 public:
 	SubMeshD3D11() = default;
-	~SubMeshD3D11();
+	~SubMeshD3D11() = default;
 	SubMeshD3D11(const SubMeshD3D11& other) = default;
 	SubMeshD3D11& operator=(const SubMeshD3D11& other) = default;
 	SubMeshD3D11(SubMeshD3D11&& other) = default;

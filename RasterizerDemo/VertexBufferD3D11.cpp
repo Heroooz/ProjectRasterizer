@@ -6,10 +6,6 @@ VertexBufferD3D11::VertexBufferD3D11(ID3D11Device* device, UINT sizeOfVertex, UI
     Initialize(device, sizeOfVertex, nrOfVerticesInBuffer, vertexData);
 }
 
-VertexBufferD3D11::~VertexBufferD3D11()
-{
-}
-
 void VertexBufferD3D11::Initialize(ID3D11Device* device, UINT sizeOfVertex, UINT nrOfVerticesInBuffer, void* vertexData)
 {
     this->vertexSize = sizeOfVertex;
@@ -25,7 +21,7 @@ void VertexBufferD3D11::Initialize(ID3D11Device* device, UINT sizeOfVertex, UINT
     D3D11_SUBRESOURCE_DATA initData = {};
     initData.pSysMem = vertexData;
 
-    if (FAILED(device->CreateBuffer(&bufferDesc, &initData, &this->buffer)))
+    if (FAILED(device->CreateBuffer(&bufferDesc, &initData, this->buffer.GetAddressOf())))
     {
         throw std::runtime_error("Failed to create vertex buffer");
     }

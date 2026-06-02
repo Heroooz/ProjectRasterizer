@@ -8,13 +8,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& defpShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader)
+bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& defpShader, std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader)
 {
 
-	vShader = new ShaderD3D11(device, ShaderType::VERTEX_SHADER, "VertexShader.cso");
-	defpShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "DeferredPS.cso");
+	vShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::VERTEX_SHADER, "VertexShader.cso");
+	defpShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DeferredPS.cso");
 	//defpShader = new ShaderD3D11(device, ShaderType::PIXEL_SHADER, "PixelShader.cso");
-	cShader = new ShaderD3D11(device, ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
+	cShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
 	//std::string shaderData;
 	//std::ifstream reader;
@@ -67,9 +67,9 @@ bool LoadShaders(ID3D11Device* device, ShaderD3D11*& vShader, ShaderD3D11*& defp
 	return true;
 }
 
-bool CreateInputLayout(ID3D11Device* device, ID3D11DeviceContext* context, InputLayoutD3D11*& inputLayout, ShaderD3D11*& vShader)
+bool CreateInputLayout(ComPtr<ID3D11Device> device, std::unique_ptr<InputLayoutD3D11>& inputLayout, std::unique_ptr<ShaderD3D11>& vShader)
 {
-	inputLayout = new InputLayoutD3D11();
+	inputLayout = std::make_unique<InputLayoutD3D11>();
 
 	size_t inputSlot = 0;
 	inputLayout->AddInputElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT, inputSlot);
@@ -78,7 +78,7 @@ bool CreateInputLayout(ID3D11Device* device, ID3D11DeviceContext* context, Input
 	inputSlot += 12;
 	inputLayout->AddInputElement("UV", DXGI_FORMAT_R32G32_FLOAT, inputSlot);
 
-	inputLayout->FinalizeInputLayout(device, vShader->GetShaderByteData(), vShader->GetShaderByteSize());
+	inputLayout->FinalizeInputLayout(device.Get(), vShader->GetShaderByteData(), vShader->GetShaderByteSize());
 
 	//D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
 	//{
@@ -91,8 +91,8 @@ bool CreateInputLayout(ID3D11Device* device, ID3D11DeviceContext* context, Input
 	return true;
 }
 
-bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int comp, 
-	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv) {
+bool CreateTexture(ComPtr<ID3D11Device> device, const char* filename, int x, int y, int comp,
+	ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv) {
 	stbi__vertically_flip_on_load = true;
 	unsigned char* textureData = stbi_load(filename, &x, &y, &comp, 4);
 	if (textureData == nullptr) {
@@ -118,12 +118,12 @@ bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int
 	data.SysMemPitch = x * 4;
 	data.SysMemSlicePitch = 0;
 
-	if (FAILED(device->CreateTexture2D(&textureDesc, &data, &texture))) {
+	if (FAILED(device->CreateTexture2D(&textureDesc, &data, texture.GetAddressOf()))) {
 		std::cerr << "Failed to create texture!" << std::endl;
 		return false;
 	}
 
-	if (FAILED(device->CreateShaderResourceView(texture, nullptr, &srv))) {
+	if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf()))) {
 		std::cerr << "Failed to create texture reasource view!" << std::endl;
 		return false;
 	}
@@ -132,12 +132,12 @@ bool CreateTexture(ID3D11Device* device, const char* filename, int x, int y, int
 	return true;
 }
 
-bool CreateSamplerState(ID3D11Device* device, SamplerD3D11*& samplerState)
+bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D11>& samplerState)
 {
 	D3D11_TEXTURE_ADDRESS_MODE addressmode = D3D11_TEXTURE_ADDRESS_WRAP;
 	std::optional<std::array<float, 4>> borderColour;
 	borderColour = { 1,1,1,1 };
-	samplerState = new SamplerD3D11(device, addressmode, borderColour);
+	samplerState = std::make_unique<SamplerD3D11>(device.Get(), addressmode, borderColour);
 	//D3D11_SAMPLER_DESC samplerDesc;
 	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -157,8 +157,9 @@ bool CreateSamplerState(ID3D11Device* device, SamplerD3D11*& samplerState)
 	return true;
 }
 
-bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& deferredPShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
-	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, SamplerD3D11*& samplerState)
+bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, 
+	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<InputLayoutD3D11>& inputLayout,
+	ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState)
 {
 	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader))
 	{
@@ -166,7 +167,7 @@ bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D
 		return false;
 	}
 	
-	if (!CreateInputLayout(device, context, inputLayout, vShader))
+	if (!CreateInputLayout(device, inputLayout, vShader))
 	{
 		std::cerr << "Error creating input layout!" << std::endl;
 		return false;

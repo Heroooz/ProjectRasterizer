@@ -6,9 +6,12 @@
 #include "ShaderD3D11.h"
 #include "InputLayoutD3D11.h"
 #include "SamplerD3D11.h"
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 
 
 
-bool SetupPipeline(ID3D11Device* device, ID3D11DeviceContext* context, ShaderD3D11*& vShader, ShaderD3D11*& deferredPShader, ShaderD3D11*& pShader, ShaderD3D11*& cShader, InputLayoutD3D11*& inputLayout,
-	ID3D11Texture2D*& texture, ID3D11ShaderResourceView *& srv, SamplerD3D11*& samplerState);
+bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader,
+	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<InputLayoutD3D11>& inputLayout,
+	ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState);
 //bool SetupPipeline(ID3D11Device* device, ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv, ID3D11SamplerState*& sampler);
