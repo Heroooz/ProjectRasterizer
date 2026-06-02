@@ -158,6 +158,7 @@
     <ClCompile Include="CameraD3D11.cpp" />
     <ClCompile Include="ConstantBufferD3D11.cpp" />
     <ClCompile Include="D3D11Helper.cpp" />
+    <ClCompile Include="DCEM.cpp" />
     <ClCompile Include="DepthBufferD3D11.cpp" />
     <ClCompile Include="GBuffer.cpp" />
     <ClCompile Include="IndexBufferD3D11.cpp" />
@@ -186,6 +187,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CSMain</EntryPointName>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="DCEMPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="DeferredPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -221,6 +228,7 @@
     <ClInclude Include="CameraD3D11.h" />
     <ClInclude Include="ConstantBufferD3D11.h" />
     <ClInclude Include="D3D11Helper.h" />
+    <ClInclude Include="DCEM.h" />
     <ClInclude Include="DepthBufferD3D11.h" />
     <ClInclude Include="GBuffer.h" />
     <ClInclude Include="IndexBufferD3D11.h" />
