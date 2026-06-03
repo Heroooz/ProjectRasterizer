@@ -220,6 +220,7 @@ void Renderer::Render(Scene& scene, bool tesselation) {
     //}
 
     scene.DrawObjects(immediateContext.Get(), tesselation);
+    scene.DrawDCEM(immediateContext.Get());
 
     LightPass(scene);
 
@@ -284,7 +285,7 @@ void Renderer::LightPass(Scene& scene)
 
 void Renderer::ClearBuffers()
 {
-    float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     immediateContext->ClearRenderTargetView(rtv.Get(), clearColor);
 
@@ -310,6 +311,8 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
 
+    data2.perLightInfo.rotationX = -XM_PIDIV2;
+
     // Spotlight Ficklampa
     LightData data1 = {};
     data1.perLightInfo.initialPosition = { 0.2f, 3.0f, -10.5f };
@@ -331,6 +334,8 @@ void Renderer::LoadObjects(Scene& scene)
     //scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+
+    scene.AddDCEM(device.Get(), { 0,4,0 });
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });

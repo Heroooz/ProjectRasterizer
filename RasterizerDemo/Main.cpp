@@ -108,11 +108,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 		// De funkar inge :(
-		if (GetKeyState('T') & 1)
+		if (GetKeyState('T') & 0x8000)
 		{
 			shouldTesselate = !shouldTesselate;
 		}
-		if (GetKeyState('X') & 1)
+		if (GetKeyState('X') & 0x8000)
 		{
 			showWireFrame = !showWireFrame;
 			UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
