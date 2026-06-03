@@ -23,16 +23,18 @@
 
 class Renderer {
 public:
-	Renderer(Window& window);
+	Renderer(Window& window, Scene& scene);
 	~Renderer() = default;
 
-	bool Initialize();
-	void Render();
+	bool Initialize(Scene& scene);
+	void Render(Scene& scene, bool tesselation);
 
-	ID3D11DeviceContext* GetContext();
+	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
-	Scene* GetScene();
+	//Scene* GetScene();
 	float GetDeltatime();
+
+
 private:
 	Window& window;
 	ComPtr<ID3D11Device> device;
@@ -84,7 +86,6 @@ private:
 	//VertexBufferD3D11 vertexBufferD3D11;
 
 	CameraD3D11 camera;
-	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
 
 	ConstantBufferD3D11 worldMatrixBuffer;
 	ComPtr<ID3D11Buffer> pWorldMatrix;
@@ -94,7 +95,8 @@ private:
 
 	ComPtr<ID3D11Buffer> lightPS;
 
-	bool ShouldTesselate = true;
+	//bool ShouldTesselate = false;
+	//bool showWireFrame = false;
 
 
 	Time time;
@@ -110,13 +112,13 @@ private:
 	};
 
 	void ClearBuffers();
-	void GeometryPass();
-	void LightPass();
+	void GeometryPass(bool tesselate);
+	void LightPass(Scene& scene);
 
 
 	// Adding the the scene
-	void CreateLights(ComPtr<ID3D11Device> device);
-	void LoadObjects();
+	void CreateLights(ComPtr<ID3D11Device> device, Scene& scene);
+	void LoadObjects(Scene& scene);
 
 
 	// Helpful set-up fncs
@@ -125,5 +127,4 @@ private:
 	void SetupDepthStencil();
 	void SetupViewport();
 	bool CreateUnorderedAccessView();
-
 };

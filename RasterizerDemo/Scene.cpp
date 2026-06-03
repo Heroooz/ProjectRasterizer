@@ -14,6 +14,11 @@ Scene::~Scene()
 			object = nullptr;
 		}
 	}
+	if (pCenter)
+	{
+		pCenter->Release();
+		pCenter = nullptr;
+	}
 }
 
 void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, bool isSkyBox)
@@ -75,8 +80,8 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 	{
 		if (tesselate)
 		{
-			ID3D11Buffer* center = obj->GetCenterBuffer();
-			immediatecontext->HSSetConstantBuffers(1, 1, &center);
+			pCenter = obj->GetCenterBuffer();
+			immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);
 		}
 		obj->drawObject(immediatecontext);
 	}

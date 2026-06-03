@@ -15,6 +15,8 @@ class Scene
 	//std::vector<int> dcemIndex;
 	ConstantBufferD3D11 nrofLights;
 
+	ID3D11Buffer* pCenter = nullptr;
+
 public:
 	Scene();
 	~Scene();
