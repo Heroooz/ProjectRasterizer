@@ -70,7 +70,7 @@ void Scene::DrawScene(ID3D11DeviceContext* context)
 
 void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 {
-	int nrof = this->GetNrOfObjects();
+	//int nrof = this->GetNrOfObjects();
 	for (auto& obj : objects)
 	{
 		if (tesselate)

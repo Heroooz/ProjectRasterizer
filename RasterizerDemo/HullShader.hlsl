@@ -30,14 +30,14 @@ struct HS_CONSTANT_DATA_OUTPUT
 
 static float maxDist = 20.0f;
 static float minDist = 1.0f;
-static float base = 15.0f;
+static float base = 10.0f;
 
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     InputPatch<VertexShaderOutput, NUM_CONTROL_POINTS> ip)
 {
     HS_CONSTANT_DATA_OUTPUT output;
     float distance = length(cameraPosition - centerPoint.xyz);
-    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = max(minDist, maxDist - distance);
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = lerp(base, minDist, saturate(distance/maxDist)); //max(minDist, maxDist - distance); //lerp(64.0f, 1.0f, saturate(distance / maxDist)); //
     
     return output;
 };

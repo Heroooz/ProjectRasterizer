@@ -69,6 +69,9 @@ void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 		XMFLOAT4X4 world4x4;
 		XMStoreFloat4x4(&world4x4, XMMatrixTranspose(world));
 		this->worldMatrixBuffer.UpdateBuffer(context, &world4x4);
+
+		this->center = { {this->updateInf.translate.x, this->updateInf.translate.y, this->updateInf.translate.z,1} };
+		this->centerBuffer.UpdateBuffer(context, &center);
 	}
 }
 

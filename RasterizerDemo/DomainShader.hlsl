@@ -44,8 +44,7 @@ DomainShaderOutput main(HS_CONSTANT_DATA_OUTPUT input, float3 barycentric : SV_D
         float proj = dot(pointToPos, patch[i].normal);          
         
         // Projection: t_i(q) = q - ((q-p_i)*n_i
-        float3 pointPlane = linearPos - proj * patch[i].normal;
-        
+        float3 pointPlane = linearPos - proj * patch[i].normal;        
         phongPos += barycentric[i] * pointPlane;
     }
     

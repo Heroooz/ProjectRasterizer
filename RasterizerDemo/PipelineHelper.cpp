@@ -18,7 +18,7 @@ bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vSha
 	pShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "PixelShader.cso");
 	cShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
-	hullShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::HULL_SHADER, "TessellationHS.cso");
+	hullShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::HULL_SHADER, "HullShader.cso");
 	domainShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::DOMAIN_SHADER, "DomainShader.cso");
 
 

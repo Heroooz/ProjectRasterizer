@@ -128,7 +128,7 @@
     <FxCompile Include="DomainShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="TessellationHS.hlsl">
+    <FxCompile Include="HullShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
