@@ -2,8 +2,10 @@
 #include <d3d11_4.h>
 #include <iostream>
 #include "CameraD3D11.h"
+#include "ShaderD3D11.h"
 #include "Objects.h"
-//#include "MeshD3D11.h"
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
 
 using namespace DirectX;
 
@@ -18,23 +20,28 @@ class DCEM
 		NEGATIVE_Z = 5
 	};
 
-	MeshD3D11* mesh;
+	std::unique_ptr<MeshD3D11> mesh;
 	XMMATRIX worldMatrix;
 	ConstantBufferD3D11 worldMatrixBuffer;
 
 	CameraD3D11 cameras[6];
 
-	ID3D11UnorderedAccessView* uav[6];
-	//ID3D11RenderTargetView* rtv[6];
-	ID3D11ShaderResourceView* srv;
-	ID3D11DepthStencilView* dsView;
+	ComPtr<ID3D11UnorderedAccessView> uav[6];
+	ComPtr<ID3D11RenderTargetView> rtv[6];
+	ComPtr<ID3D11DepthStencilView> dsView;
+	ComPtr<ID3D11ShaderResourceView> srv;
+	ComPtr<ID3D11Texture2D> texture;
 	D3D11_VIEWPORT viewport;
 
-public:
-	DCEM(ID3D11Device* device, XMFLOAT3 initPos);
-	~DCEM();
 
-	void Initialize(ID3D11Device* device, XMFLOAT3 initPos);
+	ShaderD3D11* DCEMPS;
+	ShaderD3D11* normalPS;
+
+public:
+	DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS);
+	~DCEM() = default;
+
+	void Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height);
 
 	void Update(ID3D11DeviceContext* context);
 	void Draw(ID3D11DeviceContext* context);
