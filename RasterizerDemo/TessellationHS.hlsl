@@ -28,8 +28,8 @@ struct HS_CONSTANT_DATA_OUTPUT
 #define NUM_CONTROL_POINTS 3
 
 
-static float maxDist = 60.0f;
-static float minDist = 0.1f;
+static float maxDist = 20.0f;
+static float minDist = 1.0f;
 static float base = 15.0f;
 
 HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
@@ -37,7 +37,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
     HS_CONSTANT_DATA_OUTPUT output;
     float distance = length(cameraPosition - centerPoint.xyz);
-    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = lerp(base, minDist, saturate(distance / maxDist));
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = max(minDist, maxDist - distance);
     
     return output;
 };

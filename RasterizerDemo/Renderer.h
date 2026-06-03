@@ -94,7 +94,7 @@ private:
 
 	ComPtr<ID3D11Buffer> lightPS;
 
-	bool ShouldTesselate = false;
+	bool ShouldTesselate = true;
 
 
 	Time time;
@@ -114,12 +114,16 @@ private:
 	void LightPass();
 
 
-    bool SetupDeviceAndSwapChain();
-    void SetupRenderTarget();
-    void SetupDepthStencil();
+	// Adding the the scene
+	void CreateLights(ComPtr<ID3D11Device> device);
+	void LoadObjects();
+
+
+	// Helpful set-up fncs
+	bool SetupDeviceAndSwapChain();
+	void SetupRenderTarget();
+	void SetupDepthStencil();
 	void SetupViewport();
 	bool CreateUnorderedAccessView();
 
-	void CreateLights(ComPtr<ID3D11Device> device);
-	void LoadObjects();
 };

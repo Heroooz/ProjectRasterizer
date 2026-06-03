@@ -64,7 +64,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);   // ViewDir
         float3 H = normalize(L + V);
         float T = dot(L, pixelNormal);                                  // Theta for diffuse  (LightDir & Normal)
-        float S = saturate(dot(pixelNormal.xyz, H));                    // Sigma for specular (Halfway-Vector & Normal)
+        float S = max(0, dot(pixelNormal.xyz, H));                    // Sigma for specular (Halfway-Vector & Normal)
        
         float3 D = normalize(spotlight.direction);
         float cosT = dot(-L, D);
@@ -85,9 +85,9 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         
         float3 L = normalize(dirlight.direction.xyz);
         float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);
-        float3 H = normalize(L);        // H = ( L + V ) / || L + V ||
+        float3 H = normalize(L + V);        // H = ( L + V ) / || L + V ||
         float T = dot(L, pixelNormal);
-        float S = saturate(dot(pixelNormal.xyz, H));
+        float S = dot(pixelNormal.xyz, H);
         
         if(dirlight.intensity > ambientStandard)
             ambientStandard = dirlight.intensity;
