@@ -119,7 +119,7 @@ ID3D11ShaderResourceView* Scene::GetShadowMapSRV(bool isDir)
 
 
 
-int Scene::GetNrOfObjects() { return this->objects.size(); }
+int Scene::GetNrOfObjects() { return (int)this->objects.size(); }
 
 int Scene::GetNrOfSpotLights() { return this->spotLights.GetNrOfLights(); }
 

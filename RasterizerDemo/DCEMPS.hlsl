@@ -42,7 +42,7 @@ struct DCEMPSInput
     float2 uv : UV;
 };
 
-const float defAmb = 1.0;
+static const float defAmb = 1.0;
 DCEMPSOutput main(DCEMPSInput input)
 {
     float2 uv = input.uv;

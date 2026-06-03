@@ -53,7 +53,7 @@ void Light::UpdateBuffers(ID3D11DeviceContext* context)
 	this->lightBuffer.UpdateBuffer(context, &this->bufferData);
 }
 
-UINT Light::GetNrOfLights() const { return this->lightBuffer.GetNrOfElements(); }
+UINT Light::GetNrOfLights() const { return (UINT)this->lightBuffer.GetNrOfElements(); }
 ID3D11DepthStencilView* Light::GetShadowMapDSV(UINT lightIndex) const { return this->shadowMaps.GetDSV(lightIndex); }
 ID3D11ShaderResourceView* Light::GetShadowMapsSRV() const { return this->shadowMaps.GetSRV(); }
 ID3D11ShaderResourceView* Light::GetLightBufferSRV() const { return this->lightBuffer.GetSRV(); }
