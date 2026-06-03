@@ -34,15 +34,15 @@ void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)
 
     XMVECTOR forwardVec = XMLoadFloat3(&this->forward);
     forwardVec = XMVector3TransformNormal(forwardVec, rotationMatrix);
-    XMStoreFloat3(&this->forward, forwardVec);
+    XMStoreFloat3(&this->forward, XMVector3Normalize(forwardVec));
 
     XMVECTOR rightVec = XMLoadFloat3(&this->right);
     rightVec = XMVector3TransformNormal(rightVec, rotationMatrix);
-    XMStoreFloat3(&this->right, rightVec);
+    XMStoreFloat3(&this->right, XMVector3Normalize(rightVec));
 
     XMVECTOR upVec = XMLoadFloat3(&this->up);
     upVec = XMVector3TransformNormal(upVec, rotationMatrix);
-    XMStoreFloat3(&this->up, upVec);
+    XMStoreFloat3(&this->up, XMVector3Normalize(upVec));
 }
 
 void CameraD3D11::MoveForward(float amount) { MoveInDirection(amount, this->forward); }
@@ -67,9 +67,21 @@ const XMFLOAT3& CameraD3D11::GetUp() const { return this->up; }
 
 void CameraD3D11::ResetUp()
 {
-    this->forward = { 0, 0, 1 };
-    this->right = { 1, 0, 0 };
-    this->up = { 0, 1, 0 };
+    XMVECTOR u, f, r;
+    this->up = XMFLOAT3(0.0f, 1.0f, 0.0f);	// Reseting to (0, 1, 0)
+    this->forward.y = 0.0f;					// Reseting up to (x, 0, z)
+
+    f = XMLoadFloat3(&this->forward);		// Normalizing new forward
+    XMVector3Normalize(f);
+    XMStoreFloat3(&this->forward, f);
+
+    u = XMLoadFloat3(&this->up);			// Normalizing new up
+    XMVector3Normalize(u);
+    XMStoreFloat3(&this->up, u);
+
+
+    r = XMVector3Cross(u, f);				// Right is perpendicular to both up and forward
+    XMStoreFloat3(&this->right, r);
 }
 
 void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)

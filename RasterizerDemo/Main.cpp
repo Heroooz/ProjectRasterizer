@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Renderer.h"
 
+void UpdateRasterizerDesc(ID3D11Device*& device, ID3D11DeviceContext*& context, bool tesselate);
 
 //_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
@@ -15,11 +16,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	const UINT HEIGHT = 1080;
 
 	Window window(hInstance, WIDTH, HEIGHT, nCmdShow);
-	Renderer renderer(window);
+
+	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
+
+
+	Renderer renderer(window, *scene.get());
 	MSG msg = { };
 
 	float deltatime = renderer.GetDeltatime();
-	ComPtr<ID3D11DeviceContext> immediatecontext = renderer.GetContext();
+	ComPtr<ID3D11Device> device = renderer.GetDevice();
+	ComPtr<ID3D11DeviceContext> immediateContext;
+	device->GetImmediateContext(&immediateContext);
+
+
+	bool shouldTesselate = true;
+	bool showWireFrame = false;
+
+
+	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
+
+
+
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 3.0f;
@@ -34,9 +51,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	SetCursorPos(center.x, center.y);
 
 	POINT lastMousePos = center;
-	float sensitivity = 0.01f; // Adjust after prefrence
+	float sensitivity = 0.01f; // Adjust after prefrenc
 
-	Scene* scene = renderer.GetScene();
+
+	//Scene* scene = renderer.GetScene();
 
 	while (!(GetKeyState(VK_ESCAPE) & 0x8000) && msg.message != WM_QUIT)
 	{
@@ -88,8 +106,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			renderer.GetCamera().ResetUp();
 		}
 
+
+		// De funkar inge :(
+		if (GetKeyState('T') & 0x8000)
+		{
+			shouldTesselate = !shouldTesselate;
+		}
+		if (GetKeyState('X') & 0x8000)
+		{
+			showWireFrame = !showWireFrame;
+			UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
+		}
+
+
 		// Update scene (objects and lights)
-		scene->UpdateObjects(immediatecontext.Get(), deltatime);
+		scene->UpdateObjects(immediateContext.Get(), deltatime);
 
 
 		// Mouse panning-movement
@@ -104,7 +135,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		//SetCursorPos(center.x, center.y);
 		//lastMousePos = center;
 
-		renderer.Render();
+		renderer.Render(*scene.get(), shouldTesselate);
 	}
 
 	scene->~Scene();
@@ -113,4 +144,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	_CrtDumpMemoryLeaks();
 
 	return 0;
+}
+
+
+void UpdateRasterizerDesc(ID3D11Device*& device, ID3D11DeviceContext*& immediateContext, bool showWireFrame)
+{
+	D3D11_RASTERIZER_DESC wireFrameDesc = {};
+	if (showWireFrame)
+		wireFrameDesc.FillMode = D3D11_FILL_WIREFRAME;
+	else
+		wireFrameDesc.FillMode = D3D11_FILL_SOLID;
+	
+	wireFrameDesc.CullMode = D3D11_CULL_BACK;
+	wireFrameDesc.FrontCounterClockwise = false;
+
+	ID3D11RasterizerState* wireFrameState;
+	device->CreateRasterizerState(&wireFrameDesc, &wireFrameState);
+
+	immediateContext->RSSetState(wireFrameState);
 }

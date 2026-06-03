@@ -2,19 +2,19 @@
 
 using namespace DirectX;
 
-Renderer::Renderer(Window& window) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr),
+Renderer::Renderer(Window& window, Scene& scene) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr),
                                      dsView(nullptr), viewport(), inputLayout(nullptr), 
                                      vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
                                      renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
                                      camera(), rotation(0.0f) {
 
-    if (!Renderer::Initialize()) {
+    if (!Renderer::Initialize(scene)) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
         throw std::runtime_error("Failed to initialize renderer!");
     }
 }
 
-bool Renderer::Initialize() {
+bool Renderer::Initialize(Scene& scene) {
 
     // SetupD3D11
     if (!SetupDeviceAndSwapChain()) {
@@ -34,6 +34,7 @@ bool Renderer::Initialize() {
     SetupRenderTarget();
     SetupDepthStencil();
     SetupViewport();
+
 
     // G-Buffers
     this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
@@ -145,8 +146,8 @@ bool Renderer::Initialize() {
     camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
 
     // Creating the Scene (w objs and light)
-    LoadObjects();
-    CreateLights(device.Get());
+    LoadObjects(scene);
+    CreateLights(device.Get(), scene);
 
 
     // Binding The Sampler To The Shaders
@@ -159,7 +160,7 @@ bool Renderer::Initialize() {
     return true;
 }
 
-void Renderer::Render() {
+void Renderer::Render(Scene& scene, bool tesselation) {
 
 	time.Update(); // Update frame timing
 
@@ -191,7 +192,7 @@ void Renderer::Render() {
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
-    GeometryPass();
+    GeometryPass(tesselation);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
     //immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -218,23 +219,24 @@ void Renderer::Render() {
     //    //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
     //}
 
-    scene->DrawObjects(immediateContext.Get(), ShouldTesselate);
+    scene.DrawObjects(immediateContext.Get(), tesselation);
+    scene.DrawDCEM(immediateContext.Get());
 
-    LightPass();
+    LightPass(scene);
 
     swapChain->Present(0, 0);
 }
 
 
 
-void Renderer::GeometryPass()
+void Renderer::GeometryPass(bool tesselation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
     
     psShader[0]->BindShader(immediateContext.Get());
     immediateContext->PSSetShaderResources(0, 3, srvNULL->GetAddressOf());
 
-    if (ShouldTesselate)
+    if (tesselation)
     {
         hullShader->BindShader(immediateContext.Get());
         domainShader->BindShader(immediateContext.Get());
@@ -246,24 +248,28 @@ void Renderer::GeometryPass()
         immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
     }
     else
+    {
+        immediateContext->HSSetShader(nullptr, nullptr, 0);
+        immediateContext->DSSetShader(nullptr, nullptr, 0);
         immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
 }
 
-void Renderer::LightPass()
+void Renderer::LightPass(Scene& scene)
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
     csShader->BindShader(immediateContext.Get());
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
-    ID3D11ShaderResourceView* srvSpotLight = this->scene->GetLightBufferSRV();
-    ID3D11ShaderResourceView* srvDirLight = this->scene->GetLightBufferSRV(true);
+    ID3D11ShaderResourceView* srvSpotLight = scene.GetLightBufferSRV();
+    ID3D11ShaderResourceView* srvDirLight = scene.GetLightBufferSRV(true);
 
     immediateContext->CSSetShaderResources(3, 1, &srvSpotLight);
     immediateContext->CSSetShaderResources(4, 1, &srvDirLight);
 
     // Felberäkningar i Blinn-Phong är min bästa gissnign
-    ID3D11Buffer* nrofLights = this->scene->GetnrofLightBuffer();
+    ID3D11Buffer* nrofLights = scene.GetnrofLightBuffer();
     immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
 
     // Dispatching threads to CS
@@ -295,7 +301,7 @@ void Renderer::ClearBuffers()
 
 
 
-void Renderer::CreateLights(ComPtr<ID3D11Device> device) 
+void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
 {
     // Dirlight SOl
     LightData data2 = {};
@@ -305,6 +311,8 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device)
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
 
+    data2.perLightInfo.rotationX = -XM_PIDIV2;
+
     // Spotlight Ficklampa
     LightData data1 = {};
     data1.perLightInfo.initialPosition = { 0.2f, 3.0f, -10.5f };
@@ -312,36 +320,37 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device)
     data1.perLightInfo.intensity = 0.7f;
     data1.perLightInfo.angle = XM_PI;
 
-    scene->AddLight(device.Get(), data1);
-    scene->AddLight(device.Get(), data2);
+    scene.AddLight(device.Get(), data1);
+    scene.AddLight(device.Get(), data2);
 
-    scene->InitializeLight(device.Get());
+    scene.InitializeLight(device.Get());
 }
 
 
 
-void Renderer::LoadObjects()
+void Renderer::LoadObjects(Scene& scene)
 {
     //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
     //scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene->AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
-    scene->AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
-    scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
-    scene->AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    scene->AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    scene.AddDCEM(device.Get(), { 0,4,0 });
+
+    scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
+    scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene.AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
 
 
 
-    scene->AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
-    scene->AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
-
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
+    scene.AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
@@ -432,19 +441,19 @@ bool Renderer::CreateUnorderedAccessView()
     return true;
 }
 
-ID3D11DeviceContext* Renderer::GetContext()
+ID3D11Device* Renderer::GetDevice()
 {
-    return this->immediateContext.Get();
+    return this->device.Get();
 }
 CameraD3D11& Renderer::GetCamera()
 {
     return this->camera;
 }
 
-Scene* Renderer::GetScene()
-{
-    return this->scene.get();
-}
+//Scene* Renderer::GetScene()
+//{
+//    return this->scene.get();
+//}
 
 float Renderer::GetDeltatime()
 {
