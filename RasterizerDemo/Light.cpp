@@ -44,20 +44,33 @@ void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 
 void Light::InitializeBuffers(ID3D11Device* device)
 {
+	if (this->bufferData.size() > 0)
+	{
 	this->lightBuffer.Initialize(device, sizeof(LightBuffer), this->bufferData.size(), bufferData.data());
-	this->shadowMaps.Initialize(device, 1024, 512, false, this->GetNrOfLights());
+	this->shadowMaps.Initialize(device, WIDTH, HEIGHT, true, this->GetNrOfLights());
+
+	}
 }
 
 void Light::UpdateBuffers(ID3D11DeviceContext* context)
 {
-	this->lightBuffer.UpdateBuffer(context, &this->bufferData);
+	for (int i = 0; i < this->bufferData.size(); i++)
+	{
+		bufferData[i].vpmatrix = shadowCameras[i]->GetViewProjectionMatrix();
+		this->lightBuffer.UpdateBuffer(context, &this->bufferData);
+	}
+	
 }
 
 UINT Light::GetNrOfLights() const { return this->lightBuffer.GetNrOfElements(); }
 ID3D11DepthStencilView* Light::GetShadowMapDSV(UINT lightIndex) const { return this->shadowMaps.GetDSV(lightIndex); }
 ID3D11ShaderResourceView* Light::GetShadowMapsSRV() const { return this->shadowMaps.GetSRV(); }
 ID3D11ShaderResourceView* Light::GetLightBufferSRV() const { return this->lightBuffer.GetSRV(); }
-ID3D11Buffer* Light::GetLightCameraConstantBuffer(UINT lightIndex) const { return this->shadowCameras.at(lightIndex)->GetConstantBuffer(); };
+
+ID3D11Buffer* Light::GetLightCameraConstantBuffer(UINT lightIndex) const { return this->shadowCameras.at(lightIndex)->GetConstantBuffer(); }
+XMFLOAT3 Light::GetCameraPos(UINT lightIndex) const { return this->bufferData.at(lightIndex).position; }
+XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const { return this->bufferData.at(lightINdex).vpmatrix; }
+
 ID3D11Buffer* Light::GetLightBuffer() const { return this->lightBuffer.GetBuffer(); }
 
 

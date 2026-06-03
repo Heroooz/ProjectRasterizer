@@ -34,15 +34,18 @@ void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)
 
     XMVECTOR forwardVec = XMLoadFloat3(&this->forward);
     forwardVec = XMVector3TransformNormal(forwardVec, rotationMatrix);
-    XMStoreFloat3(&this->forward, XMVector3Normalize(forwardVec));
+    forwardVec = XMVector3Normalize(forwardVec);
+    XMStoreFloat3(&this->forward, forwardVec);
 
     XMVECTOR rightVec = XMLoadFloat3(&this->right);
     rightVec = XMVector3TransformNormal(rightVec, rotationMatrix);
-    XMStoreFloat3(&this->right, XMVector3Normalize(rightVec));
+    rightVec = XMVector3Normalize(rightVec);
+    XMStoreFloat3(&this->right, rightVec);
 
     XMVECTOR upVec = XMLoadFloat3(&this->up);
     upVec = XMVector3TransformNormal(upVec, rotationMatrix);
-    XMStoreFloat3(&this->up, XMVector3Normalize(upVec));
+    upVec = XMVector3Normalize(upVec);
+    XMStoreFloat3(&this->up, upVec);
 }
 
 void CameraD3D11::MoveForward(float amount) { MoveInDirection(amount, this->forward); }

@@ -1,10 +1,14 @@
 RWTexture2D<unorm float4> backBufferUAV : register(u0);
 
-SamplerState samplerState : register(s0);
+SamplerState shadowMapSampler : register(s0);
 
 Texture2D<float4> positionGBuffer : register(t0);
 Texture2D<float4> normalGBuffer : register(t1);
 Texture2D<float4> diffuseGBuffer : register(t2);
+
+Texture2DArray<float> spotLightShadowMap : register(t3);
+Texture2DArray<float> dirLightShadowMap : register(t4);
+
 
 struct LightBuffer
 {
@@ -16,8 +20,8 @@ struct LightBuffer
     float angle;
 };
 
-StructuredBuffer<LightBuffer> SpotLights : register(t3);
-StructuredBuffer<LightBuffer> DirLights : register(t4);
+StructuredBuffer<LightBuffer> SpotLights : register(t5);
+StructuredBuffer<LightBuffer> DirLights : register(t6);
 
 
 cbuffer CameraBuffer : register(b0)
@@ -60,19 +64,28 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     {
         LightBuffer spotlight = SpotLights[i];
         
+        float3 pos = spotlight.position;
         float3 L = normalize(spotlight.position - pixelPosition.xyz);   // LightDir
         float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);   // ViewDir
         float3 H = normalize(L + V);
         float T = dot(L, pixelNormal);                                  // Theta for diffuse  (LightDir & Normal)
-        float S = max(0, dot(pixelNormal.xyz, H));                    // Sigma for specular (Halfway-Vector & Normal)
+        float S = max(0, dot(pixelNormal.xyz, H)); // Sigma for specular (Halfway-Vector & Normal)
        
         float3 D = normalize(spotlight.direction);
         float cosT = dot(-L, D);
         float spoEffect = smoothstep(cos(spotlight.angle), 1.0f, cosT);
         
+        // ShadowMapping
+        float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix);   // -> Clip Space
+        float3 ndcSpace = (clipSpace.xyz / clipSpace.w);                        // -> NDC Space
+        
+        float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
+        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.001; // Avoid self-shadowing
+        float shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+        
         // Setting the diffuse and specular    
-        diffuse += spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-        specular += spotlight.intensity * spotlight.color * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof);
+        diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+        specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
         
         if (spotlight.intensity > ambientStandard)
             ambientStandard = spotlight.intensity;
@@ -89,11 +102,21 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float T = dot(L, pixelNormal);
         float S = dot(pixelNormal.xyz, H);
         
+        
+        // ShadowMapping
+        float4 clipSpace = mul(pixelPosition, dirlight.vpmatrix); // -> Clip Space
+        float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
+        
+        float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
+        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
+        float shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+        
+        // Setting a,d,s values
         if(dirlight.intensity > ambientStandard)
             ambientStandard = dirlight.intensity;
         
-        diffuse += dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);// * float4(1, 1, 1, 0);
-        specular += dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0));
+        diffuse +=  shadowFactor * dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+        specular += shadowFactor * dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
     }
     // c_a = k_a * l_a
     float4 ambient = positionGBuffer[DTid.xy].a *  float4(diffuseGBuffer[DTid.xy].xyz, 0);    

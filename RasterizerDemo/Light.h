@@ -13,11 +13,6 @@ using namespace DirectX;
 
 struct LightData
 {
-	struct ShadowMapInfo
-	{
-		UINT textureDimension = 0;
-	} shadowMapInfo;
-
 	struct PerLightInfo
 	{
 		DirectX::XMFLOAT4 color = { 0, 0, 0, 0};
@@ -68,6 +63,9 @@ class Light
 	DepthBufferD3D11 shadowMaps;
 	StructuredBufferD3D11 lightBuffer;
 
+	const UINT WIDTH = 1920;
+	const UINT HEIGHT = 1080;
+
 public:
 	Light() = default;
 	//Light(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
@@ -86,6 +84,8 @@ public:
 	ID3D11DepthStencilView* GetShadowMapDSV(UINT lightIndex) const;
 	ID3D11ShaderResourceView* GetShadowMapsSRV() const;
 	ID3D11ShaderResourceView* GetLightBufferSRV() const;
+	XMFLOAT3 GetCameraPos(UINT lightIndex) const;
+	XMFLOAT4X4 GetCameraVP(UINT lightINdex) const;
 	ID3D11Buffer* GetLightCameraConstantBuffer(UINT lightIndex) const;
 	ID3D11Buffer* GetLightBuffer() const;
 };

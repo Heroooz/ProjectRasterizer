@@ -37,10 +37,10 @@ void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const 
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
 {	
-	Light light;
-	light.Initialize(device, data);
-	if (data.perLightInfo.isDir) dirLights.Initialize(device, data);
-	else spotLights.Initialize(device, data);
+	//Light light;
+	//light.Initialize(device, data);
+	if (data.perLightInfo.isDir) this->dirLights.Initialize(device, data);
+	else this->spotLights.Initialize(device, data);
 }
 
 void Scene::InitializeLight(ID3D11Device* device)
@@ -67,11 +67,22 @@ void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 		dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
+
+	//this->dirLights.UpdateBuffers(context);
+	//this->spotLights.UpdateBuffers(context);
 }
 
 void Scene::DrawScene(ID3D11DeviceContext* context)
 {
 }
+
+//void Scene::DrawLights(ID3D11DeviceContext* context)
+//{
+//	for (auto& spot : spotLights.GetNrOfLights())
+//	{
+//
+//	}
+//}
 
 void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 {
@@ -100,24 +111,45 @@ void Scene::RemoveObjectFromScene(int index)
 {
 }
 
-ID3D11Buffer* Scene::GetnrofLightBuffer()
-{
-	return this->nrofLights.GetBuffer();
-}
 
 ID3D11ShaderResourceView* Scene::GetLightBufferSRV(bool isDir)
 {
 	if (isDir) return this->dirLights.GetLightBufferSRV();
-	else return this->spotLights.GetLightBufferSRV();
+	return this->spotLights.GetLightBufferSRV();
 }
 
 ID3D11ShaderResourceView* Scene::GetShadowMapSRV(bool isDir)
 {
 	if (isDir) return this->dirLights.GetShadowMapsSRV();
-	else return this->spotLights.GetShadowMapsSRV();
+	return this->spotLights.GetShadowMapsSRV();
+}
+
+ID3D11DepthStencilView* Scene::GetShadowMapDSV(int index, bool isDir)
+{
+	if (isDir) return this->dirLights.GetShadowMapDSV(index);
+	return this->spotLights.GetShadowMapDSV(index);
+}
+
+XMFLOAT3 Scene::GetCameraPos(UINT lightIndex, bool isDir) const
+{
+	if (isDir) this->dirLights.GetCameraPos(lightIndex);
+	return this->spotLights.GetCameraPos(lightIndex);
+}
+
+XMFLOAT4X4 Scene::GetCameraVP(UINT lightINdex, bool isDir) const 
+{
+	if (isDir) this->dirLights.GetCameraVP(lightINdex);
+	return this->spotLights.GetCameraVP(lightINdex);
 }
 
 
+ID3D11Buffer* Scene::GetShadowCamera(int index, bool isDir)
+{
+	if (isDir) return this->dirLights.GetLightCameraConstantBuffer(index);
+	return this->spotLights.GetLightCameraConstantBuffer(index);
+}
+
+ID3D11Buffer* Scene::GetnrofLightBuffer() { return this->nrofLights.GetBuffer(); }
 
 int Scene::GetNrOfObjects() { return this->objects.size(); }
 

@@ -31,17 +31,21 @@ public:
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
 
 	void DrawScene(ID3D11DeviceContext* context);
+	void DrawLights(ID3D11DeviceContext* context);
 	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
 	void DrawDCEM(ID3D11DeviceContext* context);
 	//void SetNrOfLights(ID3D11Device* device);
 	void RemoveObjectFromScene(int index);
 
-	ID3D11Buffer* GetnrofLightBuffer();
-
 	ID3D11ShaderResourceView* GetLightBufferSRV(bool isDir = false);
 	ID3D11ShaderResourceView* GetShadowMapSRV(bool isDir = false);
+	ID3D11DepthStencilView* GetShadowMapDSV(int index, bool isDir = false);
 
+	XMFLOAT3 GetCameraPos(UINT lightIndex, bool isDir=false) const;
+	XMFLOAT4X4 GetCameraVP(UINT lightINdex, bool isDir=false) const;
 
+	ID3D11Buffer* GetShadowCamera(int index, bool isDir = false);
+	ID3D11Buffer* GetnrofLightBuffer();
 	int GetNrOfObjects();
 	int GetNrOfSpotLights();
 	int GetNrOfDirLight();
