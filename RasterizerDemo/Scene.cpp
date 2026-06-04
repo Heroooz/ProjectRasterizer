@@ -87,6 +87,7 @@ void Scene::DrawDCEM(ID3D11DeviceContext* context)
 {
 	for (auto& dcem : dcems)
 	{
+		dcem->GenerateCubemap(context, objects);
 		dcem->Draw(context);
 	}
 }

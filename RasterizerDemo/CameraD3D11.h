@@ -48,6 +48,8 @@ public:
 	void RotateRight(float amount);
 	void RotateUp(float amount);
 
+	void LookAt(const DirectX::XMFLOAT3& cameraPosition, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& upVector);
+
 	const DirectX::XMFLOAT3& GetPosition() const;
 	const DirectX::XMFLOAT3& GetForward() const;
 	const DirectX::XMFLOAT3& GetRight() const;

@@ -28,7 +28,8 @@ VertexShaderOutput main(VertexShaderInput input)
 	VertexShaderOutput output;
 	output.worldPosition = mul(float4(input.position, 1.0f), world);
 	output.position = mul(output.worldPosition, viewProj);
-	output.normal = normalize(mul(float4(input.normal, 0.0f), world).xyz);
+	//output.normal = normalize(mul(float4(input.normal, 0.0f), world).xyz);
+    output.normal = normalize(mul(input.normal, (float3x3)world));
 	output.uv = input.uv;
 	return output;
 }

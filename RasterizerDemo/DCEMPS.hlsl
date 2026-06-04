@@ -46,16 +46,17 @@ static const float defAmb = 1.0;
 DCEMPSOutput main(DCEMPSInput input)
 {
     float2 uv = input.uv;
-    uv.y = -uv.y;
+    //uv.y = -uv.y;
     
     DCEMPSOutput output;
     
-    float3 viewDir = normalize(input.worldPosition.xyz - cameraPosition.xyz);
-    float3 samplevec = normalize(reflect(viewDir, normalize(input.normal.xyz)));
+    float3 viewDir = normalize(cameraPosition.xyz - input.worldPosition.xyz);
+    float3 samplevec = normalize(reflect(-viewDir, normalize(input.normal.xyz)));
 
-    float ambient = reflectionTexture.Sample(samplerState, samplevec);
+    float3 reflection = reflectionTexture.Sample(samplerState, samplevec).rgb;
+    float ambient = 1.0f * (reflection.r + reflection.g + reflection.b) / 3.0f;
     output.position = float4(input.worldPosition.xyz, ambient);
-    float specular = specularTexture.Sample(samplerState, input.uv);
+    float specular = specularTexture.Sample(samplerState, input.uv).r;
     output.normal = float4(input.normal, specular);
     output.diffuse = diffuseTexture.Sample(samplerState, input.uv);
 

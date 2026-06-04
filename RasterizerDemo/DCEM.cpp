@@ -12,13 +12,23 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	projectionInfo.nearZ = 0.1f;
 	projectionInfo.farZ = 100.0f;
 
-	float rotations[6][3] = {
-		{ 0.0f,		   XM_PIDIV2,	0.0f },   // +X: Right
-		{ 0.0f,	      -XM_PIDIV2,	0.0f },   // -X: Left
-		{ -XM_PIDIV2,  XM_PI,		0.0f },	  // +Y: Top
-		{  XM_PIDIV2,  0.0f,		0.0f },   // -Y: Bottom
-		{ 0.0f,		   0.0f,     0.0001f },   // +Z: Front
-		{ 0.0f,		   XM_PI,		0.0f }    // -Z: Back
+	XMFLOAT3 targets[6] =
+	{
+		{ 1.0f,  0.0f,  0.0f},
+		{-1.0f,  0.0f,  0.0f},
+		{ 0.0f,  1.0f,  0.0f},
+		{ 0.0f, -1.0f,  0.0f},
+		{ 0.0f,  0.0f,  1.0f},
+		{ 0.0f,  0.0f, -1.0f}
+	};
+	XMFLOAT3 ups[6] =
+	{
+		{ 0.0f, 1.0f,  0.0f},
+		{ 0.0f, 1.0f,  0.0f},
+		{ 0.0f, 0.0f, -1.0f},
+		{ 0.0f, 0.0f,  1.0f},
+		{ 0.0f, 1.0f,  0.0f},
+		{ 0.0f, 1.0f,  0.0f}
 	};
 
 	ComPtr<ID3D11DeviceContext> immediateContext;
@@ -30,9 +40,8 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 		// Set Camera
 		this->cameras[i] = CameraD3D11(device, projectionInfo, initPos);
 
-		this->cameras[i].RotateUp(rotations[i][0]);
-		this->cameras[i].RotateRight(rotations[i][1]);
-		this->cameras[i].RotateForward(rotations[i][2]);
+		XMFLOAT3 target = { initPos.x + targets[i].x, initPos.y + targets[i].y, initPos.z + targets[i].z };
+		this->cameras[i].LookAt(initPos, target, ups[i]);
 
 		//this->cameras[i].UpdateInternalConstantBuffer(immediateContext.Get());
 	}
@@ -45,7 +54,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	this->worldMatrix = world;
 
 	XMFLOAT4X4 world4x4T;
-	XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
+	DirectX::XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
 	this->worldMatrixBuffer.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
 
 	Initialize(device, initPos, width, height);
@@ -82,6 +91,12 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 		if (FAILED(device->CreateRenderTargetView(texture.Get(), &rtvDesc, this->rtv[i].GetAddressOf())))
 			throw std::runtime_error("Could not create texture cube rtv");
 	}
+
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	//srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	//srvDesc.TextureCube.MipLevels = 1;
+	//srvDesc.TextureCube.MostDetailedMip = 0;
 
 	if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
 		throw std::runtime_error("Could not create SRV for DCEM");
@@ -137,33 +152,52 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 
 void DCEM::Update(ID3D11DeviceContext* context)
 {
-	for (size_t i = 0; i < 6; ++i)
+	//for (size_t i = 0; i < 6; ++i)
+	//{
+	//	cameras[i].UpdateInternalConstantBuffer(context);
+	//}
+}
+
+void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
+{
+	ID3D11RenderTargetView* oldRTV = nullptr;
+	ID3D11DepthStencilView* oldDSV = nullptr;
+	context->OMGetRenderTargets(1, &oldRTV, &oldDSV);
+
+	context->RSSetViewports(1, &viewport);
+
+	for (int face = 0; face < 6; ++face)
 	{
-		cameras[i].UpdateInternalConstantBuffer(context);
+		float clear[4] = { 0,0,0,1 };
+		context->ClearRenderTargetView(rtv[face].Get(), clear);
+		context->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		ID3D11RenderTargetView* faceRTV = rtv[face].Get();
+		context->OMSetRenderTargets(1, &faceRTV, dsView.Get());
+
+		ID3D11Buffer* camBuffer = cameras[face].GetConstantBuffer();
+		context->VSSetConstantBuffers(0, 1, &camBuffer);
+
+		for (auto obj : sceneObjects)
+		{
+			obj->drawObject(context);
+		}
 	}
+
+	context->OMSetRenderTargets(1, &oldRTV, oldDSV); 
+	if (oldRTV) oldRTV->Release();
+	if (oldDSV) oldDSV->Release();
 }
 
 void DCEM::Draw(ID3D11DeviceContext* context)
 {
-	for (int face = 0; face < 6; ++face) {
-		// Set render target to cube map face RTV[face]
-		ComPtr<ID3D11RenderTargetView> rtvFace = rtv[face].Get();
-		context->OMSetRenderTargets(1, rtvFace.GetAddressOf(), dsView.Get());
-
-		// Set viewport to cube map size
-		context->RSSetViewports(1, &viewport);
-		// Set camera for this face
-		ComPtr<ID3D11Buffer> camBuffer = cameras[face].GetConstantBuffer();
-		context->VSSetConstantBuffers(0, 1, camBuffer.GetAddressOf());
-		// Draw scene from this face's camera
-		//DrawScene(context);
-	}
+	ID3D11Buffer* pMatrix = this->worldMatrixBuffer.GetBuffer();
+	context->VSSetConstantBuffers(1, 1, &pMatrix);
 
 	DCEMPS->BindShader(context);
+	context->PSSetShaderResources(4, 1, this->srv.GetAddressOf());
 
 	this->mesh->BindMeshBuffers(context);
-
-	context->PSSetShaderResources(4, 1, this->srv.GetAddressOf());
 
 	for (size_t i = 0; i < this->mesh->GetNrOfSubMeshes(); ++i) {
 		this->mesh->PerformSubMeshDrawCall(context, i);
