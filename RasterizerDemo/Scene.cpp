@@ -21,18 +21,14 @@ Scene::~Scene()
 	}
 }
 
-void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, bool isSkyBox)
+void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, bool isSkyBox)
 {
-	DCEM* dcem = new DCEM(device, position);
-	dcems.push_back(dcem);
+	dcems.push_back(new DCEM(device, position, width, height, DCEMPS, normalPS));
 }
 
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
 {
-	//Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
-	//objects.push_back(obj);
 	objects.push_back(new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT));
-
 }
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
@@ -101,6 +97,14 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 			immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);
 		}
 		obj->drawObject(immediatecontext);
+	}
+}
+
+void Scene::GenerateDCEM(ID3D11DeviceContext* context)
+{
+	for (auto& dcem : dcems)
+	{
+		dcem->GenerateCubemap(context, objects);
 	}
 }
 

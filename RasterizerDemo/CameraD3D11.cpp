@@ -62,6 +62,26 @@ void CameraD3D11::RotateRight(float amount) { RotateAroundAxis(amount, this->rig
 
 void CameraD3D11::RotateUp(float amount) { RotateAroundAxis(amount, this->up); }
 
+void CameraD3D11::LookAt(const DirectX::XMFLOAT3& cameraPosition, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& upVector)
+{
+	this->position = cameraPosition;
+	this->forward.x = target.x - cameraPosition.x;
+	this->forward.y = target.y - cameraPosition.y;
+	this->forward.z = target.z - cameraPosition.z;
+
+	XMVECTOR forwardVec = XMLoadFloat3(&this->forward);
+	forwardVec = XMVector3Normalize(forwardVec);
+	XMStoreFloat3(&this->forward, forwardVec);
+
+	XMVECTOR upVec = XMLoadFloat3(&upVector);
+	upVec = XMVector3Normalize(upVec);
+	XMStoreFloat3(&this->up, upVec);
+
+	XMVECTOR rightVec = XMVector3Cross(upVec, forwardVec);
+	rightVec = XMVector3Normalize(rightVec);
+	XMStoreFloat3(&this->right, rightVec);
+}
+
 const XMFLOAT3& CameraD3D11::GetPosition() const { return this->position; }
 
 const XMFLOAT3& CameraD3D11::GetForward() const { return this->forward; }

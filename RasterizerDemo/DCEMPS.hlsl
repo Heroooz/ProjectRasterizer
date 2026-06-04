@@ -46,29 +46,34 @@ static const float defAmb = 1.0;
 DCEMPSOutput main(DCEMPSInput input)
 {
     float2 uv = input.uv;
-    uv.y = -uv.y;
+    //uv.y = -uv.y;
     
     float3 normal = normalize(input.normal);
-    float3 incomingView = normalize(input.worldPosition.xyz - cameraPosition);
-    float3 reflectedView = reflect(incomingView, normal);
-    float4 sampeldValue = reflectionTexture.Sample(samplerState, reflectedView);
     
-    float ambient = defAmb * (ambientFactor.x + ambientFactor.y + ambientFactor.z) / 3;
+    DCEMPSOutput output;
+    
+    float3 viewDir = normalize(cameraPosition.xyz - input.worldPosition.xyz);
+    float3 samplevec = normalize(reflect(-viewDir, normalize(input.normal.xyz)));
+
+    float3 reflection = reflectionTexture.Sample(samplerState, samplevec).rgb;
+    float ambient = (reflection.r + reflection.g + reflection.b) / 3.0f;
     if (hasAmbientTexture == 1)
+    {
         ambient *= ambientTexture.Sample(samplerState, uv).r;
+    }
     
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
     if (hasSpecularTexture == 1)
+    {
         specular *= specularTexture.Sample(samplerState, uv).r;
-
+    }
+    
     float4 diffuse = float4(diffuseFactor, 1);
     if (hasDiffuseTexture == 1)
         diffuse *= float4(diffuseTexture.Sample(samplerState, uv));;
     
-    
-    DCEMPSOutput output;
     output.position = float4(input.worldPosition.xyz, ambient);
-    output.normal = float4(normal, specular);
+    output.normal = float4(input.normal, specular);
     output.diffuse = diffuse;
     
     return output;

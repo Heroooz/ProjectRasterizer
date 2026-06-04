@@ -196,6 +196,8 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     if (shadow)
         ShadowPass(scene, tesselation);
 
+    scene.GenerateDCEM(immediateContext.Get());
+
     pCamera = camBufferPS.GetBuffer();
     GeometryPass(tesselation);
     scene.DrawObjects(immediateContext.Get(), tesselation);
@@ -230,6 +232,13 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 
     //scene.DrawObjects(immediateContext.Get(), tesselation);
     //scene.DrawDCEM(immediateContext.Get());
+	//scene.GenerateDCEM(immediateContext.Get());
+ //   immediateContext->RSSetViewports(1, &viewport);
+ //   immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+
+ //   scene.DrawObjects(immediateContext.Get(), tesselation);
+
+ //   scene.DrawDCEM(immediateContext.Get());
 
 
 }
@@ -273,6 +282,7 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
 void Renderer::GeometryPass(bool tesselation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+    immediateContext->RSSetViewports(1, &viewport);
     
     psShader[0]->BindShader(immediateContext.Get());
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -392,7 +402,7 @@ void Renderer::LoadObjects(Scene& scene)
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene.AddDCEM(device.Get(), { 0,4,0 });
+    scene.AddDCEM(device.Get(), { 0, 4, 0 }, 1024, 1024, psShader[1], psShader[0], false);
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
