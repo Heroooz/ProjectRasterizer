@@ -80,7 +80,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float3 ndcSpace = (clipSpace.xyz / clipSpace.w);                        // -> NDC Space
         
         float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
-        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.001; // Avoid self-shadowing
+        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.00001; // Avoid self-shadowing
         float shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
         
         // Setting the diffuse and specular    
@@ -119,7 +119,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         specular += shadowFactor * dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
     }
     // c_a = k_a * l_a
-    float4 ambient = positionGBuffer[DTid.xy].a *  float4(diffuseGBuffer[DTid.xy].xyz, 0);    
+    float4 ambient = ambientStandard *  float4(diffuseGBuffer[DTid.xy].xyz, 0);    
 
     backBufferUAV[DTid.xy] = ambient + diffuse + specular;
   

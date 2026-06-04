@@ -27,7 +27,7 @@ public:
 	~Renderer() = default;
 
 	bool Initialize(Scene& scene);
-	void Render(Scene& scene, bool tesselation);
+	void Render(Scene& scene, bool tesselation, bool shadow);
 
 	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
@@ -116,7 +116,7 @@ private:
 	void ClearBuffers();
 	void ShadowPass(Scene& scene, bool tesselate);
 	void GeometryPass(bool tesselate);
-	void LightPass(Scene& scene);
+	void LightPass(Scene& scene, bool shadow);
 
 
 	// Adding the the scene

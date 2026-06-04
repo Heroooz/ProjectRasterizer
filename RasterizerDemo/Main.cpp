@@ -31,6 +31,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	bool shouldTesselate = true;
 	bool showWireFrame = false;
+	bool shadowOn = true;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -108,16 +109,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 		// De funkar inge :(
-		if (GetKeyState('T') & 0x8000)
+		static bool wasPressed = false;
+		if (GetKeyState('T') & 0x8000 && !wasPressed)
 		{
 			shouldTesselate = !shouldTesselate;
+			wasPressed = true;
 		}
+
 		if (GetKeyState('X') & 0x8000)
 		{
 			showWireFrame = !showWireFrame;
 			UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
-		}
 
+		}
+		if (GetKeyState('O') & 0x8000)
+		{
+			shadowOn = !shadowOn;
+		}
+		
 
 		// Update scene (objects and lights)
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
@@ -135,7 +144,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		//SetCursorPos(center.x, center.y);
 		//lastMousePos = center;
 
-		renderer.Render(*scene.get(), shouldTesselate);
+		renderer.Render(*scene.get(), shouldTesselate, shadowOn);
 	}
 
 	scene->~Scene();

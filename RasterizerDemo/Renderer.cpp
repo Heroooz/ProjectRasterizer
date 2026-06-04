@@ -158,7 +158,7 @@ bool Renderer::Initialize(Scene& scene) {
     return true;
 }
 
-void Renderer::Render(Scene& scene, bool tesselation) {
+void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 
 	time.Update(); // Update frame timing
 
@@ -192,13 +192,14 @@ void Renderer::Render(Scene& scene, bool tesselation) {
     //immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     //immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
    
-    ShadowPass(scene, tesselation);
+    if (shadow)
+        ShadowPass(scene, tesselation);
 
     pCamera = camBufferPS.GetBuffer();
     GeometryPass(tesselation);
     scene.DrawObjects(immediateContext.Get(), tesselation);
     scene.DrawDCEM(immediateContext.Get());
-    LightPass(scene);
+    LightPass(scene, shadow);
     swapChain->Present(0, 0);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
@@ -294,7 +295,7 @@ void Renderer::GeometryPass(bool tesselation)
     }
 }
 
-void Renderer::LightPass(Scene& scene)
+void Renderer::LightPass(Scene& scene, bool shadow)
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
     csShader->BindShader(immediateContext.Get());
@@ -302,8 +303,18 @@ void Renderer::LightPass(Scene& scene)
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
-    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
-    ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
+    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap;
+    ComPtr<ID3D11ShaderResourceView> srvDirLightMap;
+    if (shadow)
+    {
+        srvSpotlightMap = scene.GetShadowMapSRV();
+        srvDirLightMap = scene.GetShadowMapSRV(true);
+    }
+    else
+    {
+        srvSpotlightMap = nullptr;
+        srvDirLightMap = nullptr;
+    }
     ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
     ComPtr<ID3D11ShaderResourceView> srvDirLight = scene.GetLightBufferSRV(true);
 
