@@ -15,7 +15,7 @@ bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vSha
 
 	vShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	defpShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DeferredPS.cso");
-	pShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "PixelShader.cso");
+	pShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DCEMPS.cso");
 	cShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
 	hullShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::HULL_SHADER, "HullShader.cso");
