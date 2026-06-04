@@ -83,11 +83,18 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
 	}
 }
 
-void Scene::DrawDCEM(ID3D11DeviceContext* context)
+void Scene::GenerateDCEM(ID3D11DeviceContext* context)
 {
 	for (auto& dcem : dcems)
 	{
 		dcem->GenerateCubemap(context, objects);
+	}
+}
+
+void Scene::DrawDCEM(ID3D11DeviceContext* context)
+{
+	for (auto& dcem : dcems)
+	{
 		dcem->Draw(context);
 	}
 }

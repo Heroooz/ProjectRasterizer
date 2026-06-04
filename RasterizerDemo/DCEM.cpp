@@ -43,7 +43,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 		XMFLOAT3 target = { initPos.x + targets[i].x, initPos.y + targets[i].y, initPos.z + targets[i].z };
 		this->cameras[i].LookAt(initPos, target, ups[i]);
 
-		//this->cameras[i].UpdateInternalConstantBuffer(immediateContext.Get());
+		this->cameras[i].UpdateInternalConstantBuffer(immediateContext.Get());
 	}
 
 	// Adding the mesh
@@ -92,13 +92,13 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 			throw std::runtime_error("Could not create texture cube rtv");
 	}
 
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	//srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	//srvDesc.TextureCube.MipLevels = 1;
-	//srvDesc.TextureCube.MostDetailedMip = 0;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srvDesc.TextureCube.MipLevels = 1;
+	srvDesc.TextureCube.MostDetailedMip = 0;
 
-	if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
+	if (FAILED(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.GetAddressOf())))
 		throw std::runtime_error("Could not create SRV for DCEM");
 
 
@@ -160,42 +160,36 @@ void DCEM::Update(ID3D11DeviceContext* context)
 
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
 {
-	ID3D11RenderTargetView* oldRTV = nullptr;
-	ID3D11DepthStencilView* oldDSV = nullptr;
-	context->OMGetRenderTargets(1, &oldRTV, &oldDSV);
-
 	context->RSSetViewports(1, &viewport);
 
 	for (int face = 0; face < 6; ++face)
 	{
 		float clear[4] = { 0,0,0,1 };
 		context->ClearRenderTargetView(rtv[face].Get(), clear);
-		context->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+		context->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		ID3D11RenderTargetView* faceRTV = rtv[face].Get();
 		context->OMSetRenderTargets(1, &faceRTV, dsView.Get());
 
 		ID3D11Buffer* camBuffer = cameras[face].GetConstantBuffer();
 		context->VSSetConstantBuffers(0, 1, &camBuffer);
+		context->PSSetConstantBuffers(0, 1, &camBuffer);
 
 		for (auto obj : sceneObjects)
 		{
 			obj->drawObject(context);
 		}
 	}
-
-	context->OMSetRenderTargets(1, &oldRTV, oldDSV); 
-	if (oldRTV) oldRTV->Release();
-	if (oldDSV) oldDSV->Release();
 }
 
 void DCEM::Draw(ID3D11DeviceContext* context)
 {
-	ID3D11Buffer* pMatrix = this->worldMatrixBuffer.GetBuffer();
-	context->VSSetConstantBuffers(1, 1, &pMatrix);
-
 	DCEMPS->BindShader(context);
 	context->PSSetShaderResources(4, 1, this->srv.GetAddressOf());
+
+	ID3D11Buffer* pMatrix = this->worldMatrixBuffer.GetBuffer();
+	context->VSSetConstantBuffers(1, 1, &pMatrix);
+	context->PSSetConstantBuffers(1, 1, &pMatrix);
 
 	this->mesh->BindMeshBuffers(context);
 

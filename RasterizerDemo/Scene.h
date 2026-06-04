@@ -32,6 +32,7 @@ public:
 
 	void DrawScene(ID3D11DeviceContext* context);
 	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
+	void GenerateDCEM(ID3D11DeviceContext* context);
 	void DrawDCEM(ID3D11DeviceContext* context);
 	//void SetNrOfLights(ID3D11Device* device);
 	void RemoveObjectFromScene(int index);
