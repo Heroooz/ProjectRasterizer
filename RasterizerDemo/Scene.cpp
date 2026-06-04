@@ -67,9 +67,6 @@ void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 		dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
-
-	//this->dirLights.UpdateBuffers(context);
-	//this->spotLights.UpdateBuffers(context);
 }
 
 void Scene::DrawScene(ID3D11DeviceContext* context)
@@ -132,13 +129,13 @@ ID3D11DepthStencilView* Scene::GetShadowMapDSV(int index, bool isDir)
 
 XMFLOAT3 Scene::GetCameraPos(UINT lightIndex, bool isDir) const
 {
-	if (isDir) this->dirLights.GetCameraPos(lightIndex);
+	if (isDir) return this->dirLights.GetCameraPos(lightIndex);
 	return this->spotLights.GetCameraPos(lightIndex);
 }
 
 XMFLOAT4X4 Scene::GetCameraVP(UINT lightINdex, bool isDir) const 
 {
-	if (isDir) this->dirLights.GetCameraVP(lightINdex);
+	if (isDir) return this->dirLights.GetCameraVP(lightINdex);
 	return this->spotLights.GetCameraVP(lightINdex);
 }
 

@@ -114,6 +114,10 @@ void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
     DirectX::XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
 
     this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
+
+    XMFLOAT4X4 o4x4 = this->GetOrthographicProjectionMatrix();
+    this->OrthBuffer.UpdateBuffer(context, &o4x4);
+
 }
 
 ID3D11Buffer* CameraD3D11::GetConstantBuffer() const { return this->cameraBuffer.GetBuffer(); }
@@ -131,7 +135,7 @@ XMFLOAT4X4 CameraD3D11::GetViewProjectionMatrix() const
 
 DirectX::XMFLOAT4X4 CameraD3D11::GetOrthographicProjectionMatrix() const
 {
-    const XMFLOAT3 lpos = { 0.0f, this->projInfo.farZ, 0.0f };
+    const XMFLOAT3 lpos = { 0.0f, -this->projInfo.farZ, 0.0f };
     const XMFLOAT3 ldir = { 0.0f,-1.0f,0.0f };
     const XMFLOAT3 lup = { 0.0f,0.0f,1.0f };
 
