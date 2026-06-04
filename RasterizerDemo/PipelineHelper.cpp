@@ -139,12 +139,27 @@ bool CreateTexture(ComPtr<ID3D11Device> device, const char* filename, int x, int
 	return true;
 }
 
-bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D11>& samplerState)
+bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D11>& samplerState, std::unique_ptr<SamplerD3D11>& shadowSampler)
 {
 	D3D11_TEXTURE_ADDRESS_MODE addressmode = D3D11_TEXTURE_ADDRESS_WRAP;
 	std::optional<std::array<float, 4>> borderColour;
 	borderColour = { 1,1,1,1 };
 	samplerState = std::make_unique<SamplerD3D11>(device.Get(), addressmode, borderColour);
+
+
+	D3D11_SAMPLER_DESC sd = {};
+	sd.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.MipLODBias = 0.0f;
+	sd.MaxAnisotropy = 1;
+	sd.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	sd.MinLOD = 0.0f;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+
+	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);
 	//D3D11_SAMPLER_DESC samplerDesc;
 	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -166,7 +181,8 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 
 bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, 
 	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, std::unique_ptr<ShaderD3D11>& domainShader,
-	std::unique_ptr<InputLayoutD3D11>& inputLayout, ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState)
+	std::unique_ptr<InputLayoutD3D11>& inputLayout, ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState,
+	std::unique_ptr<SamplerD3D11>& shadowSampler)
 {
 	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader, hullShader, domainShader))
 	{
@@ -185,7 +201,7 @@ bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vS
 		return false;
 	}
 
-	if (!CreateSamplerState(device, samplerState)) {
+	if (!CreateSamplerState(device, samplerState, shadowSampler)) {
 		std::cerr << "Error creating sampler!" << std::endl;
 		return false;
 	}

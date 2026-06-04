@@ -24,7 +24,7 @@ bool Renderer::Initialize(Scene& scene) {
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
     if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader,
-                    inputLayout, texture, srv, samplerState)) 
+                    inputLayout, texture, srv, samplerState, shadowSampler)) 
     {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
@@ -143,7 +143,7 @@ bool Renderer::Initialize(Scene& scene) {
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
-    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f));
+    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -2.0f));
 
     // Creating the Scene (w objs and light)
     LoadObjects(scene);
@@ -153,14 +153,13 @@ bool Renderer::Initialize(Scene& scene) {
     // Binding The Sampler To The Shaders
     ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
     immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+    pSamplerState = shadowSampler->GetSamplerState();
     immediateContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
-
-    //D3D11_FILL_WIREFRAME;
 
     return true;
 }
 
-void Renderer::Render(Scene& scene, bool tesselation) {
+void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 
 	time.Update(); // Update frame timing
 
@@ -185,14 +184,24 @@ void Renderer::Render(Scene& scene, bool tesselation) {
     CameraBuffer camPS = {};
     camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
     camPS.cameraPosition = camera.GetPosition();
+    //camPS.cameraPosition = scene.GetCameraPos(0);
+    //camPS.viewProjMatrix = scene.GetCameraVP(0);
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();
-    immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    //immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    //immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    //immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+   
+    if (shadow)
+        ShadowPass(scene, tesselation);
 
+    pCamera = camBufferPS.GetBuffer();
     GeometryPass(tesselation);
+    scene.DrawObjects(immediateContext.Get(), tesselation);
+    scene.DrawDCEM(immediateContext.Get());
+    LightPass(scene, shadow);
+    swapChain->Present(0, 0);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
     //immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -219,6 +228,8 @@ void Renderer::Render(Scene& scene, bool tesselation) {
     //    //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
     //}
 
+    //scene.DrawObjects(immediateContext.Get(), tesselation);
+    //scene.DrawDCEM(immediateContext.Get());
 	scene.GenerateDCEM(immediateContext.Get());
     immediateContext->RSSetViewports(1, &viewport);
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
@@ -227,11 +238,43 @@ void Renderer::Render(Scene& scene, bool tesselation) {
 
     scene.DrawDCEM(immediateContext.Get());
 
-    LightPass(scene);
 
-    swapChain->Present(0, 0);
 }
 
+void Renderer::ShadowPass(Scene& scene, bool tesselate)
+{
+    immediateContext->PSSetShader(nullptr, nullptr, 0);
+
+    ComPtr<ID3D11DepthStencilView> dsv;
+    // For each Spotlight
+    for (int i = 0; i < scene.GetNrOfSpotLights(); i++)
+    {
+        dsv = scene.GetShadowMapDSV(i);
+        immediateContext->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+        immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
+
+        ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i);
+        immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
+        
+        scene.DrawObjects(immediateContext.Get(), tesselate);
+        scene.DrawDCEM(immediateContext.Get());
+    }
+
+    // For each DirLight
+    for (int i = 0; i < scene.GetNrOfDirLight(); i++)
+    {
+        dsv = scene.GetShadowMapDSV(i, true);
+        immediateContext->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+        immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
+
+        ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i, true);
+        immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
+        scene.DrawObjects(immediateContext.Get(), tesselate);
+        scene.DrawDCEM(immediateContext.Get());
+    }
+    dsv = nullptr;
+    immediateContext->OMGetRenderTargets(0, nullptr, dsv.GetAddressOf());
+}
 
 
 void Renderer::GeometryPass(bool tesselation)
@@ -239,8 +282,8 @@ void Renderer::GeometryPass(bool tesselation)
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
     
     psShader[0]->BindShader(immediateContext.Get());
-    immediateContext->PSSetShaderResources(0, 3, srvNULL->GetAddressOf());
-
+    immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     if (tesselation)
     {
         hullShader->BindShader(immediateContext.Get());
@@ -260,20 +303,28 @@ void Renderer::GeometryPass(bool tesselation)
     }
 }
 
-void Renderer::LightPass(Scene& scene)
+void Renderer::LightPass(Scene& scene, bool shadow)
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
     csShader->BindShader(immediateContext.Get());
+    immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
-    ID3D11ShaderResourceView* srvSpotLight = scene.GetLightBufferSRV();
-    ID3D11ShaderResourceView* srvDirLight = scene.GetLightBufferSRV(true);
+    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
+    ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
+    ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
+    ComPtr<ID3D11ShaderResourceView> srvDirLight = scene.GetLightBufferSRV(true);
 
-    immediateContext->CSSetShaderResources(3, 1, &srvSpotLight);
-    immediateContext->CSSetShaderResources(4, 1, &srvDirLight);
+    immediateContext->CSSetShaderResources(3, 1, srvSpotlightMap.GetAddressOf());
+    immediateContext->CSSetShaderResources(4, 1, srvDirLightMap.GetAddressOf());
+    immediateContext->CSSetShaderResources(5, 1, srvSpotlight.GetAddressOf());
+    immediateContext->CSSetShaderResources(6, 1, srvDirLight.GetAddressOf());
 
-    // Felberäkningar i Blinn-Phong är min bästa gissnign
+    //ComPtr<ID3D11SamplerState> pSampler = samplerState.get();
+    //immediateContext->CSSetSamplers(0, 1, pSampler.GetAddressOf());
+
+
     ID3D11Buffer* nrofLights = scene.GetnrofLightBuffer();
     immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
 
@@ -285,6 +336,8 @@ void Renderer::LightPass(Scene& scene)
 
     // Unbinding
     immediateContext->CSSetShaderResources(0, 3, srvNULL->GetAddressOf());
+    immediateContext->CSSetShaderResources(3, 3, srvNULL->GetAddressOf());
+    immediateContext->CSSetShaderResources(6, 1, srvNULL[0].GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
 }
 
@@ -315,18 +368,24 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data2.perLightInfo.intensity = 0.1f;
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
-
-    data2.perLightInfo.rotationX = -XM_PIDIV2;
+    data2.perLightInfo.rotationX = 0;
+    data2.perLightInfo.rotationY = XM_PIDIV2;
 
     // Spotlight Ficklampa
     LightData data1 = {};
-    data1.perLightInfo.initialPosition = { 0.2f, 3.0f, -10.5f };
-    data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
+    data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
+    data1.perLightInfo.color = { 1.0f, 1.0f, 1.0f, 1.0f };
     data1.perLightInfo.intensity = 0.7f;
     data1.perLightInfo.angle = XM_PI;
+    data1.perLightInfo.rotationX = 0;
+    data1.perLightInfo.rotationY = 0;
+    data1.perLightInfo.fovAngleY = XM_PIDIV2;
+    data1.perLightInfo.aspectRatio = 1;
+    data1.perLightInfo.nearZ = 1.0f;
+    data1.perLightInfo.farZ = 100.0f;
 
-    scene.AddLight(device.Get(), data1);
     scene.AddLight(device.Get(), data2);
+    scene.AddLight(device.Get(), data1);
 
     scene.InitializeLight(device.Get());
 }
@@ -336,7 +395,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 void Renderer::LoadObjects(Scene& scene)
 {
     //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    //scene->AddObject(device.Get(), "SimpleObjects/", "Untitled", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
+    scene.AddObject(device.Get(), "NPCube2/", "cube", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
@@ -344,9 +403,11 @@ void Renderer::LoadObjects(Scene& scene)
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
-    scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 10.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
     scene.AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
 
 
 

@@ -44,8 +44,9 @@ struct PSInput
     float2 uv : UV;
 };
 
-static const float defAmb = 1.0f;
-static const float layerDepth = 1.0f / 16.9f;
+static const float defAmb = 0.8f;
+static const int nrOfLayers = 128;
+static const float layerDepth = 1.0f / nrOfLayers;
 PSOutPut main(PSInput input)
 {
     // For the objs, UV-y must be flipped :)
@@ -72,7 +73,7 @@ PSOutPut main(PSInput input)
     
     
     // Calculating normal map and parallaxing
-    float2 sampelingUV = uv;    // UV for parallaxing
+    //float2 sampelingUV = uv;    // UV for parallaxing
     if (hasNormalTexture == 1)
     {
         // Calculating the tangent and bitangent of the vertex
@@ -93,7 +94,7 @@ PSOutPut main(PSInput input)
         float2 delta = -viewDir.xy * (parallax / viewDir.z) * layerDepth;
         
         float heightSample;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < nrOfLayers; i++)
         {
             prev = offset;
             current += layerDepth;
@@ -101,16 +102,18 @@ PSOutPut main(PSInput input)
             
             heightSample = normalTexture.Sample(samplerState, uv + offset).a;
             
+            
+            
             // If gone too far, back up
-            if (current >= heightSample)
-            {
-                float prevD = current - layerDepth;
-                float t = (heightSample - prevD) / layerDepth;
-                offset = lerp(prev, offset, t);
-                break;
-            }
+            //if (current >= heightSample)
+            //{
+            //    float prevD = current - layerDepth;
+            //    float t = (heightSample - prevD) / layerDepth;
+            //    offset = lerp(prev, offset, t);
+            //    break;
+            //}
         }
-        sampelingUV += offset;
+        float2 sampelingUV = input.uv + offset;
                 
         float3 normalMap = normalTexture.Sample(samplerState, sampelingUV).rgb * 2.0f - 1.0f;
         
