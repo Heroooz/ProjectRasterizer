@@ -63,6 +63,7 @@ class Light
 	DepthBufferD3D11 shadowMaps;
 	StructuredBufferD3D11 lightBuffer;
 
+	bool isDirectionalLight = false;
 	XMFLOAT3 pos;
 	XMFLOAT4X4 vpm;
 
@@ -89,7 +90,7 @@ public:
 	ID3D11ShaderResourceView* GetLightBufferSRV() const;
 	XMFLOAT3 GetCameraPos(UINT lightIndex) const;
 	XMFLOAT4X4 GetCameraVP(UINT lightINdex) const;
-	ID3D11Buffer* GetLightCameraConstantBuffer(UINT lightIndex) const;
+	ID3D11Buffer* GetLightCameraConstantBuffer(UINT lightIndex, bool orthographic = false) const;
 	ID3D11Buffer* GetLightBuffer() const;
 };
 

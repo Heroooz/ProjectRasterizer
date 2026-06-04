@@ -57,7 +57,9 @@ public:
 
 	void ResetUp();
 	void UpdateInternalConstantBuffer(ID3D11DeviceContext* context);
+	void UpdateOrthographicBuffer(ID3D11DeviceContext* context, float orthWidth = 100.0f, float orthHeight = 100.0f);
 	ID3D11Buffer* GetConstantBuffer() const;
+	ID3D11Buffer* GetOrthographicConstantBuffer() const;
 
 	DirectX::XMFLOAT4X4 GetViewProjectionMatrix() const;
 	DirectX::XMFLOAT4X4 GetOrthographicProjectionMatrix() const;

@@ -181,10 +181,10 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     // Binding camera to VS, PS, CS
     camera.UpdateInternalConstantBuffer(immediateContext.Get());
     CameraBuffer camPS = {};
-    camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
-    camPS.cameraPosition = camera.GetPosition();
-    //camPS.cameraPosition = scene.GetCameraPos(0);
-    //camPS.viewProjMatrix = scene.GetCameraVP(0);
+    //camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
+    //camPS.cameraPosition = camera.GetPosition();
+    camPS.cameraPosition = scene.GetCameraPos(0, true);
+    camPS.viewProjMatrix = scene.GetCameraVP(0, true);
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();

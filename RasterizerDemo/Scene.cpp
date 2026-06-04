@@ -133,7 +133,7 @@ XMFLOAT3 Scene::GetCameraPos(UINT lightIndex, bool isDir) const
 	return this->spotLights.GetCameraPos(lightIndex);
 }
 
-XMFLOAT4X4 Scene::GetCameraVP(UINT lightINdex, bool isDir) const 
+XMFLOAT4X4 Scene::GetCameraVP(UINT lightINdex, bool isDir) const
 {
 	if (isDir) return this->dirLights.GetCameraVP(lightINdex);
 	return this->spotLights.GetCameraVP(lightINdex);
@@ -142,7 +142,7 @@ XMFLOAT4X4 Scene::GetCameraVP(UINT lightINdex, bool isDir) const
 
 ID3D11Buffer* Scene::GetShadowCamera(int index, bool isDir)
 {
-	if (isDir) return this->dirLights.GetLightCameraConstantBuffer(index);
+	if (isDir) return this->dirLights.GetLightCameraConstantBuffer(index, true);
 	return this->spotLights.GetLightCameraConstantBuffer(index);
 }
 
