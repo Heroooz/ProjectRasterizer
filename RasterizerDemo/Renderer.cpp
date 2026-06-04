@@ -196,6 +196,8 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     if (shadow)
         ShadowPass(scene, tesselation);
 
+    scene.GenerateDCEM(immediateContext.Get());
+
     pCamera = camBufferPS.GetBuffer();
     GeometryPass(tesselation);
     scene.DrawObjects(immediateContext.Get(), tesselation);
@@ -230,13 +232,13 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 
     //scene.DrawObjects(immediateContext.Get(), tesselation);
     //scene.DrawDCEM(immediateContext.Get());
-	scene.GenerateDCEM(immediateContext.Get());
-    immediateContext->RSSetViewports(1, &viewport);
-    immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+	//scene.GenerateDCEM(immediateContext.Get());
+ //   immediateContext->RSSetViewports(1, &viewport);
+ //   immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
 
-    scene.DrawObjects(immediateContext.Get(), tesselation);
+ //   scene.DrawObjects(immediateContext.Get(), tesselation);
 
-    scene.DrawDCEM(immediateContext.Get());
+ //   scene.DrawDCEM(immediateContext.Get());
 
 
 }
@@ -280,6 +282,7 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
 void Renderer::GeometryPass(bool tesselation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+    immediateContext->RSSetViewports(1, &viewport);
     
     psShader[0]->BindShader(immediateContext.Get());
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -343,7 +346,7 @@ void Renderer::LightPass(Scene& scene, bool shadow)
 
 void Renderer::ClearBuffers()
 {
-    float clearColor[4] = { 0.1f, 0.4f, 0.5f, 1.0f };
+    float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     immediateContext->ClearRenderTargetView(rtv.Get(), clearColor);
 
