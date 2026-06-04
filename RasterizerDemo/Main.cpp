@@ -109,11 +109,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 		// De funkar inge :(
-		static bool wasPressed = false;
-		if (GetKeyState('T') & 0x8000 && !wasPressed)
+		//static bool wasPressed = false;
+		if (GetKeyState('T') & 0x8000)
 		{
 			shouldTesselate = !shouldTesselate;
-			wasPressed = true;
+			//wasPressed = true;
 		}
 
 		if (GetKeyState('X') & 0x8000)

@@ -60,6 +60,7 @@ private:
 	ComPtr<ID3D11Buffer> psConstantBuffer;
 	ComPtr<ID3D11ShaderResourceView> srv;
 	std::unique_ptr<SamplerD3D11> samplerState;
+	std::unique_ptr<SamplerD3D11> shadowSampler;
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> pvertexBuffer;
 
 	// For the quads

@@ -24,7 +24,7 @@ bool Renderer::Initialize(Scene& scene) {
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
     if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader,
-                    inputLayout, texture, srv, samplerState)) 
+                    inputLayout, texture, srv, samplerState, shadowSampler)) 
     {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
@@ -153,6 +153,7 @@ bool Renderer::Initialize(Scene& scene) {
     // Binding The Sampler To The Shaders
     ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
     immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+    pSamplerState = shadowSampler->GetSamplerState();
     immediateContext->CSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
     return true;
@@ -181,10 +182,10 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     // Binding camera to VS, PS, CS
     camera.UpdateInternalConstantBuffer(immediateContext.Get());
     CameraBuffer camPS = {};
-    //camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
-    //camPS.cameraPosition = camera.GetPosition();
-    camPS.cameraPosition = scene.GetCameraPos(0, true);
-    camPS.viewProjMatrix = scene.GetCameraVP(0, true);
+    camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
+    camPS.cameraPosition = camera.GetPosition();
+    //camPS.cameraPosition = scene.GetCameraPos(0);
+    //camPS.viewProjMatrix = scene.GetCameraVP(0);
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();
@@ -266,6 +267,8 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
     }
     dsv = nullptr;
     immediateContext->OMGetRenderTargets(0, nullptr, dsv.GetAddressOf());
+
+    //immediateContext->CSSetSamplers(0, 1, shadowSampler.get());
 }
 
 
@@ -371,16 +374,20 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
     data2.perLightInfo.rotationX = 0;
-    data2.perLightInfo.rotationY = -XM_PIDIV2;
+    data2.perLightInfo.rotationY = XM_PIDIV2;
 
     // Spotlight Ficklampa
     LightData data1 = {};
-    data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.0f };
+    data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     data1.perLightInfo.color = { 1.0f, 0.0f, 1.0f, 1.0f };
     data1.perLightInfo.intensity = 0.7f;
     data1.perLightInfo.angle = XM_PI;
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;
+    data1.perLightInfo.fovAngleY = XM_PIDIV2;
+    data1.perLightInfo.aspectRatio = 1;
+    data1.perLightInfo.nearZ = 1.0f;
+    data1.perLightInfo.farZ = 100.0f;
 
     scene.AddLight(device.Get(), data2);
     scene.AddLight(device.Get(), data1);
@@ -401,11 +408,11 @@ void Renderer::LoadObjects(Scene& scene)
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
-    scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+    scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 10.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
     scene.AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
 
-    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,0.0f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-2.0f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
 
 
 

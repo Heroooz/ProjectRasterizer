@@ -25,7 +25,10 @@ void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 
 	ID3D11DeviceContext* context;
 	device->GetImmediateContext(&context);
-	lightCam->UpdateInternalConstantBuffer(context);
+	if (lightInfo.perLightInfo.isDir)
+		lightCam->UpdateOrthographicBuffer(context);
+	else
+		lightCam->UpdateInternalConstantBuffer(context);
 
 
 	LightBuffer light = {};
@@ -92,7 +95,12 @@ ID3D11Buffer* Light::GetLightCameraConstantBuffer(UINT lightIndex, bool orthogra
 	return this->shadowCameras.at(lightIndex)->GetConstantBuffer(); 
 }
 XMFLOAT3 Light::GetCameraPos(UINT lightIndex) const { return this->pos; }
-XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const { return this->vpm; }
+XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const 
+{ 
+	if(isDirectionalLight)
+		return this->shadowCameras.at(lightINdex)->GetOrthographicProjectionMatrix();
+	return this->shadowCameras.at(lightINdex)->GetViewProjectionMatrix();
+}
 
 ID3D11Buffer* Light::GetLightBuffer() const { return this->lightBuffer.GetBuffer(); }
 
