@@ -125,6 +125,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		if (GetKeyState('O') & 0x8000)
 		{
 			shadowOn = !shadowOn;
+			scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
 		}
 		
 

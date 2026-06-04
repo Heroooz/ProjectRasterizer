@@ -36,7 +36,7 @@ cbuffer NrOfLights : register(b1)
 {
     int nrofSpotLights;
     int nrofDirLights;
-    int padding1;
+    int shadowMappingOn;
     int padding2;
 };
 
@@ -75,13 +75,16 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float cosT = dot(-L, D);
         float spoEffect = smoothstep(cos(spotlight.angle), 1.0f, cosT);
         
-        // ShadowMapping
-        float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix);   // -> Clip Space
-        float3 ndcSpace = (clipSpace.xyz / clipSpace.w);                        // -> NDC Space
+        float shadowFactor = 1;
+        if (shadowMappingOn == 1)
+        {// ShadowMapping
+            float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix);   // -> Clip Space
+            float3 ndcSpace = (clipSpace.xyz / clipSpace.w);                        // -> NDC Space
         
-        float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
-        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.00001; // Avoid self-shadowing
-        float shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+            float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
+            float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.00001; // Avoid self-shadowing
+            shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+        }
         
         // Setting the diffuse and specular    
         diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
@@ -102,15 +105,16 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float T = dot(L, pixelNormal);
         float S = dot(pixelNormal.xyz, H);
         
+        float shadowFactor = 1;
+        if(shadowMappingOn == 1)  
+        {        // ShadowMapping
+            float4 clipSpace = mul(pixelPosition, dirlight.vpmatrix); // -> Clip Space
+            float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
         
-        // ShadowMapping
-        float4 clipSpace = mul(pixelPosition, dirlight.vpmatrix); // -> Clip Space
-        float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
-        
-        float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
-        float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
-        float shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
-        
+            float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
+            float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
+            shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+        }
         // Setting a,d,s values
         if(dirlight.intensity > ambientStandard)
             ambientStandard = dirlight.intensity;

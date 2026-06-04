@@ -55,6 +55,15 @@ void Scene::InitializeLight(ID3D11Device* device)
 	this->nrofLights.Initialize(device, sizeof(NrOfLights), &nrof);
 }
 
+void Scene::UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn)
+{
+	NrOfLights nrof;
+	nrof.nrofDirLights = this->dirLights.GetNrOfLights();
+	nrof.nrofSpotLights = this->spotLights.GetNrOfLights();
+	nrof.shadowsOn = shadowsOn;
+	this->nrofLights.UpdateBuffer(context, &nrof);
+}
+
 //void Scene::SetNrOfLights(ID3D11Device* device)
 //{
 //

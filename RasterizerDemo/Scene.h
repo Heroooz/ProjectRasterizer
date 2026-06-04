@@ -28,10 +28,11 @@ public:
 	//void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
 	void AddLight(ID3D11Device* device, LightData data);
 	void InitializeLight(ID3D11Device* device);
+	void UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn);
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
 
 	void DrawScene(ID3D11DeviceContext* context);
-	void DrawLights(ID3D11DeviceContext* context);
+	//void DrawLights(ID3D11DeviceContext* context);
 	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
 	void DrawDCEM(ID3D11DeviceContext* context);
 	//void SetNrOfLights(ID3D11Device* device);

@@ -33,7 +33,7 @@ struct NrOfLights
 {
 	int nrofSpotLights = 0;
 	int nrofDirLights = 0;
-	int padding = 0;
+	int shadowsOn = 0;
 	int padding1 = 0;
 };
 

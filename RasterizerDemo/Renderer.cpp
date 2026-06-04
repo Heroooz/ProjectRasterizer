@@ -304,18 +304,8 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
-    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap;
-    ComPtr<ID3D11ShaderResourceView> srvDirLightMap;
-    if (shadow)
-    {
-        srvSpotlightMap = scene.GetShadowMapSRV();
-        srvDirLightMap = scene.GetShadowMapSRV(true);
-    }
-    else
-    {
-        srvSpotlightMap = nullptr;
-        srvDirLightMap = nullptr;
-    }
+    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
+    ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
     ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
     ComPtr<ID3D11ShaderResourceView> srvDirLight = scene.GetLightBufferSRV(true);
 
