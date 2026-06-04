@@ -27,7 +27,7 @@ public:
 	~Renderer() = default;
 
 	bool Initialize(Scene& scene);
-	void Render(Scene& scene, bool tesselation);
+	void Render(Scene& scene, bool tesselation, bool shadow);
 
 	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
@@ -60,6 +60,7 @@ private:
 	ComPtr<ID3D11Buffer> psConstantBuffer;
 	ComPtr<ID3D11ShaderResourceView> srv;
 	std::unique_ptr<SamplerD3D11> samplerState;
+	std::unique_ptr<SamplerD3D11> shadowSampler;
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> pvertexBuffer;
 
 	// For the quads
@@ -77,6 +78,8 @@ private:
 	ComPtr<ID3D11ShaderResourceView> srvNULL[3] = { nullptr, nullptr, nullptr };;
 	ComPtr<ID3D11UnorderedAccessView> uav;
 	ComPtr<ID3D11UnorderedAccessView> uavNULL = nullptr;
+	//ComPtr<ID3D11DepthStencilView> dsv;
+	//ComPtr<ID3D11DepthStencilView> dsvNULL = nullptr; // Kanske inte?
 
 
 	RenderTargetD3D11 renderTargetD3D11;
@@ -112,8 +115,9 @@ private:
 	};
 
 	void ClearBuffers();
+	void ShadowPass(Scene& scene, bool tesselate);
 	void GeometryPass(bool tesselate);
-	void LightPass(Scene& scene);
+	void LightPass(Scene& scene, bool shadow);
 
 
 	// Adding the the scene

@@ -1,12 +1,20 @@
 #include "SamplerD3D11.h"
 
-SamplerD3D11::SamplerD3D11(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adressMode, std::optional<std::array<float, 4>> borderColour)
+SamplerD3D11::SamplerD3D11(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adressMode, std::optional<std::array<float, 4>> borderColour, D3D11_SAMPLER_DESC sd)
 {
-    Initialize(device, adressMode, borderColour);
+    Initialize(device, adressMode, borderColour, sd);
 }
 
-void SamplerD3D11::Initialize(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adressMode, std::optional<std::array<float, 4>> borderColour)
+void SamplerD3D11::Initialize(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE adressMode, std::optional<std::array<float, 4>> borderColour, D3D11_SAMPLER_DESC sd)
 {
+	if (sd.Filter != 0)
+	{
+		if (FAILED(device->CreateSamplerState(&sd, this->sampler.GetAddressOf()))) {
+			throw std::runtime_error("");
+		}
+		return;
+	}
+
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	samplerDesc.AddressU = adressMode;
