@@ -33,9 +33,16 @@ void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 	light.position = lightInfo.perLightInfo.initialPosition;
 	light.angle = lightInfo.perLightInfo.angle;
 	light.intensity = lightInfo.perLightInfo.intensity;
-	light.vpmatrix = lightCam->GetViewProjectionMatrix();
+	if (lightInfo.perLightInfo.isDir)
+		light.vpmatrix = lightCam->GetOrthographicProjectionMatrix();
+	else
+		light.vpmatrix = lightCam->GetViewProjectionMatrix();
+
+	this->vpm = light.vpmatrix;
+	this->pos = light.position;
+
 	light.direction = lightCam->GetForward();
-	
+
 	bufferData.push_back(light);
 	shadowCameras.push_back(lightCam);
 
@@ -68,8 +75,8 @@ ID3D11ShaderResourceView* Light::GetShadowMapsSRV() const { return this->shadowM
 ID3D11ShaderResourceView* Light::GetLightBufferSRV() const { return this->lightBuffer.GetSRV(); }
 
 ID3D11Buffer* Light::GetLightCameraConstantBuffer(UINT lightIndex) const { return this->shadowCameras.at(lightIndex)->GetConstantBuffer(); }
-XMFLOAT3 Light::GetCameraPos(UINT lightIndex) const { return this->bufferData.at(lightIndex).position; }
-XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const { return this->bufferData.at(lightINdex).vpmatrix; }
+XMFLOAT3 Light::GetCameraPos(UINT lightIndex) const { return this->pos; }
+XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const { return this->vpm; }
 
 ID3D11Buffer* Light::GetLightBuffer() const { return this->lightBuffer.GetBuffer(); }
 

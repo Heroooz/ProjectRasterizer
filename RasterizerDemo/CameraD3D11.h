@@ -23,6 +23,7 @@ private:
 	ProjectionInfo projInfo;
 
 	ConstantBufferD3D11 cameraBuffer;
+	ConstantBufferD3D11 OrthBuffer;
 
 	void MoveInDirection(float amount, const DirectX::XMFLOAT3& direction);
 	void RotateAroundAxis(float amount, const DirectX::XMFLOAT3& axis);
@@ -59,4 +60,5 @@ public:
 	ID3D11Buffer* GetConstantBuffer() const;
 
 	DirectX::XMFLOAT4X4 GetViewProjectionMatrix() const;
+	DirectX::XMFLOAT4X4 GetOrthographicProjectionMatrix() const;
 };

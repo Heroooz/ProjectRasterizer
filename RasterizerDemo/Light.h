@@ -63,8 +63,11 @@ class Light
 	DepthBufferD3D11 shadowMaps;
 	StructuredBufferD3D11 lightBuffer;
 
-	const UINT WIDTH = 1920;
-	const UINT HEIGHT = 1080;
+	XMFLOAT3 pos;
+	XMFLOAT4X4 vpm;
+
+	const UINT WIDTH = 1024;
+	const UINT HEIGHT = 1024;
 
 public:
 	Light() = default;

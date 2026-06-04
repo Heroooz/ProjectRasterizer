@@ -183,6 +183,8 @@ void Renderer::Render(Scene& scene, bool tesselation) {
     CameraBuffer camPS = {};
     camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
     camPS.cameraPosition = camera.GetPosition();
+    //camPS.cameraPosition = scene.GetCameraPos(0);
+    //camPS.viewProjMatrix = scene.GetCameraVP(0);
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     pCamera = camBufferPS.GetBuffer();

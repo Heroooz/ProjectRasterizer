@@ -15,9 +15,11 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
 
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
     XMFLOAT4X4 projectionMatrixFloat4x4;
-    XMStoreFloat4x4(&projectionMatrixFloat4x4, projectionMatrix);
-
+    DirectX::XMStoreFloat4x4(&projectionMatrixFloat4x4, projectionMatrix);
     this->cameraBuffer.Initialize(device, sizeof(XMFLOAT4X4), &projectionMatrixFloat4x4);
+
+    XMFLOAT4X4 orth4x4 = this->GetOrthographicProjectionMatrix();
+    this->OrthBuffer.Initialize(device, sizeof(XMFLOAT4X4), &orth4x4);
 }
 
 void CameraD3D11::MoveInDirection(float amount, const XMFLOAT3& direction)
@@ -109,7 +111,7 @@ void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
         //XMMatrixMultiply(viewMatrix, projectionMatrix);
 
     XMFLOAT4X4 viewProjectionMatrixFloat4x4;
-    XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
+    DirectX::XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
 
     this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
 }
@@ -122,7 +124,28 @@ XMFLOAT4X4 CameraD3D11::GetViewProjectionMatrix() const
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
 
     XMFLOAT4X4 viewProjMatrix;
-    XMStoreFloat4x4(&viewProjMatrix, XMMatrixMultiplyTranspose(viewMatrix, projectionMatrix));
+    DirectX::XMStoreFloat4x4(&viewProjMatrix, XMMatrixMultiplyTranspose(viewMatrix, projectionMatrix));
 
     return viewProjMatrix;
+}
+
+DirectX::XMFLOAT4X4 CameraD3D11::GetOrthographicProjectionMatrix() const
+{
+    const XMFLOAT3 lpos = { 0.0f, this->projInfo.farZ, 0.0f };
+    const XMFLOAT3 ldir = { 0.0f,-1.0f,0.0f };
+    const XMFLOAT3 lup = { 0.0f,0.0f,1.0f };
+
+
+    XMMATRIX view = XMMatrixLookToLH(
+        XMLoadFloat3(&lpos), 
+        XMLoadFloat3(&ldir), 
+        XMLoadFloat3(&lup)
+    );
+
+    XMMATRIX o = XMMatrixOrthographicLH(100.0f, 100.0f, this->projInfo.nearZ, this->projInfo.farZ);
+    XMMATRIX vp = XMMatrixTranspose(XMMatrixMultiply(view, o));
+
+    XMFLOAT4X4 o4x4;
+    DirectX::XMStoreFloat4x4(&o4x4, vp);
+    return o4x4;
 }
