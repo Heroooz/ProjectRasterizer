@@ -267,8 +267,6 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
     }
     dsv = nullptr;
     immediateContext->OMGetRenderTargets(0, nullptr, dsv.GetAddressOf());
-
-    //immediateContext->CSSetSamplers(0, 1, shadowSampler.get());
 }
 
 
@@ -412,7 +410,7 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
 
-    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-2.0f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
 
 
 
