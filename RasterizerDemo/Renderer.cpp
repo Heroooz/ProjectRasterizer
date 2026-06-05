@@ -23,8 +23,8 @@ bool Renderer::Initialize(Scene& scene) {
         return false;
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader,
-                    inputLayout, texture, srv, samplerState, shadowSampler)) 
+    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader, particleShaders[0], particleShaders[1],
+        particleShaders[2], particleShaders[3], inputLayout, texture, srv, samplerState, shadowSampler)) 
     {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
@@ -148,6 +148,7 @@ bool Renderer::Initialize(Scene& scene) {
     // Creating the Scene (w objs and light)
     LoadObjects(scene);
     CreateLights(device.Get(), scene);
+    InitializeParticles(scene);
 
 
     // Binding The Sampler To The Shaders
@@ -159,7 +160,7 @@ bool Renderer::Initialize(Scene& scene) {
     return true;
 }
 
-void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
+void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool ParticlesOn) {
 
 	time.Update(); // Update frame timing
 
@@ -188,21 +189,84 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     //camPS.viewProjMatrix = scene.GetCameraVP(0);
     camPS.padding = 0.0f;
     ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
-    pCamera = camBufferPS.GetBuffer();
+    //pCamera = camera.GetConstantBuffer();
     //immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     //immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     //immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    //immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
    
     if (shadow)
         ShadowPass(scene, tesselation);
 
+    pCamera = camBufferPS.GetBuffer();
+    //pCamera = camera.GetConstantBuffer();
+    
+    // Drawing the particles
+    if (ParticlesOn)
+    {
+        immediateContext->HSSetShader(nullptr, nullptr, 0);
+        immediateContext->DSSetShader(nullptr, nullptr, 0);
+        Particles* particles = scene.GetParticles();
+        UINT nrofParticles = particles->GetNrOfParticles();
+
+        ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
+        immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+
+        //ParticleData* particleData = particles->GetParticlesBuffer();
+        ID3D11ShaderResourceView* psrv = particles->GetSRV();
+        ID3D11ShaderResourceView* ptexture = particles->GetTexture();
+
+        immediateContext->IASetInputLayout(nullptr);
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+        
+        // Binding VS
+        particleShaders[0]->BindShader(immediateContext.Get());
+        immediateContext->VSSetShaderResources(0,1,&psrv);
+        
+        // Binding GS
+        particleShaders[1]->BindShader(immediateContext.Get());
+        //pCamera = camera.GetConstantBuffer();
+        immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+        immediateContext->RSSetViewports(1, &viewport);
+
+        // Binding PS
+        particleShaders[2]->BindShader(immediateContext.Get());
+        immediateContext->PSSetShaderResources(0, 1, &ptexture);
+
+        // Draw the Particles
+        immediateContext->OMSetRenderTargets(1, rtv.GetAddressOf(), dsView.Get());
+        immediateContext->Draw(nrofParticles, 0);
+
+        // Unbinding
+        //immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
+        immediateContext->GSSetShader(nullptr, nullptr, 0);
+        immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+
+
+
+        //particleShaders[3]->BindShader(immediateContext.Get());
+        //ID3D11UnorderedAccessView* puav = particles->GetUAV();
+        //ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
+        //immediateContext->CSSetConstantBuffers(0, 1, &pBuffer);
+        //immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
+
+
+        immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
+    }
+    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
     scene.GenerateDCEM(immediateContext.Get());
 
     pCamera = camBufferPS.GetBuffer();
+    //pCamera = camera.GetConstantBuffer();
     GeometryPass(tesselation);
     scene.DrawObjects(immediateContext.Get(), tesselation);
     scene.DrawDCEM(immediateContext.Get());
     LightPass(scene, shadow);
+
     swapChain->Present(0, 0);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
@@ -235,9 +299,7 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 	//scene.GenerateDCEM(immediateContext.Get());
  //   immediateContext->RSSetViewports(1, &viewport);
  //   immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
-
  //   scene.DrawObjects(immediateContext.Get(), tesselation);
-
  //   scene.DrawDCEM(immediateContext.Get());
 
 
@@ -284,6 +346,7 @@ void Renderer::GeometryPass(bool tesselation)
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
     immediateContext->RSSetViewports(1, &viewport);
     
+    vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -359,7 +422,25 @@ void Renderer::ClearBuffers()
 }
 
 
-
+//void Renderer::UpdateParticles(Scene& scene)
+//{
+//  
+//    Particles* particles = scene.GetParticles();
+//    UINT nrofParticles = particles->GetNrOfParticles();
+//    ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
+//
+//    // Binding CS
+//    particleShaders[3]->BindShader(immediateContext.Get());
+//    ID3D11UnorderedAccessView* puav = particles->GetUAV();
+//    ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
+//    immediateContext->CSSetConstantBuffers(0, 1, &pBuffer);
+//    immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
+//
+//    // Dispath to CS
+//    immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
+//
+//    immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
+//}
 
 
 void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
@@ -377,7 +458,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     // Spotlight Ficklampa
     LightData data1 = {};
     data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
-    data1.perLightInfo.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
     data1.perLightInfo.intensity = 0.7f;
     data1.perLightInfo.angle = XM_PI;
     data1.perLightInfo.rotationX = 0;
@@ -430,6 +511,11 @@ void Renderer::LoadObjects(Scene& scene)
     //scene->AddObject(device.Get(), "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
     //scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+}
+
+void Renderer::InitializeParticles(Scene& scene)
+{
+    scene.AddParticles(device.Get(), sizeof(ParticleData), 100, nullptr, false, true, true);
 }
 
 
@@ -510,6 +596,12 @@ bool Renderer::CreateUnorderedAccessView()
     return true;
 }
 
+void Renderer::UpdateParticles(Scene& scene)
+{
+    scene.UpdateParticles(immediateContext.Get(), particleShaders[3].get());
+}
+
+
 ID3D11Device* Renderer::GetDevice()
 {
     return this->device.Get();
@@ -519,13 +611,9 @@ CameraD3D11& Renderer::GetCamera()
     return this->camera;
 }
 
-//Scene* Renderer::GetScene()
-//{
-//    return this->scene.get();
-//}
-
 float Renderer::GetDeltatime()
 {
     this->time.Update();
     return this->time.GetDeltaTime();
 }
+

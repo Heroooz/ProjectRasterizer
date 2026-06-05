@@ -10,7 +10,8 @@
 
 bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& defpShader, 
 	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, 
-	std::unique_ptr<ShaderD3D11>& domainShader)
+	std::unique_ptr<ShaderD3D11>& domainShader, std::unique_ptr<ShaderD3D11>& particleShadersVS, std::unique_ptr<ShaderD3D11>& particleShadersPS,
+	std::unique_ptr<ShaderD3D11>& particleShadersGS, std::unique_ptr<ShaderD3D11>& particleShadersCS)
 {
 
 	vShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::VERTEX_SHADER, "VertexShader.cso");
@@ -20,6 +21,12 @@ bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vSha
 
 	hullShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::HULL_SHADER, "HullShader.cso");
 	domainShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::DOMAIN_SHADER, "DomainShader.cso");
+
+
+	particleShadersVS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::VERTEX_SHADER, "ParticleVS.cso");
+	particleShadersGS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "ParticlePS.cso");
+	particleShadersPS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::GEOMETRY_SHADER, "ParticleGS.cso");
+	particleShadersCS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ParticleCS.cso");
 
 
 
@@ -159,7 +166,8 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 
-	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);
+	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);	
+
 	//D3D11_SAMPLER_DESC samplerDesc;
 	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -179,12 +187,13 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 	return true;
 }
 
-bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, 
-	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, std::unique_ptr<ShaderD3D11>& domainShader,
+bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, std::unique_ptr<ShaderD3D11>& pShader, 
+	std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, std::unique_ptr<ShaderD3D11>& domainShader, std::unique_ptr<ShaderD3D11>& particleShadersVS,
+	std::unique_ptr<ShaderD3D11>& particleShadersGS, std::unique_ptr<ShaderD3D11>& particleShadersPS, std::unique_ptr<ShaderD3D11>& particleShadersCS,
 	std::unique_ptr<InputLayoutD3D11>& inputLayout, ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState,
 	std::unique_ptr<SamplerD3D11>& shadowSampler)
 {
-	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader, hullShader, domainShader))
+	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader, hullShader, domainShader, particleShadersVS, particleShadersPS, particleShadersGS, particleShadersCS))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;

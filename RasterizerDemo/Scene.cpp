@@ -39,6 +39,11 @@ void Scene::AddLight(ID3D11Device* device, LightData data)
 	else this->spotLights.Initialize(device, data);
 }
 
+void Scene::AddParticles(ID3D11Device* device, UINT sizeOfElement, size_t nrOfElementsInBuffer, void* bufferData, bool dynamic, bool hasSRV, bool hasUAV)
+{
+	this->particles = new Particles(device, sizeOfElement, nrOfElementsInBuffer, bufferData, dynamic, hasSRV, hasUAV);
+}
+
 void Scene::InitializeLight(ID3D11Device* device)
 {
 	this->spotLights.InitializeBuffers(device);
@@ -72,6 +77,24 @@ void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 		dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
+}
+
+void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* pcs)
+{
+	UINT nrofParticles = particles->GetNrOfParticles();
+	ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
+
+	// Binding CS
+	pcs->BindShader(immediateContext);
+	ID3D11UnorderedAccessView* puav = particles->GetUAV();
+	ID3D11Buffer* pb = particles->GetParticlesBuffer();
+	immediateContext->CSSetConstantBuffers(0, 1, &pb);
+	immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
+
+	// Dispath to CS
+	immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
+	ID3D11UnorderedAccessView* uavNULL = nullptr;
+	immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
 }
 
 void Scene::DrawScene(ID3D11DeviceContext* context)
@@ -164,5 +187,7 @@ ID3D11Buffer* Scene::GetnrofLightBuffer() { return this->nrofLights.GetBuffer();
 int Scene::GetNrOfObjects() { return (int)this->objects.size(); }
 
 int Scene::GetNrOfSpotLights() { return this->spotLights.GetNrOfLights(); }
+
+Particles* Scene::GetParticles() { return this->particles; }
 
 int Scene::GetNrOfDirLight() { return this->dirLights.GetNrOfLights(); }
