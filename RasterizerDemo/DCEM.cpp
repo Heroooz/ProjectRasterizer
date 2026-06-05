@@ -1,9 +1,10 @@
 #include "DCEM.h"
 
-DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS)
+DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName)
 {
 	this->DCEMPS = DCEMPS.get();
 	this->normalPS = normalPS.get();
+	this->cubeMapCapturePS = DCEMCapturePS.get();
 
 
 	ProjectionInfo projectionInfo = {};
@@ -48,7 +49,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 
 	// Adding the mesh
 	const std::string folderPath = "SimpleObjects/";
-	const std::string objName = "cube";
+	//const std::string objName = "cube";
 	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, objName);
 	XMMATRIX world = XMMatrixTranslation(initPos.x, initPos.y, initPos.z);
 	this->worldMatrix = world;
@@ -92,28 +93,14 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 			throw std::runtime_error("Could not create texture cube rtv");
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MipLevels = 1;
-	srvDesc.TextureCube.MostDetailedMip = 0;
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	//srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	//srvDesc.TextureCube.MipLevels = 1;
+	//srvDesc.TextureCube.MostDetailedMip = 0;
 
-	if (FAILED(device->CreateShaderResourceView(texture.Get(), &srvDesc, srv.GetAddressOf())))
+	if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
 		throw std::runtime_error("Could not create SRV for DCEM");
-
-
-	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-	uavDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-	uavDesc.Texture2DArray.MipSlice = 0;
-	uavDesc.Texture2DArray.ArraySize = 1;
-
-	for (int i = 0; i < 6; i++)
-	{
-		uavDesc.Texture2DArray.FirstArraySlice = i;
-		if (FAILED(device->CreateUnorderedAccessView(texture.Get(), &uavDesc, this->uav[i].GetAddressOf())))
-			throw std::runtime_error("Could not create UAV for DCEM");
-	}
 
 
 	 // Creating the depth stencil
@@ -160,6 +147,8 @@ void DCEM::Update(ID3D11DeviceContext* context)
 
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
 {
+	cubeMapCapturePS->BindShader(context);
+
 	context->RSSetViewports(1, &viewport);
 
 	for (int face = 0; face < 6; ++face)
@@ -182,6 +171,7 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 			obj->drawObject(context);
 		}
 	}
+	normalPS->BindShader(context);
 }
 
 void DCEM::Draw(ID3D11DeviceContext* context)
@@ -206,8 +196,6 @@ void DCEM::Draw(ID3D11DeviceContext* context)
 }
 
 ID3D11Buffer* DCEM::GetCameraVP(int nr) { return this->cameras[nr].GetConstantBuffer(); }
-
-const ID3D11UnorderedAccessView* DCEM::GetUAV(int nr) { return this->uav[nr].Get(); }
 
 const ID3D11RenderTargetView* DCEM::GetRTV(int nr) { return this->rtv[nr].Get(); }
 

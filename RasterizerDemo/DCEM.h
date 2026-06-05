@@ -26,7 +26,6 @@ class DCEM
 
 	CameraD3D11 cameras[6];
 
-	ComPtr<ID3D11UnorderedAccessView> uav[6];
 	ComPtr<ID3D11RenderTargetView> rtv[6];
 	ComPtr<ID3D11DepthStencilView> dsView;
 	ComPtr<ID3D11ShaderResourceView> srv;
@@ -36,9 +35,10 @@ class DCEM
 
 	ShaderD3D11* DCEMPS;
 	ShaderD3D11* normalPS;
+	ShaderD3D11* cubeMapCapturePS;
 
 public:
-	DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS);
+	DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName);
 	~DCEM() = default;
 
 	void Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height);
@@ -49,7 +49,6 @@ public:
 
 
 	ID3D11Buffer* GetCameraVP(int nr);
-	const ID3D11UnorderedAccessView* GetUAV(int nr);
 	const ID3D11RenderTargetView* GetRTV(int nr);
 	const ID3D11ShaderResourceView* GetSRV();
 	const ID3D11DepthStencilView* GetdsView();
