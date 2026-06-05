@@ -23,8 +23,8 @@ bool Renderer::Initialize(Scene& scene) {
         return false;
     }
 	// Setup Pipeline, shaders, input layout, texture, sampler state
-    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader,
-                    inputLayout, texture, srv, samplerState, shadowSampler)) 
+    if (!SetupPipeline(device.Get(), vsShader, psShader[0], psShader[1], csShader, hullShader, domainShader, particleShaders[0], particleShaders[1],
+        particleShaders[2], particleShaders[3], inputLayout, texture, srv, samplerState, shadowSampler)) 
     {
         std::cerr << "Failed to setup pipeline!" << std::endl;
         throw std::runtime_error("Failed to setup pipeline!");
@@ -159,7 +159,7 @@ bool Renderer::Initialize(Scene& scene) {
     return true;
 }
 
-void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
+void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool particles) {
 
 	time.Update(); // Update frame timing
 
@@ -196,6 +196,43 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     if (shadow)
         ShadowPass(scene, tesselation);
 
+    if (particles)
+    {
+        immediateContext->IASetInputLayout(nullptr);
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+        
+        pCamera = camBufferPS.GetBuffer();
+
+
+        particleShaders[0]->BindShader(immediateContext.Get());
+        ID3D11ShaderResourceView* srv = particleBuffer.GetSRV();
+        immediateContext->VSGetShaderResources(0,1,&srv);
+        
+ 
+        particleShaders[1]->BindShader(immediateContext.Get());
+        immediateContext->GSSetConstantBuffers(0, 1, &pCamera);
+
+        immediateContext->RSSetViewports(1, &viewport);
+        particleShaders[2]->BindShader(immediateContext.Get());
+
+        immediateContext->OMSetRenderTargets(1, &rtv, dsView.Get());
+        immediateContext->Draw(particleBuffer.GetElementSize(), 0);
+
+        immediateContext->GSSetShader(nullptr, nullptr, 0);
+        immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+
+
+        particleShaders[3]->BindShader(immediateContext.Get());
+        ID3D11UnorderedAccessView* uav = particleBuffer.GetUAV();
+        immediateContext->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+
+        immediateContext->Dispatch(std::ceil(particleBuffer.GetNrOfElements() / 32.0f), 1, 1);
+
+        immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
+    }
+
+
+
     scene.GenerateDCEM(immediateContext.Get());
 
     pCamera = camBufferPS.GetBuffer();
@@ -203,6 +240,7 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
     scene.DrawObjects(immediateContext.Get(), tesselation);
     scene.DrawDCEM(immediateContext.Get());
     LightPass(scene, shadow);
+
     swapChain->Present(0, 0);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
@@ -235,9 +273,7 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow) {
 	//scene.GenerateDCEM(immediateContext.Get());
  //   immediateContext->RSSetViewports(1, &viewport);
  //   immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
-
  //   scene.DrawObjects(immediateContext.Get(), tesselation);
-
  //   scene.DrawDCEM(immediateContext.Get());
 
 
@@ -430,6 +466,11 @@ void Renderer::LoadObjects(Scene& scene)
     //scene->AddObject(device.Get(), "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
     //scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
+}
+
+void Renderer::InitializeParticles(Scene& scene)
+{
+    scene.AddParticles(device.Get(), sizeof(ParticleData), 1000, nullptr, false, true, true);
 }
 
 

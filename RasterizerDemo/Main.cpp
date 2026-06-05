@@ -32,6 +32,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	bool shouldTesselate = false;
 	bool showWireFrame = false;
 	bool shadowOn = true;
+	bool particlesOn = true;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -127,6 +128,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			shadowOn = !shadowOn;
 			scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
 		}
+		if (GetKeyState('P') & 0x8000)
+		{
+			particlesOn = !particlesOn;
+		}
 		
 
 		// Update scene (objects and lights)
@@ -145,7 +150,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		//SetCursorPos(center.x, center.y);
 		//lastMousePos = center;
 
-		renderer.Render(*scene.get(), shouldTesselate, shadowOn);
+		renderer.Render(*scene.get(), shouldTesselate, shadowOn, particlesOn);
 	}
 
 	scene->~Scene();

@@ -11,6 +11,7 @@
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
+#include "ParticlesBuffer.h"
 //#include "ShaderResourceTextureD3D11.h"
 #include "GBuffer.h"
 #include "Scene.h"
@@ -27,7 +28,7 @@ public:
 	~Renderer() = default;
 
 	bool Initialize(Scene& scene);
-	void Render(Scene& scene, bool tesselation, bool shadow);
+	void Render(Scene& scene, bool tesselation, bool shadow, bool particles);
 
 	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
@@ -50,7 +51,7 @@ private:
 	std::unique_ptr<ShaderD3D11> csShader;
 	std::unique_ptr<ShaderD3D11> hullShader;
 	std::unique_ptr<ShaderD3D11> domainShader;
-
+	std::unique_ptr<ShaderD3D11> particleShaders[4];
 	ID3D11HullShader* pHullShader;
 	ID3D11DomainShader* pDomainShader;
 
@@ -67,6 +68,10 @@ private:
 	VertexBufferD3D11 vertexBuffer;
 	DirectX::XMMATRIX worldMatrices[2];
 	ConstantBufferD3D11 worldMatriceBuffers[2];
+
+	ParticleBuffer particleBuffer; // Maybe?
+	
+
 
 	// G-Buffers and null-buffers
 	GBuffer positionBuffer;
@@ -98,9 +103,6 @@ private:
 
 	ComPtr<ID3D11Buffer> lightPS;
 
-	//bool ShouldTesselate = false;
-	//bool showWireFrame = false;
-
 
 	Time time;
 	float rotation = 0.0f;
@@ -123,6 +125,7 @@ private:
 	// Adding the the scene
 	void CreateLights(ComPtr<ID3D11Device> device, Scene& scene);
 	void LoadObjects(Scene& scene);
+	void InitializeParticles(Scene& scene);
 
 
 	// Helpful set-up fncs

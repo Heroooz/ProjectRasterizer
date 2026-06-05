@@ -39,6 +39,11 @@ void Scene::AddLight(ID3D11Device* device, LightData data)
 	else this->spotLights.Initialize(device, data);
 }
 
+void Scene::AddParticles(ID3D11Device* device, UINT sizeOfElement, size_t nrOfElementsInBuffer, void* bufferData, bool dynamic, bool hasSRV, bool hasUAV)
+{
+	this->particles.push_back(new Particles(device, sizeOfElement, nrOfElementsInBuffer, bufferData, dynamic, hasSRV, hasUAV));
+}
+
 void Scene::InitializeLight(ID3D11Device* device)
 {
 	this->spotLights.InitializeBuffers(device);
