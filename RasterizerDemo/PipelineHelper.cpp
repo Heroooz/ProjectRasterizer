@@ -166,7 +166,8 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 
-	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);
+	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);	
+
 	//D3D11_SAMPLER_DESC samplerDesc;
 	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;

@@ -13,12 +13,19 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
     this->position = initialPosition;
     this->projInfo = projectionInfo;
 
+    //CameraBufferForShader cambuff = {};
+    //cambuff.cameraPosition = this->position;
+    
+
     XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
     XMFLOAT4X4 projectionMatrixFloat4x4;
     DirectX::XMStoreFloat4x4(&projectionMatrixFloat4x4, projectionMatrix);
+
+    //cambuff.viewProjMatrix = projectionMatrixFloat4x4;
     this->cameraBuffer.Initialize(device, sizeof(XMFLOAT4X4), &projectionMatrixFloat4x4);
 
     XMFLOAT4X4 orth4x4 = this->GetOrthographicProjectionMatrix();
+    //cambuff.viewProjMatrix = orth4x4;
     this->OrthBuffer.Initialize(device, sizeof(XMFLOAT4X4), &orth4x4);
 }
 

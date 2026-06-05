@@ -1,10 +1,10 @@
 #pragma once
 #include <d3d11_4.h>
-//#include <d3d11.h>
+#include <DirectXMath.h>
 #include <iostream>
 #include <wrl/client.h>
 
-//using namespace /*DirectX*/;
+using namespace DirectX;
 
 class ParticleBuffer
 {
@@ -33,7 +33,7 @@ public:
 
 
 	UINT GetElementSize() const;
-	size_t GetNrOfElements() const;
+	UINT GetNrOfElements() const;
 	ID3D11Buffer* GetBuffer() const;
 	ID3D11ShaderResourceView* GetSRV() const;
 	ID3D11UnorderedAccessView* GetUAV() const;

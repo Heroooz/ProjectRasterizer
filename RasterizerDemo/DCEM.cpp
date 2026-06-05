@@ -171,6 +171,8 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 		ID3D11RenderTargetView* faceRTV = rtv[face].Get();
 		context->OMSetRenderTargets(1, &faceRTV, dsView.Get());
 
+		cameras[face].UpdateInternalConstantBuffer(context);
+
 		ID3D11Buffer* camBuffer = cameras[face].GetConstantBuffer();
 		context->VSSetConstantBuffers(0, 1, &camBuffer);
 		context->PSSetConstantBuffers(0, 1, &camBuffer);

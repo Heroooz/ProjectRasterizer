@@ -13,6 +13,13 @@ struct ProjectionInfo
 	float farZ = 0.0f;
 };
 
+//struct CameraBufferForShader
+//{
+//	DirectX::XMFLOAT4X4 viewProjMatrix;
+//	DirectX::XMFLOAT3 cameraPosition;
+//	float padding = 0.0f;
+//};
+
 class CameraD3D11
 {
 private:

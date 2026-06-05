@@ -32,7 +32,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	bool shouldTesselate = false;
 	bool showWireFrame = false;
 	bool shadowOn = true;
-	bool particlesOn = true;
+	bool particlesOn = false;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -136,6 +136,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		// Update scene (objects and lights)
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
+		renderer.UpdateParticles(*scene.get());
 
 
 		// Mouse panning-movement

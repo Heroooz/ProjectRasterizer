@@ -64,17 +64,18 @@ DCEMPSOutput main(DCEMPSInput input)
     
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
     if (hasSpecularTexture == 1)
-    {
         specular *= specularTexture.Sample(samplerState, uv).r;
-    }
     
-    float4 diffuse = float4(diffuseFactor, 1);
+    float4 diffuse = float4(diffuseFactor, 1.0f);
     if (hasDiffuseTexture == 1)
-        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));;
+        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));
+    else
+        diffuse *= float4(reflection, 1.0f);
     
     output.position = float4(input.worldPosition.xyz, ambient);
-    output.normal = float4(input.normal, specular);
+    output.normal = float4(normal, specular);
     output.diffuse = diffuse;
+    //output.diffuse = mul(diffuse, float4(reflection, 1.0f));
     
     return output;
 };

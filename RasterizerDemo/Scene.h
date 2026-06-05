@@ -15,8 +15,7 @@ class Scene
 	Light dirLights;
 	std::vector<DCEM*> dcems;
 
-	std::vector<Particles*> particles;
-	int nrofParticles;
+	Particles* particles = nullptr;
 
 	ConstantBufferD3D11 nrofLights;
 
@@ -40,6 +39,8 @@ public:
 	void UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn);
 	void UpdateObjects(ID3D11DeviceContext* context, float deltatime);
 
+	void UpdateParticles(ID3D11DeviceContext* context, ShaderD3D11* pcs);
+
 	void DrawScene(ID3D11DeviceContext* context);
 	//void DrawLights(ID3D11DeviceContext* context);
 	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
@@ -57,7 +58,10 @@ public:
 
 	ID3D11Buffer* GetShadowCamera(int index, bool isDir = false);
 	ID3D11Buffer* GetnrofLightBuffer();
+
 	int GetNrOfObjects();
 	int GetNrOfSpotLights();
+
+	Particles* GetParticles();
 	int GetNrOfDirLight();
 };

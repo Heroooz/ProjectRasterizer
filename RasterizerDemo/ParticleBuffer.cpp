@@ -18,7 +18,7 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 
 	D3D11_BUFFER_DESC desc = {};
 	desc.ByteWidth = elementSize * nrOfElements;
-	desc.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_IMMUTABLE;
+	desc.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
 	desc.BindFlags = hasSRV ? D3D11_BIND_SHADER_RESOURCE : 0;
 	desc.BindFlags |= hasUAV ? D3D11_BIND_UNORDERED_ACCESS : 0;
 	desc.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
@@ -30,13 +30,14 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 	if (bufferData != nullptr)
 	{
 		D3D11_SUBRESOURCE_DATA data = {};
-		data.pSysMem = bufferData;
-		data.SysMemPitch = data.SysMemSlicePitch = 0;
+		data.pSysMem = &bufferData;
+		data.SysMemPitch = 0; 
+		data.SysMemSlicePitch = 0;
 
-		hr = device->CreateBuffer(&desc, &data, &buffer);
+		hr = device->CreateBuffer(&desc, &data, this->buffer.GetAddressOf());
 	}
 	else
-		hr = device->CreateBuffer(&desc, nullptr, &buffer);
+		hr = device->CreateBuffer(&desc, nullptr, this->buffer.GetAddressOf());
 
 	if (FAILED(hr))
 		throw std::runtime_error("Failed to create structured buffer");
@@ -73,7 +74,7 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 }
 
 UINT ParticleBuffer::GetElementSize() const { return this->elementSize; }
-size_t ParticleBuffer::GetNrOfElements() const { return this->nrOfElements; }
+UINT ParticleBuffer::GetNrOfElements() const { return this->nrOfElements; }
 ID3D11Buffer* ParticleBuffer::GetBuffer() const { return this->buffer.Get(); }
 ID3D11ShaderResourceView* ParticleBuffer::GetSRV() const { return this->srv.Get(); }
 ID3D11UnorderedAccessView* ParticleBuffer::GetUAV() const { return this->uav.Get(); }

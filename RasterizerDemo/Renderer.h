@@ -35,6 +35,8 @@ public:
 	//Scene* GetScene();
 	float GetDeltatime();
 
+	void UpdateParticles(Scene& scene);
+
 
 private:
 	Window& window;
@@ -52,8 +54,8 @@ private:
 	std::unique_ptr<ShaderD3D11> hullShader;
 	std::unique_ptr<ShaderD3D11> domainShader;
 	std::unique_ptr<ShaderD3D11> particleShaders[4];
-	ID3D11HullShader* pHullShader;
-	ID3D11DomainShader* pDomainShader;
+	//ID3D11HullShader* pHullShader;
+	//ID3D11DomainShader* pDomainShader;
 
 	std::unique_ptr<InputLayoutD3D11> inputLayout;
 	ComPtr<ID3D11Texture2D> texture;
@@ -62,6 +64,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> srv;
 	std::unique_ptr<SamplerD3D11> samplerState;
 	std::unique_ptr<SamplerD3D11> shadowSampler;
+	std::unique_ptr<SamplerD3D11> DCEMSampler;
 	//Microsoft::WRL::ComPtr<ID3D11Buffer> pvertexBuffer;
 
 	// For the quads
@@ -69,7 +72,7 @@ private:
 	DirectX::XMMATRIX worldMatrices[2];
 	ConstantBufferD3D11 worldMatriceBuffers[2];
 
-	ParticleBuffer particleBuffer; // Maybe?
+	//ParticleBuffer particleBuffer; // Maybe?
 	
 
 

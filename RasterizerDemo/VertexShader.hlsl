@@ -1,6 +1,8 @@
 cbuffer Camera : register(b0)
 {
     float4x4 viewProj;
+    float3 position;
+    float padding;
 }
 
 cbuffer WorldMatrix : register(b1)
