@@ -200,7 +200,7 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
 
     pCamera = camBufferPS.GetBuffer();
     //pCamera = camera.GetConstantBuffer();
-    /*
+    
     // Drawing the particles
     if (ParticlesOn)
     {
@@ -251,18 +251,17 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
         //immediateContext->CSSetConstantBuffers(0, 1, &pBuffer);
         //immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
 
-        // Dispath to CS
-        //immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
 
         immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
-    }*/
+    }
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
     scene.GenerateDCEM(immediateContext.Get());
 
-    pCamera = camera.GetConstantBuffer();
+    pCamera = camBufferPS.GetBuffer();
+    //pCamera = camera.GetConstantBuffer();
     GeometryPass(tesselation);
     scene.DrawObjects(immediateContext.Get(), tesselation);
     scene.DrawDCEM(immediateContext.Get());
