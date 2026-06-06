@@ -5,18 +5,18 @@
 #include <iostream>
 
 #include "Window.h"
+#include "PipelineHelper.h"
 #include "Time.h"
-#include "CameraD3D11.h"
+
 #include "DepthBufferD3D11.h"
 #include "VertexBufferD3D11.h"
 #include "RenderTargetD3D11.h"
 #include "ConstantBufferD3D11.h"
 #include "ParticlesBuffer.h"
-//#include "ShaderResourceTextureD3D11.h"
+
+#include "CameraD3D11.h"
 #include "GBuffer.h"
 #include "Scene.h"
-
-#include "PipelineHelper.h"
 #include "SimpleVertex.h"
 #include "Light.h"
 #include "Transform.h"
@@ -31,7 +31,6 @@ public:
 
 	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
-	//Scene* GetScene();
 	float GetDeltatime();
 
 	void UpdateParticles(Scene& scene);
@@ -56,8 +55,6 @@ private:
 	std::unique_ptr<ShaderD3D11> domainShader;
 	// VS[0], GS[1], PS[2], CS[3]
 	std::unique_ptr<ShaderD3D11> particleShaders[4];
-	//ID3D11HullShader* pHullShader;
-	//ID3D11DomainShader* pDomainShader;
 
 	std::unique_ptr<InputLayoutD3D11> inputLayout;
 	ComPtr<ID3D11Texture2D> texture;
@@ -67,7 +64,6 @@ private:
 	std::unique_ptr<SamplerD3D11> samplerState;
 	std::unique_ptr<SamplerD3D11> shadowSampler;
 	std::unique_ptr<SamplerD3D11> DCEMSampler;
-	//Microsoft::WRL::ComPtr<ID3D11Buffer> pvertexBuffer;
 
 	// For the quads
 	VertexBufferD3D11 vertexBuffer;

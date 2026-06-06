@@ -33,8 +33,6 @@ void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const 
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
 {	
-	//Light light;
-	//light.Initialize(device, data);
 	if (data.perLightInfo.isDir) this->dirLights.Initialize(device, data);
 	else this->spotLights.Initialize(device, data);
 }
@@ -64,12 +62,6 @@ void Scene::UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn)
 	nrof.shadowsOn = shadowsOn;
 	this->nrofLights.UpdateBuffer(context, &nrof);
 }
-
-//void Scene::SetNrOfLights(ID3D11Device* device)
-//{
-//
-//}
-
 
 void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 {
@@ -101,24 +93,17 @@ void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* 
 	immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
-void Scene::DrawScene(ID3D11DeviceContext* context)
+void Scene::DrawScene(ID3D11DeviceContext* context, bool tesselate)
 {
+	// SHould probablu use this instead of many different funcs
 }
 
-//void Scene::DrawLights(ID3D11DeviceContext* context)
-//{
-//	for (auto& spot : spotLights.GetNrOfLights())
-//	{
-//
-//	}
-//}
-
-void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tesselate)
+void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tessellate)
 {
 	//int nrof = this->GetNrOfObjects();
 	for (auto& obj : objects)
 	{
-		if (tesselate)
+		if (tessellate)
 		{
 			pCenter = obj->GetCenterBuffer();
 			immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);

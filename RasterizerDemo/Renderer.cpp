@@ -206,7 +206,7 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     //psShader[1]->BindShader(immediateContext.Get()); // Binfing DCEMPS
 
     GeometryPass(scene, tessellation);
-    //scene.DrawObjects(immediateContext.Get(), tessellation);
+    //scene.DrawObjects(immediateContext.Get(), tessellation);      // Moved to GEO-PASS 
     //scene.DrawDCEM(immediateContext.Get());
     LightPass(scene, shadow);
 

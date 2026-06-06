@@ -12,30 +12,28 @@ Light::~Light()
 
 void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 {
-	CameraD3D11* lightCam = new CameraD3D11();
+	ID3D11DeviceContext* context;
+	device->GetImmediateContext(&context);
+
 	ProjectionInfo projInfo = {};
 	projInfo.aspectRatio = lightInfo.perLightInfo.aspectRatio;
 	projInfo.fovAngleY = lightInfo.perLightInfo.fovAngleY;
 	projInfo.nearZ = lightInfo.perLightInfo.nearZ;
 	projInfo.farZ = lightInfo.perLightInfo.farZ;
 
-	lightCam->Initialize(device, projInfo, lightInfo.perLightInfo.initialPosition);
+	//lightCam->Initialize(device, projInfo, lightInfo.perLightInfo.initialPosition);
+	CameraD3D11* lightCam = new CameraD3D11(device, projInfo, lightInfo.perLightInfo.initialPosition);
 	lightCam->RotateUp(lightInfo.perLightInfo.rotationX);
 	lightCam->RotateRight(lightInfo.perLightInfo.rotationY);
 
-	ID3D11DeviceContext* context;
-	device->GetImmediateContext(&context);
-	if (lightInfo.perLightInfo.isDir)
-		lightCam->UpdateOrthographicBuffer(context);
-	else
-		lightCam->UpdateInternalConstantBuffer(context);
-
+	//lightCam->UpdateInternalConstantBuffer(context);  // maybe not?
 
 	LightBuffer light = {};
 	light.color = lightInfo.perLightInfo.color;
 	light.position = lightInfo.perLightInfo.initialPosition;
 	light.angle = lightInfo.perLightInfo.angle;
 	light.intensity = lightInfo.perLightInfo.intensity;
+
 	if (lightInfo.perLightInfo.isDir)
 	{
 		this->isDirectionalLight = true;
@@ -61,9 +59,8 @@ void Light::InitializeBuffers(ID3D11Device* device)
 {
 	if (this->bufferData.size() > 0)
 	{
-	this->lightBuffer.Initialize(device, sizeof(LightBuffer), this->bufferData.size(), bufferData.data());
-	this->shadowMaps.Initialize(device, WIDTH, HEIGHT, true, this->GetNrOfLights());
-
+		this->lightBuffer.Initialize(device, sizeof(LightBuffer), this->bufferData.size(), bufferData.data());
+		this->shadowMaps.Initialize(device, WIDTH, HEIGHT, true, this->GetNrOfLights());
 	}
 }
 
@@ -88,17 +85,13 @@ ID3D11ShaderResourceView* Light::GetLightBufferSRV() const { return this->lightB
 
 ID3D11Buffer* Light::GetLightCameraConstantBuffer(UINT lightIndex, bool orthographic) const 
 { 
-	if (orthographic)
-	{
-		return this->shadowCameras.at(lightIndex)->GetOrthographicConstantBuffer();
-	}
+	if (orthographic) return this->shadowCameras.at(lightIndex)->GetOrthographicConstantBuffer();
 	return this->shadowCameras.at(lightIndex)->GetConstantBuffer(); 
 }
 XMFLOAT3 Light::GetCameraPos(UINT lightIndex) const { return this->pos; }
 XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const 
 { 
-	if(isDirectionalLight)
-		return this->shadowCameras.at(lightINdex)->GetOrthographicProjectionMatrix();
+	if(isDirectionalLight) return this->shadowCameras.at(lightINdex)->GetOrthographicProjectionMatrix();
 	return this->shadowCameras.at(lightINdex)->GetViewProjectionMatrix();
 }
 
