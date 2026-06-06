@@ -51,6 +51,7 @@ private:
 	std::unique_ptr<ShaderD3D11> vsShader;
 	// DeferredPS[0], DCEMPS[1]
 	std::unique_ptr<ShaderD3D11> psShader[2];
+	std::unique_ptr<ShaderD3D11> dcemShader;
 	std::unique_ptr<ShaderD3D11> csShader;
 	std::unique_ptr<ShaderD3D11> hullShader;
 	std::unique_ptr<ShaderD3D11> domainShader;

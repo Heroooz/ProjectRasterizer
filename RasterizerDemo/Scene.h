@@ -27,8 +27,8 @@ public:
 
 	void Initialize();
 
-	void AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, bool isSkyBox);
-	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
+	void AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName, bool isSkyBox);
+	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shoudtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
 	//void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
 	void AddLight(ID3D11Device* device, LightData data);
 	void AddParticles(ID3D11Device* device, UINT sizeOfElement, size_t nrOfElementsInBuffer,
