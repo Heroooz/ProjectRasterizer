@@ -143,7 +143,7 @@ bool Renderer::Initialize(Scene& scene) {
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
-    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 0.0f, -2.0f));
+    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(8.0f, 5.0f, 0.0f));
 
     // Creating the Scene (w objs and light)
     LoadObjects(scene);
@@ -201,63 +201,13 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
     pCamera = camBufferPS.GetBuffer();
     //pCamera = camera.GetConstantBuffer();
     
-    // Drawing the particles
+    // Drawing Particles
     if (ParticlesOn)
-    {
-        immediateContext->HSSetShader(nullptr, nullptr, 0);
-        immediateContext->DSSetShader(nullptr, nullptr, 0);
-        Particles* particles = scene.GetParticles();
-        UINT nrofParticles = particles->GetNrOfParticles();
+        DrawParticles(scene);
 
-        ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
-        immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
-
-        //ParticleData* particleData = particles->GetParticlesBuffer();
-        ID3D11ShaderResourceView* psrv = particles->GetSRV();
-        ID3D11ShaderResourceView* ptexture = particles->GetTexture();
-
-        immediateContext->IASetInputLayout(nullptr);
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-        
-        // Binding VS
-        particleShaders[0]->BindShader(immediateContext.Get());
-        immediateContext->VSSetShaderResources(0,1,&psrv);
-        
-        // Binding GS
-        particleShaders[1]->BindShader(immediateContext.Get());
-        //pCamera = camera.GetConstantBuffer();
-        immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-
-        immediateContext->RSSetViewports(1, &viewport);
-
-        // Binding PS
-        particleShaders[2]->BindShader(immediateContext.Get());
-        immediateContext->PSSetShaderResources(0, 1, &ptexture);
-
-        // Draw the Particles
-        immediateContext->OMSetRenderTargets(1, rtv.GetAddressOf(), dsView.Get());
-        immediateContext->Draw(nrofParticles, 0);
-
-        // Unbinding
-        //immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
-        immediateContext->GSSetShader(nullptr, nullptr, 0);
-        immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
-
-
-
-        //particleShaders[3]->BindShader(immediateContext.Get());
-        //ID3D11UnorderedAccessView* puav = particles->GetUAV();
-        //ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
-        //immediateContext->CSSetConstantBuffers(0, 1, &pBuffer);
-        //immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
-
-
-        immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
-    }
-    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
+    //psShader[1]->BindShader(immediateContext.Get()); // Binfing DCEMPS
     scene.GenerateDCEM(immediateContext.Get());
 
     pCamera = camBufferPS.GetBuffer();
@@ -270,39 +220,36 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
     swapChain->Present(0, 0);
 
     // Drawing the quads (Same: vertexbuffer, texture and material, different: worldmatrices)
-    //immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-    //ID3D11Buffer* pvertexBuffer = vertexBuffer.GetBuffer();
-    //immediateContext->IASetVertexBuffers(0, 1, &pvertexBuffer, &stride, &offset);
-    //immediateContext->PSSetShaderResources(1, 1, srv.GetAddressOf());
-    //immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
-    //for (int i = 0; i < 0; i++)
-    //{
-	   // // Bind and set pipeline states, then draw
-	   // // Sending stuff to VS
-    //    //immediateContext->VSSetShader(vShader, nullptr, 0);
-    //    XMFLOAT4X4 worldMatrixT;
-    //    DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[i]));
-    //    worldMatriceBuffers[i].UpdateBuffer(immediateContext.Get(), &worldMatrixT);
-    //    pWorldMatrix = worldMatriceBuffers[i].GetBuffer();
-    //    immediateContext->VSSetConstantBuffers(1, 1, pWorldMatrix.GetAddressOf());
-    //    immediateContext->Draw(4, 0);
-    //    // Sending stuff to PS
-    //    //immediateContext->PSSetShader(pShader, nullptr, 0);
-    //    //immediateContext->PSSetConstantBuffers(1, 1, lightPS.GetAddressOf());
-    //    //immediateContext->PSSetConstantBuffers(0, 1, psConstantBuffer.GetAddressOf());
-    //    //immediateContext->OMSetRenderTargets(1, rtv.GetAdressOf(), dsView.Get());
-    //    //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
-    //}
-
-    //scene.DrawObjects(immediateContext.Get(), tesselation);
-    //scene.DrawDCEM(immediateContext.Get());
-	//scene.GenerateDCEM(immediateContext.Get());
- //   immediateContext->RSSetViewports(1, &viewport);
- //   immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
- //   scene.DrawObjects(immediateContext.Get(), tesselation);
- //   scene.DrawDCEM(immediateContext.Get());
-
-
+    /*immediateContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    ID3D11Buffer* pvertexBuffer = vertexBuffer.GetBuffer();
+    immediateContext->IASetVertexBuffers(0, 1, &pvertexBuffer, &stride, &offset);
+    immediateContext->PSSetShaderResources(1, 1, srv.GetAddressOf());
+    immediateContext->PSSetConstantBuffers(1, 1, &psConstantBuffer);
+    for (int i = 0; i < 0; i++)
+    {
+	    // Bind and set pipeline states, then draw
+	    // Sending stuff to VS
+        //immediateContext->VSSetShader(vShader, nullptr, 0);
+        XMFLOAT4X4 worldMatrixT;
+        DirectX::XMStoreFloat4x4(&worldMatrixT, DirectX::XMMatrixTranspose(worldMatrices[i]));
+        worldMatriceBuffers[i].UpdateBuffer(immediateContext.Get(), &worldMatrixT);
+        pWorldMatrix = worldMatriceBuffers[i].GetBuffer();
+        immediateContext->VSSetConstantBuffers(1, 1, pWorldMatrix.GetAddressOf());
+        immediateContext->Draw(4, 0);
+        // Sending stuff to PS
+        //immediateContext->PSSetShader(pShader, nullptr, 0);
+        //immediateContext->PSSetConstantBuffers(1, 1, lightPS.GetAddressOf());
+        //immediateContext->PSSetConstantBuffers(0, 1, psConstantBuffer.GetAddressOf());
+        //immediateContext->OMSetRenderTargets(1, rtv.GetAdressOf(), dsView.Get());
+        //immediateContext->OMSetRenderTargets(3, rtvArr.GetAdressOf(), dsView.Get());
+    }
+    scene.DrawObjects(immediateContext.Get(), tesselation);
+    scene.DrawDCEM(immediateContext.Get());
+	scene.GenerateDCEM(immediateContext.Get());
+    immediateContext->RSSetViewports(1, &viewport);
+    immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+    scene.DrawObjects(immediateContext.Get(), tesselation);
+    scene.DrawDCEM(immediateContext.Get());*/
 }
 
 void Renderer::ShadowPass(Scene& scene, bool tesselate)
@@ -407,6 +354,53 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
 }
 
+void Renderer::DrawParticles(Scene& scene)
+{
+    // Drawing the particles
+    if (true)
+    {
+        immediateContext->HSSetShader(nullptr, nullptr, 0);
+        immediateContext->DSSetShader(nullptr, nullptr, 0);
+        Particles* particles = scene.GetParticles();
+        UINT nrofParticles = particles->GetNrOfParticles();
+
+        ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
+        immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+
+        ID3D11ShaderResourceView* psrv = particles->GetSRV();
+        ID3D11ShaderResourceView* ptexture = particles->GetTexture();
+
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+        immediateContext->IASetInputLayout(nullptr);
+
+        // Binding VS
+        particleShaders[0]->BindShader(immediateContext.Get());
+        immediateContext->VSSetShaderResources(0, 1, &psrv);
+
+        // Binding GS
+        particleShaders[1]->BindShader(immediateContext.Get());
+        //pCamera = camera.GetConstantBuffer();
+        immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+        immediateContext->RSSetViewports(1, &viewport);
+
+        // Binding PS
+        particleShaders[2]->BindShader(immediateContext.Get());
+        immediateContext->PSSetShaderResources(0, 1, &ptexture);
+
+        // Draw the Particles
+        immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+        immediateContext->Draw(nrofParticles, 0);
+
+        // Unbinding
+        immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+        immediateContext->PSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+        immediateContext->GSSetShader(nullptr, nullptr, 0);
+        immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+    }
+    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
+}
+
 void Renderer::ClearBuffers()
 {
     float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -420,28 +414,6 @@ void Renderer::ClearBuffers()
     immediateContext->ClearUnorderedAccessViewFloat(uav.Get(), clearColor);
     immediateContext->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
-
-
-//void Renderer::UpdateParticles(Scene& scene)
-//{
-//  
-//    Particles* particles = scene.GetParticles();
-//    UINT nrofParticles = particles->GetNrOfParticles();
-//    ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
-//
-//    // Binding CS
-//    particleShaders[3]->BindShader(immediateContext.Get());
-//    ID3D11UnorderedAccessView* puav = particles->GetUAV();
-//    ID3D11Buffer* pBuffer = particles->GetParticlesBuffer();
-//    immediateContext->CSSetConstantBuffers(0, 1, &pBuffer);
-//    immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
-//
-//    // Dispath to CS
-//    immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
-//
-//    immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
-//}
-
 
 void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
 {
@@ -488,19 +460,18 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     scene.AddObject(device.Get(), "FarmAnimals/", "pig", { 1.50f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.1f, 0.1f, 0.1f });
     scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 10.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
-    scene.AddObject(device.Get(), "house_obj/", "house", { 3.0f, 2.0f, 5.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
+    //scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
-    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 });
-
-
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
     scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene.AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
@@ -515,7 +486,7 @@ void Renderer::LoadObjects(Scene& scene)
 
 void Renderer::InitializeParticles(Scene& scene)
 {
-    scene.AddParticles(device.Get(), sizeof(ParticleData), 100, nullptr, false, true, true);
+    scene.AddParticles(device.Get(), sizeof(ParticleData), 128, nullptr, false, true, true);
 }
 
 

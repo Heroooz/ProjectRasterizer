@@ -29,10 +29,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	device->GetImmediateContext(&immediateContext);
 
 
-	bool shouldTesselate = false;
+	bool shouldTesselate = true;
 	bool showWireFrame = false;
 	bool shadowOn = true;
-	bool particlesOn = false;
+	bool particlesOn = true;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -42,7 +42,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 3.0f;
-	float rotationspeed = 1.0f;
+	float rotationspeed = 2.0f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
@@ -136,20 +136,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 		// Update scene (objects and lights)
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
-		renderer.UpdateParticles(*scene.get());
+		if (particlesOn)
+		{
+			renderer.UpdateParticles(*scene.get());
+		}
 
-
+		
 		// Mouse panning-movement
-		//POINT currentPos;
-		//GetCursorPos(&currentPos);
+		/*POINT currentPos;
+		GetCursorPos(&currentPos);
 
-		//float dx = static_cast<float>(currentPos.x - lastMousePos.x);
-		//float dy = static_cast<float>(currentPos.y - lastMousePos.y);
-		//renderer.GetCamera().RotateUp(dx * sensitivity);
-		//renderer.GetCamera().RotateRight(dy * sensitivity);
+		float dx = static_cast<float>(currentPos.x - lastMousePos.x);
+		float dy = static_cast<float>(currentPos.y - lastMousePos.y);
+		renderer.GetCamera().RotateUp(dx * sensitivity);
+		renderer.GetCamera().RotateRight(dy * sensitivity);
 
-		//SetCursorPos(center.x, center.y);
-		//lastMousePos = center;
+		SetCursorPos(center.x, center.y);
+		lastMousePos = center;
+		*/
 
 		renderer.Render(*scene.get(), shouldTesselate, shadowOn, particlesOn);
 	}

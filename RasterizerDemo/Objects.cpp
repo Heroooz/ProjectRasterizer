@@ -1,8 +1,8 @@
 #include "Objects.h"
 
-Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
+Objects::Objects(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT)
 {
-	Initialize(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT);
+	Initialize(device, folderPath, objFile, position, rotation, scale, shouldtessellate, isStatic, angle, SRT);
 }
 
 Objects::~Objects()
@@ -14,8 +14,9 @@ Objects::~Objects()
 	}
 }
 
-void Objects::Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
+void Objects::Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT)
 {
+	this->shouldTessellate = shouldtessellate;
 	this->mesh = new MeshD3D11(device, folderPath, objFile);
 
 	this->center = { { position.x, position.y, position.z, 1 } };

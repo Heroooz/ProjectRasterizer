@@ -30,7 +30,7 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 	if (bufferData != nullptr)
 	{
 		D3D11_SUBRESOURCE_DATA data = {};
-		data.pSysMem = &bufferData;
+		data.pSysMem = bufferData;
 		data.SysMemPitch = 0; 
 		data.SysMemSlicePitch = 0;
 
@@ -51,10 +51,15 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 		srvDesc.Buffer.FirstElement = 0;
 		srvDesc.Buffer.NumElements = nrOfElements;
 
-		hr = device->CreateShaderResourceView(buffer.Get(), &srvDesc, &srv);
+		hr = device->CreateShaderResourceView(this->buffer.Get(), &srvDesc, this->srv.GetAddressOf());
 
 		if (FAILED(hr))
 			throw std::runtime_error("Failed to create srv for structured buffer!");
+	}
+
+	for (int i = 0; i < 5; ++i)
+	{
+
 	}
 
 	if (hasUAV)
@@ -66,7 +71,7 @@ void ParticleBuffer::Initialize(ID3D11Device* device, UINT elementSize,
 		uavDesc.Buffer.NumElements = nrOfElements;
 		uavDesc.Buffer.Flags = 0;
 
-		hr = device->CreateUnorderedAccessView(buffer.Get(), &uavDesc, &uav);
+		hr = device->CreateUnorderedAccessView(this->buffer.Get(), &uavDesc, this->uav.GetAddressOf());
 
 		if (FAILED(hr))
 			throw std::runtime_error("Failed to create uav for structured buffer!");

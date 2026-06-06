@@ -21,7 +21,7 @@ void Particles::Initialize(ID3D11Device* device, UINT sizeOfElement,
 {
 	int width, height, channels;
 
-	unsigned char* textureData = stbi_load("explosion00.png", &width, &height, &channels, 4);
+	unsigned char* textureData = stbi_load("Particles/blackSmoke16.png", &width, &height, &channels, 4);
 	if (textureData == nullptr)
 		throw std::runtime_error("Failed to load texture!");
 
@@ -50,28 +50,31 @@ void Particles::Initialize(ID3D11Device* device, UINT sizeOfElement,
 	if (FAILED(device->CreateShaderResourceView(texture, nullptr, &particleTexture)))
 		throw std::runtime_error("Failed to create texture reasource view!");
 
-
 	this->nrofParticles = nrOfElementsInBuffer;
 
 	std::vector<ParticleData> particles;
 	for (size_t i = 0; i < nrofParticles; i++)
 	{
-		ParticleData data = {};
-		//float dist = (float)(rand() % 20) / 10 - 2;
-		//float startpos = (float)(rand() % 20 / 10);
+		ParticleData particledata = {};
 
-		//data.dir = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		//data.position = data.startPos = { startpos,startpos,startpos };
-		//data.dist = dist;
-		//data.speed = dist;
-
-		data.position = data.startPos = { 5.0f,2.0f,3.0f };
-		data.dir = { 0.0f,0.0f,0.0f };
-		data.speed = 0.0f;
-		data.dist = 1.0f;
+		float px = float(rand() % 20) * 0.1f + 12.0f;	// startpos.x
+		float pz = float(rand() % 20) * 0.1f + 4.5f;	// startpos.z
+		float ax = float(rand() % 3141592) * 0.000005f;	// dir.x
+		float ay = float(rand() % 3141592) * 0.000005f;	// dir.z
+		float speed = float(rand() % 50) * 0.001f;		// speed
+		float dist = float(rand() % 50) + 3.0f;			// distance to travel
 
 
-		particles.push_back(data);
+		particledata.position = particledata.startPos = { px,7.0f,pz };
+
+		particledata.dir = { ax, 1.0f, ay };
+
+
+		particledata.speed = speed;
+		particledata.dist = dist;
+
+
+		particles.push_back(particledata);
 	}
 
 	this->particlesBuffer.Initialize(device, sizeOfElement, nrOfElementsInBuffer, particles.data(), dynamic, hasSRV, hasUAV);
@@ -88,7 +91,4 @@ ID3D11ShaderResourceView* Particles::GetTexture() { return this->particleTexture
 ID3D11UnorderedAccessView* Particles::GetUAV() { return this->particlesBuffer.GetUAV(); }
 ID3D11Buffer* Particles::GetParticlesBuffer() { return this->particlesBuffer.GetBuffer(); }
 
-//void Particles::Update()
-//{
-//
-//}
+

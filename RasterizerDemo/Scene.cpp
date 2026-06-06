@@ -26,9 +26,9 @@ void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT he
 	dcems.push_back(new DCEM(device, position, width, height, DCEMPS, normalPS));
 }
 
-void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool isStatic, float angle, bool SRT)
+void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT)
 {
-	objects.push_back(new Objects(device, folderPath, objFile, position, rotation, scale, isStatic, angle, SRT));
+	objects.push_back(new Objects(device, folderPath, objFile, position, rotation, scale, shouldtessellate, isStatic, angle, SRT));
 }
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
@@ -86,13 +86,16 @@ void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* 
 
 	// Binding CS
 	pcs->BindShader(immediateContext);
-	ID3D11UnorderedAccessView* puav = particles->GetUAV();
+
 	ID3D11Buffer* pb = particles->GetParticlesBuffer();
+	ID3D11UnorderedAccessView* puav = particles->GetUAV();
 	immediateContext->CSSetConstantBuffers(0, 1, &pb);
 	immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
 
 	// Dispath to CS
 	immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
+
+	// Unbind
 	ID3D11UnorderedAccessView* uavNULL = nullptr;
 	immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
 }
