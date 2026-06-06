@@ -112,16 +112,16 @@ private:
 
 
 
-	struct CameraBuffer
-	{
-		XMFLOAT4X4 viewProjMatrix;
-		XMFLOAT3 cameraPosition;
-		float padding;
-	};
+	//struct CameraBuffer
+	//{
+	//	XMFLOAT4X4 viewProjMatrix;
+	//	XMFLOAT3 cameraPosition;
+	//	float padding;
+	//};
 
 	void ClearBuffers();
-	void ShadowPass(Scene& scene, bool tesselate);
-	void GeometryPass(bool tesselate);
+	void ShadowPass(Scene& scene, bool tessellate);
+	void GeometryPass(Scene& scene, bool tessellate);
 	void LightPass(Scene& scene, bool shadow);
 	void DrawParticles(Scene& scene);
 

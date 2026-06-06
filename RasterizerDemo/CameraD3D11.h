@@ -13,12 +13,12 @@ struct ProjectionInfo
 	float farZ = 0.0f;
 };
 
-//struct CameraBufferForShader
-//{
-//	DirectX::XMFLOAT4X4 viewProjMatrix;
-//	DirectX::XMFLOAT3 cameraPosition;
-//	float padding = 0.0f;
-//};
+struct CameraBufferForShader
+{
+	DirectX::XMFLOAT4X4 viewProjMatrix;
+	DirectX::XMFLOAT3 cameraPosition;
+	float padding = 0.0f;
+};
 
 class CameraD3D11
 {
@@ -29,24 +29,30 @@ private:
 	DirectX::XMFLOAT3 up = { 0.0f, 1.0f, 0.0f };
 	ProjectionInfo projInfo;
 
-	ConstantBufferD3D11 cameraBuffer;
-	ConstantBufferD3D11 OrthBuffer;
+
+	CameraBufferForShader perspectiveCamera;
+	DirectX::XMMATRIX perspectiveMatrix;
+	ConstantBufferD3D11 VPcameraBuffer;
+
+
+	CameraBufferForShader orthographicCamera;
+	DirectX::XMMATRIX orthographicMatrix;
+	ConstantBufferD3D11 VOcameraBuffer;
+
 
 	void MoveInDirection(float amount, const DirectX::XMFLOAT3& direction);
 	void RotateAroundAxis(float amount, const DirectX::XMFLOAT3& axis);
 
 public:
 	CameraD3D11() = default;
-	CameraD3D11(ID3D11Device* device, const ProjectionInfo& projectionInfo,
-		const DirectX::XMFLOAT3& initialPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
+	CameraD3D11(ID3D11Device* device, const ProjectionInfo& projectionInfo, const DirectX::XMFLOAT3& initialPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
 	~CameraD3D11() = default;
 	CameraD3D11(const CameraD3D11& other) = delete;
 	CameraD3D11& operator=(const CameraD3D11& other) = delete;
 	CameraD3D11(CameraD3D11&& other) = default;
 	CameraD3D11& operator=(CameraD3D11&& other) = default;
 
-	void Initialize(ID3D11Device* device, const ProjectionInfo& projectionInfo,
-		const DirectX::XMFLOAT3& initialPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
+	void Initialize(ID3D11Device* device, const ProjectionInfo& projectionInfo, const DirectX::XMFLOAT3& initialPosition = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f));
 
 	void MoveForward(float amount);
 	void MoveRight(float amount);
@@ -67,6 +73,7 @@ public:
 	void ResetUp();
 	void UpdateInternalConstantBuffer(ID3D11DeviceContext* context);
 	void UpdateOrthographicBuffer(ID3D11DeviceContext* context, float orthWidth = 100.0f, float orthHeight = 100.0f);
+
 	ID3D11Buffer* GetConstantBuffer() const;
 	ID3D11Buffer* GetOrthographicConstantBuffer() const;
 

@@ -29,10 +29,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	device->GetImmediateContext(&immediateContext);
 
 
-	bool shouldTesselate = true;
+	bool shouldTesselate = false;
 	bool showWireFrame = false;
-	bool shadowOn = true;
-	bool particlesOn = true;
+	bool shadowOn = false;
+	bool particlesOn = false;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -142,7 +142,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		{
 			renderer.UpdateParticles(*scene.get());
 		}
-
+		renderer.GetCamera().UpdateInternalConstantBuffer(immediateContext.Get());
 		
 		// Mouse panning-movement
 		/*POINT currentPos;

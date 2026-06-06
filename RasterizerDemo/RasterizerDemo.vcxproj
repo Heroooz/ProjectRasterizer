@@ -328,9 +328,6 @@
     <ClInclude Include="WindowHelper.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="texture.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

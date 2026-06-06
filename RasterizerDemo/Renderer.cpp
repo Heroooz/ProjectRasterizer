@@ -133,19 +133,16 @@ bool Renderer::Initialize(Scene& scene) {
     worldMatriceBuffers[1].UpdateBuffer(immediateContext.Get(), &worldTransform);
 
 
-
-	// Setup constant buffers (for vertex shader and pixel shader)
-    //CreateVSConstantBuffer(device.Get(), vsConstantBufferD3D11, matrixArr, rotation, window.GetWidth(), window.GetHeight());
-
 	// Setup camera (projection info and initialize)
     ProjectionInfo projInfo;
-	projInfo.fovAngleY = DirectX::XMConvertToRadians(90.0f);
+	projInfo.fovAngleY = DirectX::XM_PIDIV2;
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
     camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 2.0f, -4.0f));
+    
 
-    // Creating the Scene (w objs and light)
+    // LOADING THE SCENE
     LoadObjects(scene);
     CreateLights(device.Get(), scene);
     InitializeParticles(scene);
@@ -160,35 +157,33 @@ bool Renderer::Initialize(Scene& scene) {
     return true;
 }
 
-void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool ParticlesOn) {
+void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool ParticlesOn) {
 
 	time.Update(); // Update frame timing
-
+    this->camera.UpdateInternalConstantBuffer(immediateContext.Get());
     
     ClearBuffers();
     //float clearColour[4] = { 0.1f, 0.4f, 0.5f, 1 };
     //immediateContext->ClearRenderTargetView(rtv, clearColour);
     //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
-
-
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
-    UINT stride = sizeof(SimpleVertex);
-    UINT offset = 0;
+    static UINT stride = sizeof(SimpleVertex);
+    static UINT offset = 0;
 
     immediateContext->RSSetViewports(1, &viewport);
 	vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
 
     // Binding camera to VS, PS, CS
-    camera.UpdateInternalConstantBuffer(immediateContext.Get());
-    CameraBuffer camPS = {};
-    camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
-    camPS.cameraPosition = camera.GetPosition();
+    //camera.UpdateInternalConstantBuffer(immediateContext.Get());
+    //CameraBuffer camPS = {};
+    //camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
+    //camPS.cameraPosition = camera.GetPosition();
     //camPS.cameraPosition = scene.GetCameraPos(0, true);
     //camPS.viewProjMatrix = scene.GetCameraVP(0, true);
-    camPS.padding = 0.0f;
-    ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
+    //camPS.padding = 0.0f;
+    //ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
     //pCamera = camera.GetConstantBuffer();
     //immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     //immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -196,10 +191,8 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
     //immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
    
     if (shadow)
-        ShadowPass(scene, tesselation);
+        ShadowPass(scene, tessellation);
 
-    pCamera = camBufferPS.GetBuffer();
-    //pCamera = camera.GetConstantBuffer();
     
     // Drawing Particles
     if (ParticlesOn)
@@ -209,14 +202,12 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    //psShader[1]->BindShader(immediateContext.Get()); // Binfing DCEMPS
     scene.GenerateDCEM(immediateContext.Get());
+    //psShader[1]->BindShader(immediateContext.Get()); // Binfing DCEMPS
 
-    pCamera = camBufferPS.GetBuffer();
-    //pCamera = camera.GetConstantBuffer();
-    GeometryPass(tesselation);
-    scene.DrawObjects(immediateContext.Get(), tesselation);
-    scene.DrawDCEM(immediateContext.Get());
+    GeometryPass(scene, tessellation);
+    //scene.DrawObjects(immediateContext.Get(), tessellation);
+    //scene.DrawDCEM(immediateContext.Get());
     LightPass(scene, shadow);
 
     swapChain->Present(0, 0);
@@ -254,7 +245,7 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
     scene.DrawDCEM(immediateContext.Get());*/
 }
 
-void Renderer::ShadowPass(Scene& scene, bool tesselate)
+void Renderer::ShadowPass(Scene& scene, bool tessellate)
 {
     immediateContext->PSSetShader(nullptr, nullptr, 0);
 
@@ -269,7 +260,7 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
         
-        scene.DrawObjects(immediateContext.Get(), tesselate);
+        scene.DrawObjects(immediateContext.Get(), tessellate);
         scene.DrawDCEM(immediateContext.Get());
     }
 
@@ -282,24 +273,26 @@ void Renderer::ShadowPass(Scene& scene, bool tesselate)
 
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i, true);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
-        scene.DrawObjects(immediateContext.Get(), tesselate);
+        scene.DrawObjects(immediateContext.Get(), tessellate);
         scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
-    immediateContext->OMGetRenderTargets(0, nullptr, dsv.GetAddressOf());
+    immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
 }
 
 
-void Renderer::GeometryPass(bool tesselation)
+void Renderer::GeometryPass(Scene& scene, bool tessellation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
     immediateContext->RSSetViewports(1, &viewport);
     
     vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
+
+    pCamera = camera.GetConstantBuffer();
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    if (tesselation)
+    if (tessellation)
     {
         hullShader->BindShader(immediateContext.Get());
         domainShader->BindShader(immediateContext.Get());
@@ -316,12 +309,15 @@ void Renderer::GeometryPass(bool tesselation)
         immediateContext->DSSetShader(nullptr, nullptr, 0);
         immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
+    scene.DrawObjects(immediateContext.Get(), tessellation);
+    scene.DrawDCEM(immediateContext.Get());
 }
 
 void Renderer::LightPass(Scene& scene, bool shadow)
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
     csShader->BindShader(immediateContext.Get());
+    pCamera = camera.GetConstantBuffer();
     immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
@@ -382,7 +378,7 @@ void Renderer::DrawParticles(Scene& scene)
 
         // Binding GS
         particleShaders[1]->BindShader(immediateContext.Get());
-        //pCamera = camera.GetConstantBuffer();
+        pCamera = camera.GetConstantBuffer();
         immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
         immediateContext->RSSetViewports(1, &viewport);
@@ -406,7 +402,7 @@ void Renderer::DrawParticles(Scene& scene)
         // Resetting to standard values
         immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
         vsShader->BindShader(immediateContext.Get());
-        immediateContext->VSSetConstantBuffers(0, 0, pCamera.GetAddressOf());
+        //immediateContext->VSSetConstantBuffers(0, 0, pCamera.GetAddressOf());
     }
 }
 
