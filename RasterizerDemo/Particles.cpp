@@ -59,8 +59,8 @@ void Particles::Initialize(ID3D11Device* device, UINT sizeOfElement,
 
 		float px = float(rand() % 20) * 0.1f + 12.0f;	// startpos.x
 		float pz = float(rand() % 20) * 0.1f + 4.5f;	// startpos.z
-		float ax = float(rand() % 3141592) * 0.000005f;	// dir.x
-		float ay = float(rand() % 3141592) * 0.000005f;	// dir.z
+		float ax = float(rand() % 40000 - 20000) * 0.00001f;		// dir.x
+		float ay = float(rand() % 40000 - 20000) * 0.00001f;		// dir.z
 		float speed = float(rand() % 50) * 0.001f;		// speed
 		float dist = float(rand() % 50) + 3.0f;			// distance to travel
 

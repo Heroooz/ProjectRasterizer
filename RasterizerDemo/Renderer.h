@@ -21,7 +21,6 @@
 #include "Light.h"
 #include "Transform.h"
 
-
 class Renderer {
 public:
 	Renderer(Window& window, Scene& scene);
@@ -110,6 +109,7 @@ private:
 	Time time;
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
+
 
 
 	struct CameraBuffer

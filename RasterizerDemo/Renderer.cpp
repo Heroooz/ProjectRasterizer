@@ -203,7 +203,9 @@ void Renderer::Render(Scene& scene, bool tesselation, bool shadow, bool Particle
     
     // Drawing Particles
     if (ParticlesOn)
+    {
         DrawParticles(scene);
+    }
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -352,6 +354,7 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShaderResources(3, 3, srvNULL->GetAddressOf());
     immediateContext->CSSetShaderResources(6, 1, srvNULL[0].GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
+    immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
 void Renderer::DrawParticles(Scene& scene)
@@ -395,10 +398,16 @@ void Renderer::DrawParticles(Scene& scene)
         // Unbinding
         immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
         immediateContext->PSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+        immediateContext->VSSetShader(nullptr, nullptr, 0);
         immediateContext->GSSetShader(nullptr, nullptr, 0);
+        immediateContext->PSSetShader(nullptr, nullptr, 0);
         immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+
+        // Resetting to standard values
+        immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
+        vsShader->BindShader(immediateContext.Get());
+        immediateContext->VSSetConstantBuffers(0, 0, pCamera.GetAddressOf());
     }
-    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
 }
 
 void Renderer::ClearBuffers()
@@ -455,7 +464,7 @@ void Renderer::LoadObjects(Scene& scene)
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 
-    scene.AddDCEM(device.Get(), { 0, 10, 0 }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
+    scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, 1024, 1024, psShader[1], psShader[0], dcemShader, "sphere", false);
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });

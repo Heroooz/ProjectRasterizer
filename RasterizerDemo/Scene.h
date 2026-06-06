@@ -31,7 +31,7 @@ public:
 	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shoudtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
 	//void AddLight(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity, bool isDir = false, float angle = 0.0f);
 	void AddLight(ID3D11Device* device, LightData data);
-	void AddParticles(ID3D11Device* device, UINT sizeOfElement, size_t nrOfElementsInBuffer,
+	void AddParticles(ID3D11Device* device, UINT sizeOfElement, UINT nrOfElementsInBuffer,
 		void* bufferData = nullptr, bool dynamic = true, bool hasSRV = false, bool hasUAV = false);
 
 

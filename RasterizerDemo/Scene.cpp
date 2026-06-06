@@ -39,7 +39,7 @@ void Scene::AddLight(ID3D11Device* device, LightData data)
 	else this->spotLights.Initialize(device, data);
 }
 
-void Scene::AddParticles(ID3D11Device* device, UINT sizeOfElement, size_t nrOfElementsInBuffer, void* bufferData, bool dynamic, bool hasSRV, bool hasUAV)
+void Scene::AddParticles(ID3D11Device* device, UINT sizeOfElement, UINT nrOfElementsInBuffer, void* bufferData, bool dynamic, bool hasSRV, bool hasUAV)
 {
 	this->particles = new Particles(device, sizeOfElement, nrOfElementsInBuffer, bufferData, dynamic, hasSRV, hasUAV);
 }
@@ -98,6 +98,7 @@ void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* 
 	// Unbind
 	ID3D11UnorderedAccessView* uavNULL = nullptr;
 	immediateContext->CSSetUnorderedAccessViews(0, 1, &uavNULL, nullptr);
+	immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
 void Scene::DrawScene(ID3D11DeviceContext* context)
