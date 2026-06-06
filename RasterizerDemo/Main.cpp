@@ -29,10 +29,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	device->GetImmediateContext(&immediateContext);
 
 
-	bool shouldTesselate = false;
+	bool shouldTesselate = true;
 	bool showWireFrame = false;
 	bool shadowOn = true;
-	bool particlesOn = false;
+	bool particlesOn = true;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -42,7 +42,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	// TEMPORARY SPEED VARIABLE
 	float movespeed = 3.0f;
-	float rotationspeed = 1.0f;
+	float rotationspeed = 2.0f;
 
 	// Get initial mouse position (center of the screen)
 	//ShowCursor(FALSE);
@@ -110,46 +110,52 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 		// De funkar inge :(
-		//static bool wasPressed = false;
-		if (GetKeyState('T') & 0x8000)
+		static int wasPressed = 0;
+		if (GetKeyState('T') & 0x8000 && wasPressed <= 0)
 		{
 			shouldTesselate = !shouldTesselate;
-			//wasPressed = true;
+			wasPressed = 60;
 		}
-
-		if (GetKeyState('X') & 0x8000)
+		if (GetKeyState('X') & 0x8000 && wasPressed <= 0)
 		{
 			showWireFrame = !showWireFrame;
 			UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
+			wasPressed = 60;
 
 		}
-		if (GetKeyState('O') & 0x8000)
+		if (GetKeyState('O') & 0x8000 && wasPressed <= 0)
 		{
 			shadowOn = !shadowOn;
 			scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
+			wasPressed = 60;
 		}
-		if (GetKeyState('P') & 0x8000)
+		if (GetKeyState('P') & 0x8000 && wasPressed <= 0)
 		{
 			particlesOn = !particlesOn;
+			wasPressed = 60;
 		}
-		
+		wasPressed--;
 
 		// Update scene (objects and lights)
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
-		renderer.UpdateParticles(*scene.get());
+		if (particlesOn)
+		{
+			renderer.UpdateParticles(*scene.get());
+		}
 
-
+		
 		// Mouse panning-movement
-		//POINT currentPos;
-		//GetCursorPos(&currentPos);
+		/*POINT currentPos;
+		GetCursorPos(&currentPos);
 
-		//float dx = static_cast<float>(currentPos.x - lastMousePos.x);
-		//float dy = static_cast<float>(currentPos.y - lastMousePos.y);
-		//renderer.GetCamera().RotateUp(dx * sensitivity);
-		//renderer.GetCamera().RotateRight(dy * sensitivity);
+		float dx = static_cast<float>(currentPos.x - lastMousePos.x);
+		float dy = static_cast<float>(currentPos.y - lastMousePos.y);
+		renderer.GetCamera().RotateUp(dx * sensitivity);
+		renderer.GetCamera().RotateRight(dy * sensitivity);
 
-		//SetCursorPos(center.x, center.y);
-		//lastMousePos = center;
+		SetCursorPos(center.x, center.y);
+		lastMousePos = center;
+		*/
 
 		renderer.Render(*scene.get(), shouldTesselate, shadowOn, particlesOn);
 	}

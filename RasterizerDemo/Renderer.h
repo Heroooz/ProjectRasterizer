@@ -49,10 +49,12 @@ private:
 	D3D11_VIEWPORT viewport;
 
 	std::unique_ptr<ShaderD3D11> vsShader;
+	// DeferredPS[0], DCEMPS[1]
 	std::unique_ptr<ShaderD3D11> psShader[2];
 	std::unique_ptr<ShaderD3D11> csShader;
 	std::unique_ptr<ShaderD3D11> hullShader;
 	std::unique_ptr<ShaderD3D11> domainShader;
+	// VS[0], GS[1], PS[2], CS[3]
 	std::unique_ptr<ShaderD3D11> particleShaders[4];
 	//ID3D11HullShader* pHullShader;
 	//ID3D11DomainShader* pDomainShader;
@@ -70,10 +72,7 @@ private:
 	// For the quads
 	VertexBufferD3D11 vertexBuffer;
 	DirectX::XMMATRIX worldMatrices[2];
-	ConstantBufferD3D11 worldMatriceBuffers[2];
-
-	//ParticleBuffer particleBuffer; // Maybe?
-	
+	ConstantBufferD3D11 worldMatriceBuffers[2];	
 
 
 	// G-Buffers and null-buffers
@@ -123,6 +122,7 @@ private:
 	void ShadowPass(Scene& scene, bool tesselate);
 	void GeometryPass(bool tesselate);
 	void LightPass(Scene& scene, bool shadow);
+	void DrawParticles(Scene& scene);
 
 
 	// Adding the the scene
