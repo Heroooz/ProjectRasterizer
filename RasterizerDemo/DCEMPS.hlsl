@@ -56,6 +56,7 @@ DCEMPSOutput main(DCEMPSInput input)
     float3 samplevec = normalize(reflect(-viewDir, normalize(input.normal.xyz)));
 
     float3 reflection = reflectionTexture.Sample(samplerState, samplevec).rgb;
+    //float3 reflection = abs(samplevec);
     float ambient = (reflection.r + reflection.g + reflection.b) / 3.0f;
     if (hasAmbientTexture == 1)
     {

@@ -9,7 +9,7 @@
 #include "stb_image.h"
 
 bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& defpShader, 
-	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, 
+	std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader,
 	std::unique_ptr<ShaderD3D11>& domainShader, std::unique_ptr<ShaderD3D11>& particleShadersVS, std::unique_ptr<ShaderD3D11>& particleShadersPS,
 	std::unique_ptr<ShaderD3D11>& particleShadersGS, std::unique_ptr<ShaderD3D11>& particleShadersCS)
 {
@@ -17,6 +17,7 @@ bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vSha
 	vShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::VERTEX_SHADER, "VertexShader.cso");
 	defpShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DeferredPS.cso");
 	pShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DCEMPS.cso");
+	DCEMCapturePS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::PIXEL_SHADER, "DCEMCapturePS.cso");
 	cShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ComputeShader.cso");
 
 	hullShader = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::HULL_SHADER, "HullShader.cso");
@@ -187,13 +188,13 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 	return true;
 }
 
-bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, std::unique_ptr<ShaderD3D11>& pShader, 
+bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vShader, std::unique_ptr<ShaderD3D11>& deferredPShader, std::unique_ptr<ShaderD3D11>& pShader, std::unique_ptr<ShaderD3D11>& DCEMCapturePS,
 	std::unique_ptr<ShaderD3D11>& cShader, std::unique_ptr<ShaderD3D11>& hullShader, std::unique_ptr<ShaderD3D11>& domainShader, std::unique_ptr<ShaderD3D11>& particleShadersVS,
 	std::unique_ptr<ShaderD3D11>& particleShadersGS, std::unique_ptr<ShaderD3D11>& particleShadersPS, std::unique_ptr<ShaderD3D11>& particleShadersCS,
 	std::unique_ptr<InputLayoutD3D11>& inputLayout, ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv, std::unique_ptr<SamplerD3D11>& samplerState,
 	std::unique_ptr<SamplerD3D11>& shadowSampler)
 {
-	if (!LoadShaders(device, vShader, deferredPShader, pShader, cShader, hullShader, domainShader, particleShadersVS, particleShadersPS, particleShadersGS, particleShadersCS))
+	if (!LoadShaders(device, vShader, deferredPShader, pShader, DCEMCapturePS, cShader, hullShader, domainShader, particleShadersVS, particleShadersPS, particleShadersGS, particleShadersCS))
 	{
 		std::cerr << "Error loading shaders!" << std::endl;
 		return false;
