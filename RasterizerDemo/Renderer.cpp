@@ -143,7 +143,7 @@ bool Renderer::Initialize(Scene& scene) {
 	projInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
 	projInfo.nearZ = 0.1f;
 	projInfo.farZ = 100.0f;
-    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(8.0f, 5.0f, 0.0f));
+    camera.Initialize(device.Get(), projInfo, DirectX::XMFLOAT3(0.0f, 2.0f, -4.0f));
 
     // Creating the Scene (w objs and light)
     LoadObjects(scene);

@@ -110,29 +110,31 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 		// De funkar inge :(
-		//static bool wasPressed = false;
-		if (GetKeyState('T') & 0x8000)
+		static int wasPressed = 0;
+		if (GetKeyState('T') & 0x8000 && wasPressed <= 0)
 		{
 			shouldTesselate = !shouldTesselate;
-			//wasPressed = true;
+			wasPressed = 60;
 		}
-
-		if (GetKeyState('X') & 0x8000)
+		if (GetKeyState('X') & 0x8000 && wasPressed <= 0)
 		{
 			showWireFrame = !showWireFrame;
 			UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
+			wasPressed = 60;
 
 		}
-		if (GetKeyState('O') & 0x8000)
+		if (GetKeyState('O') & 0x8000 && wasPressed <= 0)
 		{
 			shadowOn = !shadowOn;
 			scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
+			wasPressed = 60;
 		}
-		if (GetKeyState('P') & 0x8000)
+		if (GetKeyState('P') & 0x8000 && wasPressed <= 0)
 		{
 			particlesOn = !particlesOn;
+			wasPressed = 60;
 		}
-		
+		wasPressed--;
 
 		// Update scene (objects and lights)
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
