@@ -31,10 +31,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	device->GetImmediateContext(&immediateContext);
 
 
-	bool shouldTesselate = false;
+	bool shouldTesselate = true;
 	bool showWireFrame = false;
-	bool shadowOn = false;
-	bool particlesOn = false;
+	bool shadowOn = true;
+	bool particlesOn = true;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);

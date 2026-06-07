@@ -424,7 +424,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 {
     // Dirlight SOl
     LightData data2 = {};
-    data2.perLightInfo.initialPosition = { 0.0f, 20.0f, 0.0f };
+    data2.perLightInfo.initialPosition = { 0.0f, 5.0f, 0.0f };
     data2.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
     data2.perLightInfo.intensity = 0.1f;
     data2.perLightInfo.angle = XM_PI;
@@ -456,7 +456,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 void Renderer::LoadObjects(Scene& scene)
 {
     //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
-    scene.AddObject(device.Get(), "NPCube2/", "cube", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
+    scene.AddObject(device.Get(), "NOPCube/", "cube", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
     //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
     //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
 

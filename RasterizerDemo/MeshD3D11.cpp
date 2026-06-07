@@ -113,10 +113,11 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             if (!mesh.MeshMaterial.map_d.empty())
             {
                 d_path = this->filePath + mesh.MeshMaterial.map_d;
-                parallax = 0.05f;
+                parallax = 0.15f;
             }
 
             normalTextureSRV =  createNormalTexture(device, path, d_path);
+        }
 
 
             //HRESULT hr = DirectX::CreateWICTextureFromFile(device,
@@ -126,7 +127,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             //    std::cerr << "Failed to load bump texture at " << path << "!\n";
             //    throw std::runtime_error("Failed to load bump texture!\n");
             //}
-        }
 
 		// Adding Vertices to Vertex and Bouding Box buffers
 		vertices.reserve(mesh.Vertices.size());
@@ -286,7 +286,7 @@ ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ComPtr<ID3D11Dev
     if (!d_path.empty())
     {
         int dW, dH, dC;
-        stbi_uc* dispData = stbi_load(n_path.c_str(), &dW, &dH, &dC, 1);
+        stbi_uc* dispData = stbi_load(d_path.c_str(), &dW, &dH, &dC, 1);
         if (!dispData)
         {
             std::cerr << "Failed to load displacement texture!" << std::endl;
