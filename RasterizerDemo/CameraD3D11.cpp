@@ -13,20 +13,39 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
     this->position = initialPosition;
     this->projInfo = projectionInfo;
 
-    //CameraBufferForShader cambuff = {};
-    //cambuff.cameraPosition = this->position;
+    orthographicCamera.cameraPosition = perspectiveCamera.cameraPosition = initialPosition;
     
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
 
-    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
-    XMFLOAT4X4 projectionMatrixFloat4x4;
-    DirectX::XMStoreFloat4x4(&projectionMatrixFloat4x4, projectionMatrix);
+    this->perspectiveMatrix = XMMatrixPerspectiveFovLH(
+        projectionInfo.fovAngleY,
+        projectionInfo.aspectRatio,
+        projectionInfo.nearZ,
+        projectionInfo.farZ
+    );
 
-    //cambuff.viewProjMatrix = projectionMatrixFloat4x4;
-    this->cameraBuffer.Initialize(device, sizeof(XMFLOAT4X4), &projectionMatrixFloat4x4);
+    // Same hardcoded sreen width/height as in main... Maybe move out to be more dynamic?
+    this->orthographicMatrix = XMMatrixOrthographicLH(
+        1920.0f,
+        1080.0f,
+        projectionInfo.nearZ,
+        projectionInfo.farZ
+    );
 
-    XMFLOAT4X4 orth4x4 = this->GetOrthographicProjectionMatrix();
-    //cambuff.viewProjMatrix = orth4x4;
-    this->OrthBuffer.Initialize(device, sizeof(XMFLOAT4X4), &orth4x4);
+    XMFLOAT4X4 vpMatrix4x4;
+    XMStoreFloat4x4(&vpMatrix4x4, XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->perspectiveMatrix)));
+    perspectiveCamera.viewProjMatrix = vpMatrix4x4;
+    VPcameraBuffer.Initialize(device, sizeof(CameraBufferForShader), &perspectiveCamera);
+
+
+    XMFLOAT4X4 voMatrix4x4;
+    XMStoreFloat4x4(&voMatrix4x4, XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->orthographicMatrix)));
+    orthographicCamera.viewProjMatrix = voMatrix4x4;
+    VOcameraBuffer.Initialize(device, sizeof(CameraBufferForShader), &orthographicCamera);
 }
 
 void CameraD3D11::MoveInDirection(float amount, const XMFLOAT3& direction)
@@ -57,6 +76,7 @@ void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)
     XMStoreFloat3(&this->up, upVec);
 }
 
+
 void CameraD3D11::MoveForward(float amount) { MoveInDirection(amount, this->forward); }
 
 void CameraD3D11::MoveRight(float amount) { MoveInDirection(amount, this->right); }
@@ -67,7 +87,7 @@ void CameraD3D11::RotateForward(float amount) { RotateAroundAxis(amount, this->f
 
 void CameraD3D11::RotateRight(float amount) { RotateAroundAxis(amount, this->right); }
 
-void CameraD3D11::RotateUp(float amount) { RotateAroundAxis(amount, {0,1,0}); }
+void CameraD3D11::RotateUp(float amount) { RotateAroundAxis(amount, {0,1,0}); } // Fixed up-rotation to avoid falling over
 
 void CameraD3D11::LookAt(const DirectX::XMFLOAT3& cameraPosition, const DirectX::XMFLOAT3& target, const DirectX::XMFLOAT3& upVector)
 {
@@ -118,68 +138,78 @@ void CameraD3D11::ResetUp()
 
 void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
 {
-    XMMATRIX viewMatrix = XMMatrixLookAtLH(
-        XMVectorSet(this->position.x, this->position.y, this->position.z, 0.0f), //EyePosition
-        XMVectorSet(
-            this->position.x + this->forward.x,
-            this->position.y + this->forward.y,
-            this->position.z + this->forward.z, 0.0f),							// Focus Position
-        XMVectorSet(this->up.x, this->up.y, this->up.z, 0.0f));					 // Up
-        
-        
-       // XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
-    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(
-        this->projInfo.fovAngleY, this->projInfo.aspectRatio,
-        this->projInfo.nearZ, this->projInfo.farZ);
-        
-        //XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
-    XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
-        
-        //XMMatrixMultiply(viewMatrix, projectionMatrix);
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH( eyePos, d, upVec );
+    
+    XMFLOAT4X4 viewproj4x4;
+    XMStoreFloat4x4(&viewproj4x4, XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->perspectiveMatrix)));
+    this->perspectiveCamera.viewProjMatrix = viewproj4x4;
+    this->perspectiveCamera.cameraPosition = this->position;
+    this->VPcameraBuffer.UpdateBuffer(context, &this->perspectiveCamera);
+    /*
+    //   // XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
+    //XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(
+    //    this->projInfo.fovAngleY, this->projInfo.aspectRatio,
+    //    this->projInfo.nearZ, this->projInfo.farZ);
+    //    
+    //    //XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
+    //XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
+    //    
+    //    //XMMatrixMultiply(viewMatrix, projectionMatrix);
 
-    XMFLOAT4X4 viewProjectionMatrixFloat4x4;
-    DirectX::XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
+    //XMFLOAT4X4 viewProjectionMatrixFloat4x4;
+    //DirectX::XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
 
-    this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
+    //this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
+    */
 }
 
 void CameraD3D11::UpdateOrthographicBuffer(ID3D11DeviceContext* context, float orthWidth, float orthHeight)
 {
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
 
-    XMFLOAT4X4 o4x4 = this->GetOrthographicProjectionMatrix();
-    this->OrthBuffer.UpdateBuffer(context, &o4x4);
+    XMFLOAT4X4 vieworth4x4;
+    XMStoreFloat4x4(&vieworth4x4, XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->orthographicMatrix)));
+    this->orthographicCamera.viewProjMatrix = vieworth4x4;
+    this->orthographicCamera.cameraPosition = this->position;
+    this->VOcameraBuffer.UpdateBuffer(context, &this->orthographicCamera);
 }
 
-ID3D11Buffer* CameraD3D11::GetConstantBuffer() const { return this->cameraBuffer.GetBuffer(); }
+ID3D11Buffer* CameraD3D11::GetConstantBuffer() const { return this->VPcameraBuffer.GetBuffer(); }
 
-ID3D11Buffer* CameraD3D11::GetOrthographicConstantBuffer() const { return this->OrthBuffer.GetBuffer(); }
+ID3D11Buffer* CameraD3D11::GetOrthographicConstantBuffer() const { return this->VOcameraBuffer.GetBuffer(); }
 
 XMFLOAT4X4 CameraD3D11::GetViewProjectionMatrix() const
 {
-    XMMATRIX viewMatrix = XMMatrixLookToLH(XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
-    XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
-
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
+    
     XMFLOAT4X4 viewProjMatrix;
-    DirectX::XMStoreFloat4x4(&viewProjMatrix, XMMatrixMultiplyTranspose(viewMatrix, projectionMatrix));
+    DirectX::XMStoreFloat4x4(&viewProjMatrix, XMMatrixMultiplyTranspose(viewMatrix, this->perspectiveMatrix));
 
     return viewProjMatrix;
 }
 
 DirectX::XMFLOAT4X4 CameraD3D11::GetOrthographicProjectionMatrix() const
 {
-    const XMFLOAT3 lpos = { 0.0f, -this->projInfo.farZ, 0.0f };
-    const XMFLOAT3 ldir = { 0.0f,-1.0f,0.0f };
-    const XMFLOAT3 lup = { 0.0f,0.0f,1.0f };
-
-
-    XMMATRIX view = XMMatrixLookToLH(
-        XMLoadFloat3(&lpos), 
-        XMLoadFloat3(&ldir), 
-        XMLoadFloat3(&lup)
-    );
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
 
     XMMATRIX o = XMMatrixOrthographicLH(100.0f, 100.0f, this->projInfo.nearZ, this->projInfo.farZ);
-    XMMATRIX vp = XMMatrixTranspose(XMMatrixMultiply(view, o));
+    XMMATRIX vp = XMMatrixTranspose(XMMatrixMultiply(viewMatrix, o));
 
     XMFLOAT4X4 o4x4;
     DirectX::XMStoreFloat4x4(&o4x4, vp);

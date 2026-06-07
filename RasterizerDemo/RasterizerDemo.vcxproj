@@ -176,7 +176,6 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShaderD3D11.cpp" />
     <ClCompile Include="ShaderResourceTextureD3D11.cpp" />
-    <ClCompile Include="SpotLightCollectionD3D11.cpp" />
     <ClCompile Include="StructuredBufferD3D11.cpp" />
     <ClCompile Include="SubMeshD3D11.cpp" />
     <ClCompile Include="Time.cpp" />
@@ -317,7 +316,6 @@
     <ClInclude Include="ShaderD3D11.h" />
     <ClInclude Include="ShaderResourceTextureD3D11.h" />
     <ClInclude Include="SimpleVertex.h" />
-    <ClInclude Include="SpotLightCollectionD3D11.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="StructuredBufferD3D11.h" />
     <ClInclude Include="SubMeshD3D11.h" />
@@ -326,9 +324,6 @@
     <ClInclude Include="VertexBufferD3D11.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowHelper.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="texture.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -39,7 +39,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	for (int i = 0; i < 6; i++)
 	{
 		// Set Camera
-		this->cameras[i] = CameraD3D11(device, projectionInfo, initPos);
+		this->cameras[i].Initialize(device, projectionInfo, initPos);
 
 		XMFLOAT3 target = { initPos.x + targets[i].x, initPos.y + targets[i].y, initPos.z + targets[i].z };
 		this->cameras[i].LookAt(initPos, target, ups[i]);
@@ -59,6 +59,22 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	this->worldMatrixBuffer.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
 
 	Initialize(device, initPos, width, height);
+}
+
+DCEM::~DCEM()
+{
+	if (this->cubeMapCapturePS)
+	{
+		this->cubeMapCapturePS = nullptr;
+	}
+	if (this->DCEMPS)
+	{
+		this->DCEMPS = nullptr;
+	}
+	if (this->normalPS)
+	{
+		this->normalPS = nullptr;
+	}
 }
 
 void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height)
@@ -161,8 +177,8 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 		context->OMSetRenderTargets(1, &faceRTV, dsView.Get());
 
 		cameras[face].UpdateInternalConstantBuffer(context);
-
 		ID3D11Buffer* camBuffer = cameras[face].GetConstantBuffer();
+
 		context->VSSetConstantBuffers(0, 1, &camBuffer);
 		context->PSSetConstantBuffers(0, 1, &camBuffer);
 

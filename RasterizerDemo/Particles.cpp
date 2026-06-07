@@ -90,5 +90,3 @@ ID3D11ShaderResourceView* Particles::GetSRV() { return this->particlesBuffer.Get
 ID3D11ShaderResourceView* Particles::GetTexture() { return this->particleTexture; } 
 ID3D11UnorderedAccessView* Particles::GetUAV() { return this->particlesBuffer.GetUAV(); }
 ID3D11Buffer* Particles::GetParticlesBuffer() { return this->particlesBuffer.GetBuffer(); }
-
-

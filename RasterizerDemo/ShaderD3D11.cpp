@@ -6,22 +6,22 @@ ShaderD3D11::~ShaderD3D11()
 	switch (this->type)
 	{
 	case ShaderType::VERTEX_SHADER:
-		if (this->shader.vertex != nullptr) { this->shader.vertex->Release(); }
+		if (this->shader.vertex != nullptr) { this->shader.vertex->Release(); this->shader.vertex = nullptr; }
 		break;
 	case ShaderType::HULL_SHADER:
-		if (this->shader.hull != nullptr) { this->shader.hull->Release(); }
+		if (this->shader.hull != nullptr) { this->shader.hull->Release(); this->shader.vertex = nullptr; }
 		break;
 	case ShaderType::DOMAIN_SHADER:
-		if (this->shader.domain != nullptr) { this->shader.domain->Release(); }
+		if (this->shader.domain != nullptr) { this->shader.domain->Release(); this->shader.vertex = nullptr; }
 		break;
 	case ShaderType::GEOMETRY_SHADER:
-		if (this->shader.geometry != nullptr) { this->shader.geometry->Release(); }
+		if (this->shader.geometry != nullptr) { this->shader.geometry->Release(); this->shader.vertex = nullptr; }
 		break;
 	case ShaderType::PIXEL_SHADER:
-		if (this->shader.pixel != nullptr) { this->shader.pixel->Release(); }
+		if (this->shader.pixel != nullptr) { this->shader.pixel->Release(); this->shader.vertex = nullptr; }
 		break;
 	case ShaderType::COMPUTE_SHADER:
-		if (this->shader.compute != nullptr) { this->shader.compute->Release(); }
+		if (this->shader.compute != nullptr) { this->shader.compute->Release(); this->shader.vertex = nullptr; }
 		break;
 	default:
 		break;

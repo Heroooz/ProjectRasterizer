@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <iostream>
 
+#include <chrono>
+
 #include "Window.h"
 #include "Renderer.h"
 
@@ -17,22 +19,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	Window window(hInstance, WIDTH, HEIGHT, nCmdShow);
 
-	std::unique_ptr<Scene> scene = std::make_unique<Scene>();
+	//std::unique_ptr<Scene> scene = std::make_unique<Scene>();
+	Scene* scene = new Scene();
 
-
-	Renderer renderer(window, *scene.get());
+	Renderer renderer(window, *scene);
 	MSG msg = { };
 
-	float deltatime = renderer.GetDeltatime();
+	//float deltatime = renderer.GetDeltatime();
 	ComPtr<ID3D11Device> device = renderer.GetDevice();
 	ComPtr<ID3D11DeviceContext> immediateContext;
 	device->GetImmediateContext(&immediateContext);
 
 
-	bool shouldTesselate = true;
+	bool shouldTesselate = false;
 	bool showWireFrame = false;
-	bool shadowOn = true;
-	bool particlesOn = true;
+	bool shadowOn = false;
+	bool particlesOn = false;
 
 
 	UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
@@ -58,15 +60,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	//Scene* scene = renderer.GetScene();
 
+	std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
 	while (!(GetKeyState(VK_ESCAPE) & 0x8000) && msg.message != WM_QUIT)
 	{
+		auto now = std::chrono::steady_clock::now();
+		std::chrono::duration<float> delta = now - lastTime;
+		float deltatime = delta.count();
+		lastTime = now;
+
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
 
-		deltatime = renderer.GetDeltatime();
+		//deltatime = renderer.GetDeltatime();
 
 		if (GetKeyState('W') & 0x8000) {
 			renderer.GetCamera().MoveForward(movespeed * deltatime);
@@ -140,9 +148,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		scene->UpdateObjects(immediateContext.Get(), deltatime);
 		if (particlesOn)
 		{
-			renderer.UpdateParticles(*scene.get());
+			renderer.UpdateParticles(*scene);
 		}
-
+		renderer.GetCamera().UpdateInternalConstantBuffer(immediateContext.Get());
 		
 		// Mouse panning-movement
 		/*POINT currentPos;
@@ -157,10 +165,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		lastMousePos = center;
 		*/
 
-		renderer.Render(*scene.get(), shouldTesselate, shadowOn, particlesOn);
+		renderer.Render(*scene, shouldTesselate, shadowOn, particlesOn);
 	}
 
-	scene->~Scene();
+	delete scene;
+	scene = nullptr;
 
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
 	_CrtDumpMemoryLeaks();
