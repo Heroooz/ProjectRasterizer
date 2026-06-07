@@ -67,8 +67,8 @@ class Light
 	XMFLOAT3 pos;
 	XMFLOAT4X4 vpm;
 
-	const UINT WIDTH = 1024;
-	const UINT HEIGHT = 1024;
+	const UINT WIDTH = 1920;
+	const UINT HEIGHT = 1080;
 
 public:
 	Light() = default;

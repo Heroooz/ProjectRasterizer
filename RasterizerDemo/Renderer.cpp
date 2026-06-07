@@ -436,7 +436,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     LightData data1 = {};
     data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
-    data1.perLightInfo.intensity = 0.7f;
+    data1.perLightInfo.intensity = 0.4f;
     data1.perLightInfo.angle = XM_PI;
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;

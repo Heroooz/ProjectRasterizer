@@ -5,8 +5,11 @@ Light::~Light()
 {
 	for (auto& camera : shadowCameras)
 	{
-		delete camera;
-		camera = nullptr;
+		if (camera)
+		{
+			delete camera;
+			camera = nullptr;
+		}
 	}
 }
 
