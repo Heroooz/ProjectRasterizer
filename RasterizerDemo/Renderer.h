@@ -6,7 +6,7 @@
 
 #include "Window.h"
 #include "PipelineHelper.h"
-#include "Time.h"
+//#include "Time.h"
 
 #include "DepthBufferD3D11.h"
 #include "VertexBufferD3D11.h"
@@ -31,7 +31,7 @@ public:
 
 	ID3D11Device* GetDevice();
 	CameraD3D11& GetCamera();
-	float GetDeltatime();
+	//float GetDeltatime();
 
 	void UpdateParticles(Scene& scene);
 
@@ -102,7 +102,7 @@ private:
 	ComPtr<ID3D11Buffer> lightPS;
 
 
-	Time time;
+	//Time time;
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
 

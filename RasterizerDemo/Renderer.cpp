@@ -159,7 +159,7 @@ bool Renderer::Initialize(Scene& scene) {
 
 void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool ParticlesOn) {
 
-	time.Update(); // Update frame timing
+	//time.Update(); // Update frame timing
     this->camera.UpdateInternalConstantBuffer(immediateContext.Get());
     
     ClearBuffers();
@@ -588,9 +588,9 @@ CameraD3D11& Renderer::GetCamera()
     return this->camera;
 }
 
-float Renderer::GetDeltatime()
-{
-    this->time.Update();
-    return this->time.GetDeltaTime();
-}
+//float Renderer::GetDeltatime()
+//{
+//    this->time.Update();
+//    return this->time.GetDeltaTime();
+//}
 

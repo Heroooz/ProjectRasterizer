@@ -65,17 +65,14 @@ DCEM::~DCEM()
 {
 	if (this->cubeMapCapturePS)
 	{
-		delete this->cubeMapCapturePS;
 		this->cubeMapCapturePS = nullptr;
 	}
 	if (this->DCEMPS)
 	{
-		delete this->DCEMPS; 
 		this->DCEMPS = nullptr;
 	}
 	if (this->normalPS)
 	{
-		delete this->normalPS;
 		this->normalPS = nullptr;
 	}
 }

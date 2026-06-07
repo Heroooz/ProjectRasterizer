@@ -14,9 +14,21 @@ Scene::~Scene()
 			object = nullptr;
 		}
 	}
+	for (auto& dcem : dcems)
+	{
+		if (dcem)
+		{
+			delete dcem;
+			dcem = nullptr;
+		}
+	}
+	if (particles)
+	{
+		delete particles;
+		particles = nullptr;
+	}
 	if (pCenter)
 	{
-		pCenter->Release();
 		pCenter = nullptr;
 	}
 }
