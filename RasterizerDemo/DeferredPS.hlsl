@@ -45,7 +45,7 @@ struct PSInput
 };
 
 static const float defAmb = 0.1f;
-static const int nrOfLayers = 128;
+static const int nrOfLayers = 32;
 static const float layerDepth = 1.0f / nrOfLayers;
 PSOutPut main(PSInput input)
 {
@@ -55,72 +55,62 @@ PSOutPut main(PSInput input)
  
     // Standard Normal
     float3 normal = normalize(input.normal);
-    
     float ambient = defAmb * (ambientFactor.x + ambientFactor.y + ambientFactor. z) / 3;
-    if (hasAmbientTexture == 1)
-    {
-        ambient *= ambientTexture.Sample(samplerState, uv).r;
-    }
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
-    if (hasSpecularTexture == 1)
-    {
-        specular *= specularTexture.Sample(samplerState, uv).r;
-    }
-    
     float4 diffuse = float4(diffuseFactor, 1);
-    if (hasDiffuseTexture == 1)
-        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));;
-    
-    
+
     // Calculating normal map and parallaxing
-    //float2 sampelingUV = uv;    // UV for parallaxing
     if (hasNormalTexture == 1)
     {
         // Calculating the tangent and bitangent of the vertex
         float3 tangent;
         float3 bitangent;
         ComputeTBN(input.worldPosition.xyz, normal, input.uv, tangent, bitangent);
-        
         float3x3 tbn = float3x3(tangent, bitangent, normal);
         
         // View Direction in tangent space
-        float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));
+        float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));      
+           
+        float2 texStep = -(viewDir.xy / viewDir.z) * (parallax * layerDepth);
+        float currentLayerDepth = 0.0f;
         
-        // Parallaxing
-        float2 offset = float2(0, 0);
-        float2 prev = offset;
-        float current = 0.0f;
-        
-        float2 delta = -viewDir.xy * (parallax / viewDir.z) * layerDepth;
-        
-        float heightSample;
+        float2 currentUV = input.uv;
+        float2 prevUV = input.uv;
+        float beforeSampleDepth = 0.0f;
+        float afterSampleDepth = 0.0f;
         for (int i = 0; i < nrOfLayers; i++)
         {
-            prev = offset;
-            current += layerDepth;
-            offset += delta;
+            prevUV = currentUV;
+            currentUV += texStep;
+            currentLayerDepth += layerDepth;
             
-            heightSample = normalTexture.Sample(samplerState, uv + offset).a;
+            beforeSampleDepth = afterSampleDepth;
+            afterSampleDepth = normalTexture.Sample(samplerState, currentUV).a;
             
-            
-            
-            // If gone too far, back up
-            //if (current >= heightSample)
-            //{
-            //    float prevD = current - layerDepth;
-            //    float t = (heightSample - prevD) / layerDepth;
-            //    offset = lerp(prev, offset, t);
-            //    break;
-            //}
-        }
-        float2 sampelingUV = input.uv + offset;
+            // Should not go under the face
+            if (currentLayerDepth >= afterSampleDepth)
+            {
+                float beforeDiff = beforeSampleDepth - (currentLayerDepth - layerDepth);
+                float afterDiff = currentLayerDepth - afterSampleDepth;
+                float weight = afterDiff / (beforeDiff + afterDiff);
                 
-        float3 normalMap = normalTexture.Sample(samplerState, sampelingUV).rgb * 2.0f - 1.0f;
+                uv = lerp(currentUV, prevUV, weight);
+                break;
+            }
+        }
         
+        float3 normalMap = normalTexture.Sample(samplerState, uv).rgb * 2.0f - 1.0f;
         float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * normal);
-        
-        normal = worldNormal; // Saving normal W for specular
+        normal = worldNormal;
     }
+    
+    if (hasAmbientTexture == 1)
+        ambient *= ambientTexture.Sample(samplerState, uv).r;
+    if (hasDiffuseTexture == 1)
+        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));
+    if (hasSpecularTexture == 1)
+        specular *= specularTexture.Sample(samplerState, uv).r;
+    
     
     PSOutPut output;
     output.position = float4(input.worldPosition.xyz, ambient); // Position XYZ + Ambient W
@@ -153,3 +143,19 @@ void ComputeTBN(in float3 worldPos, in float3 normal, in float2 uv, out float3 t
         bitangent = normalize(cross(normal, tangent));
     }
 };
+
+        /* INTERPOLATION MATH
+        float beforeDiff = beforePointDepth - beforeSampleDepth;
+        float afterDiff = afterSampleDepth - afterPointDepth;
+        float totalDiff = before + afterDiff;
+        float weight = 1.0f - (beforeDiff / totalDiff);
+        return beforeCoords * weight + afterCoords * (1.0f - weight);
+        */
+
+  
+        /*
+        // ~p approximated point
+        // h(p) depth value at pont p (from disp. map)
+        // v viewdir (in tangenspace!!)
+        // ~p = - (h(p) * v_xy) / v_z
+        */
