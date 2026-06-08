@@ -430,7 +430,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data2.perLightInfo.angle = XM_PI;
     data2.perLightInfo.isDir = true;
     data2.perLightInfo.rotationX = 0;
-    data2.perLightInfo.rotationY = -XM_PIDIV2;
+    data2.perLightInfo.rotationY = XM_PIDIV2;
 
     // Spotlight Ficklampa
     LightData data1 = {};
@@ -441,7 +441,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;
     data1.perLightInfo.fovAngleY = XM_PIDIV2;
-    data1.perLightInfo.aspectRatio = 1;
+    data1.perLightInfo.aspectRatio = window.GetWidth() / window.GetHeight();
     data1.perLightInfo.nearZ = 1.0f;
     data1.perLightInfo.farZ = 100.0f;
 

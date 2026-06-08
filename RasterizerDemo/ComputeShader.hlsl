@@ -112,7 +112,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
             float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
         
             float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
-            float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
+            float shadowMapDepth = dirLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
             shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
         }
         // Setting a,d,s values

@@ -40,17 +40,20 @@ void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 	if (lightInfo.perLightInfo.isDir)
 	{
 		this->isDirectionalLight = true;
+		lightCam->UpdateOrthographicBuffer(context);
 		light.vpmatrix = lightCam->GetOrthographicProjectionMatrix();
+		light.direction = {-lightCam->GetForward().x, -lightCam->GetForward().y, -lightCam->GetForward().z };
 	}
 	else
 	{
+		lightCam->UpdateInternalConstantBuffer(context);
 		light.vpmatrix = lightCam->GetViewProjectionMatrix();
+		light.direction = lightCam->GetForward();
 	}
 
 	this->vpm = light.vpmatrix;
 	this->pos = light.position;
 
-	light.direction = lightCam->GetForward();
 
 	bufferData.push_back(light);
 	shadowCameras.push_back(lightCam);

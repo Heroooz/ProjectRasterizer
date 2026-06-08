@@ -208,10 +208,10 @@ DirectX::XMFLOAT4X4 CameraD3D11::GetOrthographicProjectionMatrix() const
     XMVECTOR d = eyePos + focPoint;
     XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
 
-    XMMATRIX o = XMMatrixOrthographicLH(100.0f, 100.0f, this->projInfo.nearZ, this->projInfo.farZ);
-    XMMATRIX vp = XMMatrixTranspose(XMMatrixMultiply(viewMatrix, o));
+    //XMMATRIX o = XMMatrixOrthographicLH(100.0f, 100.0f, this->projInfo.nearZ, this->projInfo.farZ);
+    XMMATRIX vo = XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->orthographicMatrix));
 
     XMFLOAT4X4 o4x4;
-    DirectX::XMStoreFloat4x4(&o4x4, vp);
+    DirectX::XMStoreFloat4x4(&o4x4, vo);
     return o4x4;
 }
