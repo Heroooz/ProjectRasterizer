@@ -90,9 +90,6 @@
     <ClCompile Include="ShaderResourceTextureD3D11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SpotLightCollectionD3D11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,6 +144,9 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="ParticlePS.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="DCEMCapturePS.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
@@ -232,9 +232,6 @@
     <ClInclude Include="ShaderResourceTextureD3D11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SpotLightCollectionD3D11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -247,11 +244,6 @@
     <ClInclude Include="ParticlesBuffer.h">
       <Filter>Header Files\Buffers</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="texture.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

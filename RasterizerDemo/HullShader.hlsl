@@ -37,7 +37,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
     HS_CONSTANT_DATA_OUTPUT output;
     float distance = length(cameraPosition - centerPoint.xyz);
-    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = lerp(base, minDist, saturate(distance/maxDist)); //max(minDist, maxDist - distance); //lerp(64.0f, 1.0f, saturate(distance / maxDist)); //
+    output.EdgeTessFactor[0] = output.EdgeTessFactor[1] = output.EdgeTessFactor[2] = output.InsideTessFactor = lerp(base, minDist, saturate(distance/maxDist));
     
     return output;
 };

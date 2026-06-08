@@ -205,8 +205,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     scene.GenerateDCEM(immediateContext.Get());
 
     GeometryPass(scene, tessellation);
-    //scene.DrawObjects(immediateContext.Get(), tessellation);      // Moved to GEO-PASS 
-    //scene.DrawDCEM(immediateContext.Get());
     LightPass(scene, shadow);
 
     swapChain->Present(0, 0);
@@ -248,6 +246,9 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
 {
     immediateContext->PSSetShader(nullptr, nullptr, 0);
 
+    immediateContext->HSSetShader(nullptr, nullptr, 0);
+    immediateContext->DSSetShader(nullptr, nullptr, 0);
+
     ComPtr<ID3D11DepthStencilView> dsv;
     // For each Spotlight
     for (int i = 0; i < scene.GetNrOfSpotLights(); i++)
@@ -259,7 +260,7 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
         
-        scene.DrawObjects(immediateContext.Get(), tessellate);
+        scene.DrawObjects(immediateContext.Get(), false);
         scene.DrawDCEM(immediateContext.Get());
     }
 
@@ -272,7 +273,7 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
 
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i, true);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
-        scene.DrawObjects(immediateContext.Get(), tessellate);
+        scene.DrawObjects(immediateContext.Get(), false);
         scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
@@ -295,7 +296,6 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     {
         hullShader->BindShader(immediateContext.Get());
         domainShader->BindShader(immediateContext.Get());
-
 
         immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
         immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -469,6 +469,9 @@ void Renderer::LoadObjects(Scene& scene)
     ////scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
     scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
+
+    scene.AddObject(device.Get(), "", "utah_teapot", { 0.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
+    scene.AddObject(device.Get(), "", "icoSphere", { -3.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
     scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene.AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
