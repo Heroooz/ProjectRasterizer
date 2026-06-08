@@ -84,7 +84,10 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             //createTexture(device, &diffuseTextureSRV);
         }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
-
+        if (diffuseColor.x == 0 && diffuseColor.y == 0 && diffuseColor.z == 0)
+        {
+            diffuseColor = { 0.8f,0.8f,0.8f };
+        }
 
 		//Load Specular Texture
         if (!mesh.MeshMaterial.map_Ks.empty())

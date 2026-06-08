@@ -203,7 +203,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     scene.GenerateDCEM(immediateContext.Get());
-    //psShader[1]->BindShader(immediateContext.Get()); // Binfing DCEMPS
 
     GeometryPass(scene, tessellation);
     //scene.DrawObjects(immediateContext.Get(), tessellation);      // Moved to GEO-PASS 
@@ -441,7 +440,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;
     data1.perLightInfo.fovAngleY = XM_PIDIV2;
-    data1.perLightInfo.aspectRatio = window.GetWidth() / window.GetHeight();
+    data1.perLightInfo.aspectRatio = float(window.GetWidth() / window.GetHeight());
     data1.perLightInfo.nearZ = 1.0f;
     data1.perLightInfo.farZ = 100.0f;
 
@@ -455,10 +454,9 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 
 void Renderer::LoadObjects(Scene& scene)
 {
-    //scene->AddObject(device.Get(), "Horse/", "Horse", XMFLOAT3(0, 0, 10), XMFLOAT3(0, PI, 0), XMFLOAT3(1, 1, 1));
+    //scene.AddObject(device.Get(), "Farmanimals/", "Horse", { 0, 0, 10 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene.AddObject(device.Get(), "NOPCube/", "cube", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
-    //scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
-    //scene->AddObject(device.Get(), "Box/", "box", XMFLOAT3(0, -2, 2), XMFLOAT3(0, 0, 0), XMFLOAT3(2, 2, 2));
+    ////scene->AddObject(device.Get(), "Cat/", "12221_Cat_v1_l3", XMFLOAT3(1, 1, 5), XMFLOAT3(-XM_PI / 2, XM_PI, 0), XMFLOAT3(0.05f, 0.05f, 0.05f));
 
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, 1024, 1024, psShader[1], psShader[0], dcemShader, "sphere", false);
@@ -468,7 +466,7 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 10.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    //scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
+    ////scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
     scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
@@ -478,16 +476,17 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
-    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
-    //scene->AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 1.0f, 1.0f, 1.0f }, false);
+    //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, 1.4f }, { 0.0f, XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 1.4f, 0.4f, -1.4f }, { 0.0f, 3 * XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
+    //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 1.0f, 1.0f, 1.0f }, false);
 
+
+    //scene.AddObject(device.Get(), "harbour/", "harbour", { 0,0,0 }, { 0,0,0 }, { 1,1,1 }, false);
 
     //scene->AddObject(device.Get(), "Fish/", "AnglerFish", { -5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
-    //scene->AddObject(device.Get(), "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
+    //scene.AddObject(device.Get(), "Fish/", "Blobfish", { -5.0f, 1.0f, -2.0f }, { 0.0f, -3.0f * XM_PIDIV4,0.0f }, { 0.5f, 0.5f, 0.5f });
 
-    //scene->AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 0.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
 }
 
 void Renderer::InitializeParticles(Scene& scene)

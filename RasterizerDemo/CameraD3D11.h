@@ -15,8 +15,8 @@ struct ProjectionInfo
 
 struct CameraBufferForShader
 {
-	DirectX::XMFLOAT4X4 viewProjMatrix;
-	DirectX::XMFLOAT3 cameraPosition;
+	DirectX::XMFLOAT4X4 viewProjMatrix = {};
+	DirectX::XMFLOAT3 cameraPosition = {};
 	float padding = 0.0f;
 };
 
