@@ -50,7 +50,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	// Adding the mesh
 	const std::string folderPath = "SimpleObjects/";
 	//const std::string objName = "cube";
-	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, objName);
+	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, "icoSphere");
 	XMMATRIX world = XMMatrixTranslation(initPos.x, initPos.y, initPos.z);
 	this->worldMatrix = world;
 

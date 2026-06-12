@@ -39,5 +39,7 @@ public:
 	void UpdateObject(ID3D11DeviceContext* context, float deltatime);
 	void drawObject(ID3D11DeviceContext* context);
 	
+
+	DirectX::BoundingBox GetBoundingBox() const;
 	ID3D11Buffer* GetCenterBuffer();
 };

@@ -186,6 +186,19 @@ ID3D11Buffer* CameraD3D11::GetConstantBuffer() const { return this->VPcameraBuff
 
 ID3D11Buffer* CameraD3D11::GetOrthographicConstantBuffer() const { return this->VOcameraBuffer.GetBuffer(); }
 
+DirectX::XMMATRIX CameraD3D11::GetProjectionMatrix() const { return this->perspectiveMatrix; }
+
+DirectX::XMMATRIX CameraD3D11::GetViewMatrix() const
+{
+    XMVECTOR eyePos = XMLoadFloat3(&this->position);
+    XMVECTOR focPoint = XMLoadFloat3(&this->forward);
+    XMVECTOR upVec = XMLoadFloat3(&this->up);
+    XMVECTOR d = eyePos + focPoint;
+    XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
+
+    return viewMatrix;
+}
+
 XMFLOAT4X4 CameraD3D11::GetViewProjectionMatrix() const
 {
     XMVECTOR eyePos = XMLoadFloat3(&this->position);

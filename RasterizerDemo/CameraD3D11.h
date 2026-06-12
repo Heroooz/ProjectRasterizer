@@ -77,6 +77,9 @@ public:
 	ID3D11Buffer* GetConstantBuffer() const;
 	ID3D11Buffer* GetOrthographicConstantBuffer() const;
 
+	DirectX::XMMATRIX GetProjectionMatrix() const;
+	DirectX::XMMATRIX GetViewMatrix() const;
+
 	DirectX::XMFLOAT4X4 GetViewProjectionMatrix() const;
 	DirectX::XMFLOAT4X4 GetOrthographicProjectionMatrix() const;
 };

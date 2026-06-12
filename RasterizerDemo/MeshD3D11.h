@@ -28,8 +28,8 @@ private:
 
 	std::string filePath = "objs/";
 
-	void createTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
-	ComPtr<ID3D11ShaderResourceView> createNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path);
+	void CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
+	ComPtr<ID3D11ShaderResourceView> CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path);
 
 public:
 	MeshD3D11() = default;
@@ -52,5 +52,5 @@ public:
 
 	//VertexBufferD3D11 getVertexBuffer() const;
 	//IndexBufferD3D11 getIndexBuffer() const;
-	DirectX::BoundingBox getBoundingBox() const;
+	DirectX::BoundingBox GetBoundingBox() const;
 };

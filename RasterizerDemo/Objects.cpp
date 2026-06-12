@@ -90,4 +90,6 @@ void Objects::drawObject(ID3D11DeviceContext* context)
 	}
 }
 
+DirectX::BoundingBox Objects::GetBoundingBox() const { return this->mesh->GetBoundingBox(); }
+
 ID3D11Buffer* Objects::GetCenterBuffer() { return this->centerBuffer.GetBuffer(); }

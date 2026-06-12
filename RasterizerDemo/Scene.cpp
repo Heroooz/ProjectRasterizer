@@ -40,7 +40,9 @@ void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT he
 
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT)
 {
-	objects.push_back(new Objects(device, folderPath, objFile, position, rotation, scale, shouldtessellate, isStatic, angle, SRT));
+	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, shouldtessellate, isStatic, angle, SRT);
+	objects.push_back(obj);
+	//this->quadtree.AddElement(objects.back(), obj->GetBoundingBox());
 }
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
@@ -110,9 +112,18 @@ void Scene::DrawScene(ID3D11DeviceContext* context, bool tesselate)
 	// SHould probablu use this instead of many different funcs
 }
 
-void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, bool tessellate)
+void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, CameraD3D11* camera, bool tessellate)
 {
 	//int nrof = this->GetNrOfObjects();
+
+	//visibleObjects = quadtree.CheckTree(camFrustum)
+
+	//BoundingFrustum frustum;
+	//BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
+	//XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
+	//frustum.Transform(frustum, inverseView);
+	//std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
+
 	for (auto& obj : objects)
 	{
 		if (tessellate)
@@ -142,6 +153,10 @@ void Scene::DrawDCEM(ID3D11DeviceContext* context)
 
 
 void Scene::RemoveObjectFromScene(int index)
+{
+}
+
+void Scene::DrawTree()
 {
 }
 
