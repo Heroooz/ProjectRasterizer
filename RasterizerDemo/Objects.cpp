@@ -76,7 +76,7 @@ void Objects::UpdateObject(ID3D11DeviceContext* context, float deltatime)
 	}
 }
 
-void Objects::drawObject(ID3D11DeviceContext* context)
+void Objects::drawObject(ID3D11DeviceContext* context) const
 {
 	ID3D11Buffer *pMatrix = this->worldMatrixBuffer.GetBuffer();
 	context->VSSetConstantBuffers(1, 1, &pMatrix);
@@ -92,4 +92,4 @@ void Objects::drawObject(ID3D11DeviceContext* context)
 
 DirectX::BoundingBox Objects::GetBoundingBox() const { return this->mesh->GetBoundingBox(); }
 
-ID3D11Buffer* Objects::GetCenterBuffer() { return this->centerBuffer.GetBuffer(); }
+ID3D11Buffer* Objects::GetCenterBuffer() const { return this->centerBuffer.GetBuffer(); }

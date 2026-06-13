@@ -486,7 +486,7 @@ void Renderer::LoadObjects(Scene& scene)
 
     scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
-    scene.AddObject(device.Get(), "", "utah_teapot", { -7.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
+    scene.AddObject(device.Get(), "", "utah_teapot", { -10.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
     //scene.AddObject(device.Get(), "", "icoSphere", { -3.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
     scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });

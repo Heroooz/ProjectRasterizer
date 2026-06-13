@@ -11,7 +11,7 @@ class QuadTree
 		std::vector<const T*> elements;
 		std::unique_ptr<Node> children[4];
 		DirectX::BoundingBox boundingRegion;
-		int depth = 0;
+		int depth;
 	};
 
 	std::unique_ptr<Node> root;
@@ -58,6 +58,7 @@ template<typename T>
 inline void QuadTree<T>::AddToNode(const T* elementAddress, const DirectX::BoundingBox& boundingbox, 
 	std::unique_ptr<Node>& node)
 {
+	static const int MAX_DEPTH = 8;
 	bool collision = node->boundingRegion.Intersects(boundingbox);
 
 	if (!collision) // No collison found, node and potential children not relevant
@@ -77,20 +78,31 @@ inline void QuadTree<T>::AddToNode(const T* elementAddress, const DirectX::Bound
 			// For each of the currently stored elements in this node, attempt 
 			// to add them to the new child nodes
 
+			// If passed max_depth, pushing it anyway to avoid infinity-loop
+			if (node->depth >= MAX_DEPTH)
+			{
+				node->elements.push_back(elementAddress); 
+				return;
+			}
+
 			SubdivideNode(node);
-			for (auto& element : node->elements)
+
+			std::vector<const T*> oldElements = node->elements;
+			node->elements.clear();
+
+			for (auto& element : oldElements)
 			{
 				for (auto& child : node->children)
 				{
 					AddToNode(element, element->GetBoundingBox(), child);
 				}
-				node->elements.clear();
 
-				for (auto& child : node->children)
-				{
-					AddToNode(elementAddress, boundingbox, child);
-				}
 			}	
+			for (auto& child : node->children)
+			{
+				AddToNode(elementAddress, boundingbox, child);
+			}
+			return;
 		}
 	}
 
@@ -124,6 +136,11 @@ inline void QuadTree<T>::SubdivideNode(std::unique_ptr<Node>& node)
 		{ center.x + width, 0, center.z - width }, { width, 100, depth });
 	node->children[3]->boundingRegion = DirectX::BoundingBox(
 		{ center.x - width, 0, center.z - width }, { width, 100, depth });
+
+	for (auto& child : node->children)
+	{
+		child->depth = node->depth + 1;
+	}
 }
 
 template<typename T>
@@ -170,6 +187,7 @@ inline QuadTree<T>::QuadTree()
 { 
 	this->root = std::make_unique<Node>(); 
 	this->root->boundingRegion = DirectX::BoundingBox({ 0.0f,0.0f,0.0f }, { 100.0f,100.0f,100.0f });
+	this->root->depth = 0;
 }
 
 template<typename T>

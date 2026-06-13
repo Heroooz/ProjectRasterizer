@@ -42,7 +42,7 @@ void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const 
 {
 	Objects* obj = new Objects(device, folderPath, objFile, position, rotation, scale, shouldtessellate, isStatic, angle, SRT);
 	objects.push_back(obj);
-	//this->quadtree.AddElement(objects.back(), obj->GetBoundingBox());
+	this->quadtree.AddElement(objects.back(), obj->GetBoundingBox());
 }
 
 void Scene::AddLight(ID3D11Device* device, LightData data)
@@ -116,15 +116,13 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, CameraD3D11* came
 {
 	//int nrof = this->GetNrOfObjects();
 
-	//visibleObjects = quadtree.CheckTree(camFrustum)
+	BoundingFrustum frustum;
+	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
+	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
+	frustum.Transform(frustum, inverseView);
+	std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
 
-	//BoundingFrustum frustum;
-	//BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
-	//XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
-	//frustum.Transform(frustum, inverseView);
-	//std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
-
-	for (auto& obj : objects)
+	for (auto& obj : visibleObjs)
 	{
 		if (tessellate)
 		{
@@ -158,6 +156,7 @@ void Scene::RemoveObjectFromScene(int index)
 
 void Scene::DrawTree()
 {
+	quadtree.PrintTree();
 }
 
 

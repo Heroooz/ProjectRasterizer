@@ -23,8 +23,7 @@ class Scene
 	ID3D11Buffer* pCenter = nullptr;
 
 
-	//QuadTree<Objects> quadtree;
-	//std::vector<Objects*> visibleObjects;
+	QuadTree<Objects> quadtree;
 
 
 public:
