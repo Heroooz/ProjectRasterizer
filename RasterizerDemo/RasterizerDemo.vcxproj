@@ -315,6 +315,7 @@
     <ClInclude Include="Particles.h" />
     <ClInclude Include="ParticlesBuffer.h" />
     <ClInclude Include="PipelineHelper.h" />
+    <ClInclude Include="QuadTree.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderTargetD3D11.h" />
     <ClInclude Include="resource.h" />

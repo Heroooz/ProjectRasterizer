@@ -56,81 +56,81 @@ bool Renderer::Initialize(Scene& scene) {
 
 
     // Creating Quad
-    SimpleVertex simpleQuad[] =
-    {
-        { {-1.0f, 1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
-        { {1.0f, 1.0f, 0.0f}, {0, 0, -1}, {1, 0} },
-        { {-1.0, -1.0f, 0.0f}, {0, 0, -1}, {0, 1} },
-        { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
-    };
+    //SimpleVertex simpleQuad[] =
+    //{
+    //    { {-1.0f, 1.0f, 0.0f}, {0, 0, -1}, {0, 0} },
+    //    { {1.0f, 1.0f, 0.0f}, {0, 0, -1}, {1, 0} },
+    //    { {-1.0, -1.0f, 0.0f}, {0, 0, -1}, {0, 1} },
+    //    { {1.0f, -1.0f, 0.0f}, {0, 0, -1}, {1, 1} }
+    //};
 
-    struct MaterialBuffer
-    {
-        DirectX::XMFLOAT3 ambientFactor = { 0.5f, 0.5f, 0.5f };
-        float shininess = 100.0f;
-        DirectX::XMFLOAT3 diffuseFactor = { 0.5f, 0.5f, 0.5f };
-        float parallax = 0.0f;
-        DirectX::XMFLOAT3 specularFactor = { 0.2f, 0.2f, 0.2f };
-        float padding3 = 0.0f;
-        int hasAmbientTexture = 0;
-        int hasDiffuseTexture = 1;
-        int hasSpecularTexture = 0;
-        int hasNormalTexture = 0;
-    } quadMaterial;
-    psConstantBufferD3D11.Initialize(device.Get(), sizeof(MaterialBuffer), &quadMaterial);
-    psConstantBuffer = psConstantBufferD3D11.GetBuffer();
+    //struct MaterialBuffer
+    //{
+    //    DirectX::XMFLOAT3 ambientFactor = { 0.5f, 0.5f, 0.5f };
+    //    float shininess = 100.0f;
+    //    DirectX::XMFLOAT3 diffuseFactor = { 0.5f, 0.5f, 0.5f };
+    //    float parallax = 0.0f;
+    //    DirectX::XMFLOAT3 specularFactor = { 0.2f, 0.2f, 0.2f };
+    //    float padding3 = 0.0f;
+    //    int hasAmbientTexture = 0;
+    //    int hasDiffuseTexture = 1;
+    //    int hasSpecularTexture = 0;
+    //    int hasNormalTexture = 0;
+    //} quadMaterial;
+    //psConstantBufferD3D11.Initialize(device.Get(), sizeof(MaterialBuffer), &quadMaterial);
+    //psConstantBuffer = psConstantBufferD3D11.GetBuffer();
    
-    D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    bufferDesc.ByteWidth = sizeof(float) * 4;
-    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bufferDesc.CPUAccessFlags = 0;
-    bufferDesc.MiscFlags = 0;
+    //D3D11_BUFFER_DESC bufferDesc = {};
+    //bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    //bufferDesc.ByteWidth = sizeof(float) * 4;
+    //bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    //bufferDesc.CPUAccessFlags = 0;
+    //bufferDesc.MiscFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = simpleQuad;
+    //D3D11_SUBRESOURCE_DATA initData = {};
+    //initData.pSysMem = simpleQuad;
 
-    vertexBuffer.Initialize(device.Get(), sizeof(SimpleVertex), 4, simpleQuad);
-    ComPtr<ID3D11Buffer> buffer = vertexBuffer.GetBuffer();
-    HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, buffer.GetAddressOf());
+    //vertexBuffer.Initialize(device.Get(), sizeof(SimpleVertex), 4, simpleQuad);
+    //ComPtr<ID3D11Buffer> buffer = vertexBuffer.GetBuffer();
+    //HRESULT hr = device->CreateBuffer(&bufferDesc, &initData, buffer.GetAddressOf());
 
     //vertexBuffers[1].Initialize(device.Get(), sizeof(SimpleVertex), 4, simpleQuad); // Can have same vb
     //buffer = vertexBuffers[1].GetBuffer();
     //hr = device->CreateBuffer(&bufferDesc, &initData, &buffer);
 
 
-    Transform transform1 =
-    {
-        {0, 0, 20},
-        {0, 0, 0},
-        {1, 1, 1},
-    };
-    Transform transform2 =
-    {
-        {0, 0, 10},
-        { 0, 3.141592f, 0},
-        { 1, 1, 1}
-    };
+    //Transform transform1 =
+    //{
+    //    {0, 0, 20},
+    //    {0, 0, 0},
+    //    {1, 1, 1},
+    //};
+    //Transform transform2 =
+    //{
+    //    {0, 0, 10},
+    //    { 0, 3.141592f, 0},
+    //    { 1, 1, 1}
+    //};
 
-    worldMatrices[0] =
-        XMMatrixScaling(transform1.scale[0], transform1.scale[1], transform1.scale[2]) *
-        XMMatrixRotationRollPitchYaw(transform1.rotation[0], transform1.rotation[1], transform1.rotation[2]) *
-        XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]);
-    worldMatrices[1] =
-        XMMatrixScaling(transform2.scale[0], transform2.scale[1], transform2.scale[2]) *
-        XMMatrixRotationRollPitchYaw(transform2.rotation[0], transform2.rotation[1], transform2.rotation[2]) *
-        XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]);
+    //worldMatrices[0] =
+    //    XMMatrixScaling(transform1.scale[0], transform1.scale[1], transform1.scale[2]) *
+    //    XMMatrixRotationRollPitchYaw(transform1.rotation[0], transform1.rotation[1], transform1.rotation[2]) *
+    //    XMMatrixTranslation(transform1.position[0], transform1.position[1], transform1.position[2]);
+    //worldMatrices[1] =
+    //    XMMatrixScaling(transform2.scale[0], transform2.scale[1], transform2.scale[2]) *
+    //    XMMatrixRotationRollPitchYaw(transform2.rotation[0], transform2.rotation[1], transform2.rotation[2]) *
+    //    XMMatrixTranslation(transform2.position[0], transform2.position[1], transform2.position[2]);
 
-    DirectX::XMFLOAT4X4 worldTransform;
+    //DirectX::XMFLOAT4X4 worldTransform;
 
-    DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[0]));
-    worldMatriceBuffers[0].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
-    worldMatriceBuffers[0].UpdateBuffer(immediateContext.Get(), &worldTransform);
+    //DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[0]));
+    //worldMatriceBuffers[0].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
+    //worldMatriceBuffers[0].UpdateBuffer(immediateContext.Get(), &worldTransform);
 
 
-    DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[1]));
-    worldMatriceBuffers[1].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
-    worldMatriceBuffers[1].UpdateBuffer(immediateContext.Get(), &worldTransform);
+    //DirectX::XMStoreFloat4x4(&worldTransform, DirectX::XMMatrixTranspose(worldMatrices[1]));
+    //worldMatriceBuffers[1].Initialize(device.Get(), sizeof(XMFLOAT4X4), &worldTransform);
+    //worldMatriceBuffers[1].UpdateBuffer(immediateContext.Get(), &worldTransform);
 
 
 	// Setup camera (projection info and initialize)
@@ -166,6 +166,9 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     //float clearColour[4] = { 0.1f, 0.4f, 0.5f, 1 };
     //immediateContext->ClearRenderTargetView(rtv, clearColour);
     //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+
+    //scene.DrawTree();
+
 
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
     static UINT stride = sizeof(SimpleVertex);
@@ -249,18 +252,18 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
     immediateContext->HSSetShader(nullptr, nullptr, 0);
     immediateContext->DSSetShader(nullptr, nullptr, 0);
 
-    ComPtr<ID3D11DepthStencilView> dsv;
+    ID3D11DepthStencilView* dsv;
     // For each Spotlight
     for (int i = 0; i < scene.GetNrOfSpotLights(); i++)
     {
         dsv = scene.GetShadowMapDSV(i);
-        immediateContext->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
-        immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
+        immediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+        immediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
         
-        scene.DrawObjects(immediateContext.Get(), false);
+        scene.DrawObjects(immediateContext.Get(), &camera, false);
         scene.DrawDCEM(immediateContext.Get());
     }
 
@@ -268,16 +271,16 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
     for (int i = 0; i < scene.GetNrOfDirLight(); i++)
     {
         dsv = scene.GetShadowMapDSV(i, true);
-        immediateContext->ClearDepthStencilView(dsv.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
-        immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
+        immediateContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
+        immediateContext->OMSetRenderTargets(0, nullptr, dsv);
 
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i, true);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
-        scene.DrawObjects(immediateContext.Get(), false);
+        scene.DrawObjects(immediateContext.Get(), &camera, false);
         scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
-    immediateContext->OMSetRenderTargets(0, nullptr, dsv.Get());
+    immediateContext->OMSetRenderTargets(0, nullptr, dsv);
 }
 
 
@@ -289,6 +292,7 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
 
+    //pCamera = scene.GetShadowCamera(0, false);
     pCamera = camera.GetConstantBuffer();
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -308,7 +312,7 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
         immediateContext->DSSetShader(nullptr, nullptr, 0);
         immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
-    scene.DrawObjects(immediateContext.Get(), tessellation);
+    scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
     scene.DrawDCEM(immediateContext.Get());
 }
 
@@ -436,15 +440,28 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
     data1.perLightInfo.intensity = 0.4f;
-    data1.perLightInfo.angle = XM_PI;
+    data1.perLightInfo.angle = XM_PIDIV2;
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;
-    data1.perLightInfo.fovAngleY = XM_PIDIV2;
+    data1.perLightInfo.fovAngleY = XM_PIDIV4;
     data1.perLightInfo.aspectRatio = float(window.GetWidth() / window.GetHeight());
     data1.perLightInfo.nearZ = 1.0f;
     data1.perLightInfo.farZ = 100.0f;
 
+    //LightData light3 = {};
+    //light3.perLightInfo.initialPosition = { 0.0f,1.0f,3.0f };
+    //light3.perLightInfo.color = { 0.0f,0.0f,1.0f, 1.0f };
+    //light3.perLightInfo.intensity = 0.1f;
+    //light3.perLightInfo.angle = XM_PI;
+    //light3.perLightInfo.rotationX = 0.0f;
+    //light3.perLightInfo.rotationY = -XM_PIDIV2;
+    //light3.perLightInfo.fovAngleY = XM_PIDIV2;
+    //light3.perLightInfo.aspectRatio = float(window.GetWidth() / window.GetHeight());
+    //light3.perLightInfo.nearZ = 0.1f;
+    //light3.perLightInfo.farZ = 10.0f;
+
     scene.AddLight(device.Get(), data2);
+    //scene.AddLight(device.Get(), light3);
     scene.AddLight(device.Get(), data1);
 
     scene.InitializeLight(device.Get());
@@ -468,10 +485,9 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
     ////scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
-    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
-    scene.AddObject(device.Get(), "", "utah_teapot", { 0.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
-    scene.AddObject(device.Get(), "", "icoSphere", { -3.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
+    scene.AddObject(device.Get(), "", "utah_teapot", { -10.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
+    //scene.AddObject(device.Get(), "", "icoSphere", { -3.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
     scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene.AddObject(device.Get(), "Circle/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
@@ -484,6 +500,7 @@ void Renderer::LoadObjects(Scene& scene)
     //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 1.0f, 1.0f, 1.0f }, false);
 
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
     //scene.AddObject(device.Get(), "harbour/", "harbour", { 0,0,0 }, { 0,0,0 }, { 1,1,1 }, false);
 

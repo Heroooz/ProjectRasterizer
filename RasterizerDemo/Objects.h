@@ -26,7 +26,6 @@ class Objects
 	ObjectCenterPosition center;
 	ConstantBufferD3D11 centerBuffer;
 	bool isStatic = true;
-	bool shouldTessellate = true;
 	UpdateInfo updateInf;
 
 public:
@@ -37,7 +36,10 @@ public:
 	void Initialize(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT);
 
 	void UpdateObject(ID3D11DeviceContext* context, float deltatime);
-	void drawObject(ID3D11DeviceContext* context);
+	void drawObject(ID3D11DeviceContext* context) const;
 	
-	ID3D11Buffer* GetCenterBuffer();
+
+	bool shouldTessellate = true;
+	DirectX::BoundingBox GetBoundingBox() const;
+	ID3D11Buffer* GetCenterBuffer() const;
 };

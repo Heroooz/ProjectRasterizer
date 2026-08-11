@@ -6,7 +6,6 @@
 
 #include "Window.h"
 #include "PipelineHelper.h"
-//#include "Time.h"
 
 #include "DepthBufferD3D11.h"
 #include "VertexBufferD3D11.h"
@@ -20,6 +19,7 @@
 #include "SimpleVertex.h"
 #include "Light.h"
 #include "Transform.h"
+
 
 class Renderer {
 public:
@@ -69,7 +69,6 @@ private:
 	VertexBufferD3D11 vertexBuffer;
 	DirectX::XMMATRIX worldMatrices[2];
 	ConstantBufferD3D11 worldMatriceBuffers[2];	
-
 
 	// G-Buffers and null-buffers
 	GBuffer positionBuffer;

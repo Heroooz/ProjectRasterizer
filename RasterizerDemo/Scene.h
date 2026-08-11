@@ -6,6 +6,7 @@
 #include "DCEM.h"
 #include "ShaderD3D11.h"
 #include "Particles.h"
+#include "QuadTree.h"
 
 
 class Scene
@@ -21,11 +22,15 @@ class Scene
 
 	ID3D11Buffer* pCenter = nullptr;
 
+
+	QuadTree<Objects> quadtree;
+
+
 public:
 	Scene();
 	~Scene();
 
-	void Initialize();
+	//void Initialize();
 
 	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shoudtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
 	void AddLight(ID3D11Device* device, LightData data);
@@ -41,10 +46,12 @@ public:
 	void UpdateParticles(ID3D11DeviceContext* context, ShaderD3D11* pcs);
 
 	void DrawScene(ID3D11DeviceContext* context, bool tessellate);
-	void DrawObjects(ID3D11DeviceContext* context, bool tesselate);
+	void DrawObjects(ID3D11DeviceContext* context, CameraD3D11* camera, bool tesselate);
 	void GenerateDCEM(ID3D11DeviceContext* context);
 	void DrawDCEM(ID3D11DeviceContext* context);
 	void RemoveObjectFromScene(int index);
+
+	void DrawTree();
 
 	ID3D11ShaderResourceView* GetLightBufferSRV(bool isDir = false);
 	ID3D11ShaderResourceView* GetShadowMapSRV(bool isDir = false);

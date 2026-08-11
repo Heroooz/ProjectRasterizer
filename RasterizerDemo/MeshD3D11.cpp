@@ -84,10 +84,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
             //createTexture(device, &diffuseTextureSRV);
         }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
-        if (diffuseColor.x == 0 && diffuseColor.y == 0 && diffuseColor.z == 0)
-        {
-            diffuseColor = { 0.8f,0.8f,0.8f };
-        }
 
 		//Load Specular Texture
         if (!mesh.MeshMaterial.map_Ks.empty())
@@ -119,7 +115,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
                 parallax = 0.15f;
             }
 
-            normalTextureSRV =  createNormalTexture(device, path, d_path);
+            normalTextureSRV =  CreateNormalTexture(device, path, d_path);
         }
 
 
@@ -223,7 +219,7 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
     return nullptr;
 }
 
-void MeshD3D11::createTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv)
+void MeshD3D11::CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv)
 {
     int width, height, channel;
     width = height = 2;
@@ -274,7 +270,7 @@ void MeshD3D11::createTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderRe
     texture->Release();
 }
 
-ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path)
+ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path)
 {
     int width, height, channel;
     stbi_set_flip_vertically_on_load(false);
@@ -366,4 +362,4 @@ ComPtr<ID3D11ShaderResourceView> MeshD3D11::createNormalTexture(ComPtr<ID3D11Dev
 //    return this->indexBuffer;
 //}
 
-DirectX::BoundingBox MeshD3D11::getBoundingBox() const { return this->boundingBox; }
+DirectX::BoundingBox MeshD3D11::GetBoundingBox() const { return this->boundingBox; }
