@@ -26,7 +26,6 @@ class Objects
 	ObjectCenterPosition center;
 	ConstantBufferD3D11 centerBuffer;
 	bool isStatic = true;
-	bool shouldTessellate = true;
 	UpdateInfo updateInf;
 
 public:
@@ -40,6 +39,7 @@ public:
 	void drawObject(ID3D11DeviceContext* context) const;
 	
 
+	bool shouldTessellate = true;
 	DirectX::BoundingBox GetBoundingBox() const;
 	ID3D11Buffer* GetCenterBuffer() const;
 };

@@ -167,7 +167,7 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     //immediateContext->ClearRenderTargetView(rtv, clearColour);
     //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 
-    scene.DrawTree();
+    //scene.DrawTree();
 
 
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
@@ -292,6 +292,7 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
 
+    //pCamera = scene.GetShadowCamera(0, false);
     pCamera = camera.GetConstantBuffer();
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -439,10 +440,10 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     data1.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     data1.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
     data1.perLightInfo.intensity = 0.4f;
-    data1.perLightInfo.angle = XM_PI;
+    data1.perLightInfo.angle = XM_PIDIV2;
     data1.perLightInfo.rotationX = 0;
     data1.perLightInfo.rotationY = 0;
-    data1.perLightInfo.fovAngleY = XM_PIDIV2;
+    data1.perLightInfo.fovAngleY = XM_PIDIV4;
     data1.perLightInfo.aspectRatio = float(window.GetWidth() / window.GetHeight());
     data1.perLightInfo.nearZ = 1.0f;
     data1.perLightInfo.farZ = 100.0f;
@@ -484,7 +485,6 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "SimpleObjects/", "sphere", { 5.0f, 2.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.7f, 0.7f, 0.7f });
     ////scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 
-    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
     scene.AddObject(device.Get(), "", "utah_teapot", { -10.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
     //scene.AddObject(device.Get(), "", "icoSphere", { -3.0f, 0.0f, -3.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
@@ -500,6 +500,7 @@ void Renderer::LoadObjects(Scene& scene)
     //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, 1.4f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.2f, 0.2f, 0.2f }, false);
     //scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -1.4f, 0.4f, -1.4f }, { 0.0f, -3.0f * XM_PIDIV4, 0.0f }, { 1.0f, 1.0f, 1.0f }, false);
 
+    scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
 
     //scene.AddObject(device.Get(), "harbour/", "harbour", { 0,0,0 }, { 0,0,0 }, { 1,1,1 }, false);
 
