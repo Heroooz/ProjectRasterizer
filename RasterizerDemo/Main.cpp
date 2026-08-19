@@ -58,6 +58,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		POINT lastMousePos = center;
 		float sensitivity = 0.01f; // Adjust after prefrenc
 
+		int wasPressed = 0;
+
 
 		//Scene* scene = renderer.GetScene();
 
@@ -119,29 +121,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 			// De funkar inge :(
-			static int wasPressed = 0;
 			if (GetKeyState('T') & 0x8000 && wasPressed <= 0)
 			{
 				shouldTesselate = !shouldTesselate;
-				wasPressed = 60;
+				wasPressed = 10;
 			}
 			if (GetKeyState('X') & 0x8000 && wasPressed <= 0)
 			{
 				showWireFrame = !showWireFrame;
 				UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
-				wasPressed = 60;
+				wasPressed = 10;
 
 			}
 			if (GetKeyState('O') & 0x8000 && wasPressed <= 0)
 			{
 				shadowOn = !shadowOn;
 				scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
-				wasPressed = 60;
+				wasPressed = 10;
 			}
 			if (GetKeyState('P') & 0x8000 && wasPressed <= 0)
 			{
 				particlesOn = !particlesOn;
-				wasPressed = 60;
+				wasPressed = 10;
 			}
 			wasPressed--;
 
