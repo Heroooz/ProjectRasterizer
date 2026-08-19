@@ -486,6 +486,7 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     scene.AddObject(device.Get(), "SimpleObjects/", "plane", { 0.0f,-0.12f,0.0f }, { XM_PIDIV2,0.0f,0.0f }, { 1000,1000,1000 }, false);
+    //scene.AddObject(device.Get(), "SimpleObjects/", "reverse_cube", { 0.0f, 0.0f ,0.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
 
 
     // Scene 2
