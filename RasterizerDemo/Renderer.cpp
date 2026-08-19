@@ -472,8 +472,8 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 void Renderer::LoadObjects(Scene& scene)
 {
     scene.AddObject(device.Get(), "NOPCube/", "cube", { -5, 2, 2 }, { 0, 0, 0 }, { 0.7f, 0.7f, 0.7f });
-    scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
-    scene.AddDCEM(device.Get(), { 0, 8, 8 }, 1024, 1024, psShader[1], psShader[0], dcemShader, "sphere", false);
+    scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
+    scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "sphere", false);
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f });
     //scene.AddObject(device.Get(), "Windmill/", "low-poly-mill", { 15.0f, 10.0f ,20.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.1f, 0.1f, 0.1f });
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);

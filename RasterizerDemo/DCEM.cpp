@@ -1,6 +1,6 @@
 #include "DCEM.h"
 
-DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName)
+DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName)
 {
 	this->DCEMPS = DCEMPS.get();
 	this->normalPS = normalPS.get();
@@ -53,6 +53,8 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height, std:
 	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, "icoSphere");
 	XMMATRIX world = XMMatrixTranslation(initPos.x, initPos.y, initPos.z);
 	this->worldMatrix = world;
+
+	world = XMMatrixMultiply(XMMatrixScaling(scale.x, scale.y, scale.z), world);
 
 	XMFLOAT4X4 world4x4T;
 	DirectX::XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
@@ -109,12 +111,6 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 			throw std::runtime_error("Could not create texture cube rtv");
 	}
 
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	//srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	//srvDesc.TextureCube.MipLevels = 1;
-	//srvDesc.TextureCube.MostDetailedMip = 0;
-
 	if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
 		throw std::runtime_error("Could not create SRV for DCEM");
 
@@ -153,13 +149,9 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 	 
 }
 
-void DCEM::Update(ID3D11DeviceContext* context)
-{
-	//for (size_t i = 0; i < 6; ++i)
-	//{
-	//	cameras[i].UpdateInternalConstantBuffer(context);
-	//}
-}
+//void DCEM::Update(ID3D11DeviceContext* context)
+//{
+//}
 
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
 {

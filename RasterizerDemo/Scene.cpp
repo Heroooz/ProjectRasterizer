@@ -33,9 +33,9 @@ Scene::~Scene()
 	}
 }
 
-void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName, bool isSkyBox)
+void Scene::AddDCEM(ID3D11Device* device, XMFLOAT3 position, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName, bool isSkyBox)
 {
-	dcems.push_back(new DCEM(device, position, width, height, DCEMPS, normalPS, DCEMCapturePS, objName));
+	dcems.push_back(new DCEM(device, position, scale, width, height, DCEMPS, normalPS, DCEMCapturePS, objName));
 }
 
 void Scene::AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shouldtessellate, bool isStatic, float angle, bool SRT)
@@ -79,8 +79,8 @@ void Scene::UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn)
 
 void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 {
-	for (auto dcem : dcems)
-		dcem->Update(context);
+	//for (auto dcem : dcems)
+	//	dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
 }
