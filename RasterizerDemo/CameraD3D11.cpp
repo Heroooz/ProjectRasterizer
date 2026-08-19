@@ -28,7 +28,7 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
         projectionInfo.farZ
     );
 
-    // Same hardcoded sreen width/height as in main... Maybe move out to be more dynamic?
+    // Same hardcoded sreen width/height as in main...
     this->orthographicMatrix = XMMatrixOrthographicLH(
         1920.0f,
         1080.0f,
@@ -120,8 +120,8 @@ const XMFLOAT3& CameraD3D11::GetUp() const { return this->up; }
 void CameraD3D11::ResetUp()
 {
     XMVECTOR u, f, r;
-    this->up = XMFLOAT3(0.0f, 1.0f, 0.0f);	// Reseting to (0, 1, 0)
-    this->forward.y = 0.0f;					// Reseting up to (x, 0, z)
+    this->up = XMFLOAT3(0.0f, 1.0f, 0.0f);	// Reseting up to (0, 1, 0)
+    this->forward.y = 0.0f;					// Reseting forward to (x, 0, z)
 
     f = XMLoadFloat3(&this->forward);		// Normalizing new forward
     XMVector3Normalize(f);

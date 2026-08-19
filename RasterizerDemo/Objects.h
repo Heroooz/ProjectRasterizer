@@ -23,6 +23,7 @@ class Objects
 	XMMATRIX worldMatrix;
 	ConstantBufferD3D11 worldMatrixBuffer;
 	MeshD3D11 *mesh;
+	BoundingBox boundingbox;
 	ObjectCenterPosition center;
 	ConstantBufferD3D11 centerBuffer;
 	bool isStatic = true;

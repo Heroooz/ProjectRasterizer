@@ -120,6 +120,7 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, CameraD3D11* came
 	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
 	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
 	frustum.Transform(frustum, inverseView);
+
 	std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
 
 	for (auto& obj : visibleObjs)
