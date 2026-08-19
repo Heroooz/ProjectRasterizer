@@ -58,7 +58,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		POINT lastMousePos = center;
 		float sensitivity = 0.01f; // Adjust after prefrenc
 
-		int wasPressed = 0;
+		float wasPressed = 0.0f;
 
 
 		//Scene* scene = renderer.GetScene();
@@ -76,8 +76,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-
-			//deltatime = renderer.GetDeltatime();
 
 			if (GetKeyState('W') & 0x8000) {
 				renderer.GetCamera().MoveForward(movespeed * deltatime);
@@ -119,32 +117,31 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				renderer.GetCamera().ResetUp();
 			}
 
-
-			// De funkar inge :(
 			if (GetKeyState('T') & 0x8000 && wasPressed <= 0)
 			{
 				shouldTesselate = !shouldTesselate;
-				wasPressed = 10;
+				wasPressed = 1.0f;
 			}
 			if (GetKeyState('X') & 0x8000 && wasPressed <= 0)
 			{
 				showWireFrame = !showWireFrame;
 				UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
-				wasPressed = 10;
+				wasPressed = 1.0f;
 
 			}
 			if (GetKeyState('O') & 0x8000 && wasPressed <= 0)
 			{
 				shadowOn = !shadowOn;
 				scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
-				wasPressed = 10;
+				wasPressed = 1.0f;
 			}
 			if (GetKeyState('P') & 0x8000 && wasPressed <= 0)
 			{
 				particlesOn = !particlesOn;
-				wasPressed = 10;
+				wasPressed = 1.0f;
 			}
-			wasPressed--;
+			wasPressed -= deltatime;
+
 
 			// Update scene (objects and lights)
 			scene->UpdateObjects(immediateContext.Get(), deltatime);
