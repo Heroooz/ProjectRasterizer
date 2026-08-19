@@ -8,27 +8,27 @@ DepthBufferD3D11::DepthBufferD3D11(ID3D11Device* device, UINT width, UINT height
     Initialize(device, width, height, hasSRV);
 }
 
-DepthBufferD3D11::~DepthBufferD3D11()
-{
-    if (this->texture)
-    {
-        texture->Release();
-        texture = nullptr;
-    }
-    if (this->srv)
-    {
-        srv->Release();
-        srv = nullptr;
-    }
-    for (auto& dsv : depthStencilViews)
-    {
-        if (dsv)
-        {
-            dsv->Release();
-            dsv = nullptr;
-        }
-    }
-}
+//DepthBufferD3D11::~DepthBufferD3D11()
+//{
+//    if (this->texture)
+//    {
+//        texture->Release();
+//        texture = nullptr;
+//    }
+//    if (this->srv)
+//    {
+//        srv->Release();
+//        srv = nullptr;
+//    }
+//    for (auto& dsv : depthStencilViews)
+//    {
+//        if (dsv)
+//        {
+//            dsv->Release();
+//        }
+//        depthStencilViews.clear();
+//    }
+//}
 
 void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height, bool hasSRV, UINT arraySize)
 {
@@ -66,9 +66,9 @@ void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height,
     //this->depthStencilViews.resize(arraySize);
     for (UINT i = 0; i < arraySize; ++i)
     {
-        ID3D11DepthStencilView* dsv = {};
+        ComPtr<ID3D11DepthStencilView> dsv = {};
         dsvDesc.Texture2DArray.FirstArraySlice = i;
-        if (FAILED(device->CreateDepthStencilView(this->texture, &dsvDesc, &dsv)))
+        if (FAILED(device->CreateDepthStencilView(this->texture.Get(), &dsvDesc, dsv.GetAddressOf())))
         {
             throw std::range_error("Failed to create depth stencil view");
         }
@@ -89,7 +89,7 @@ void DepthBufferD3D11::Initialize(ID3D11Device* device, UINT width, UINT height,
         srvDesc.Texture2DArray.FirstArraySlice = 0;
         srvDesc.Texture2DArray.ArraySize = arraySize;
 
-        HRESULT hr = device->CreateShaderResourceView(this->texture, &srvDesc, &this->srv);
+        HRESULT hr = device->CreateShaderResourceView(this->texture.Get(), &srvDesc, this->srv.GetAddressOf());
 
         if (FAILED(hr))
         {
@@ -104,10 +104,10 @@ ID3D11DepthStencilView* DepthBufferD3D11::GetDSV(UINT arrayIndex) const
     {
         throw std::runtime_error("Array index out of range");
     }
-    return depthStencilViews[arrayIndex];
+    return depthStencilViews[arrayIndex].Get();
 }
 
 ID3D11ShaderResourceView* DepthBufferD3D11::GetSRV() const
 {
-    return this->srv;
+    return this->srv.Get();
 }
