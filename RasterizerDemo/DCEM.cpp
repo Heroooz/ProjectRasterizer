@@ -1,6 +1,6 @@
 #include "DCEM.h"
 
-DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS, std::string objName)
+DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS)
 {
 	this->DCEMPS = DCEMPS.get();
 	this->normalPS = normalPS.get();
@@ -49,8 +49,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, U
 
 	// Adding the mesh
 	const std::string folderPath = "SimpleObjects/";
-	//const std::string objName = "cube";
-	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, "icoSphere");
+	this->mesh = std::make_unique<MeshD3D11>(device, folderPath, "icoSphere"); // icoSphere | cube
 	XMMATRIX world = XMMatrixTranslation(initPos.x, initPos.y, initPos.z);
 	this->worldMatrix = world;
 
