@@ -219,56 +219,56 @@ ID3D11ShaderResourceView* MeshD3D11::GetSpecularSRV(size_t subMeshIndex) const
     return nullptr;
 }
 
-void MeshD3D11::CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv)
-{
-    int width, height, channel;
-    width = height = 2;
-    channel = 4;
-    u_int imageData[4] = 
-    {
-        0X7F7F7F7F,     // R
-        0X7F7F7F7F,     // G
-        0X7F7F7F7F,     // B
-        0XAAAAAAAA// A
-    };
-
-    // Texture2D Description
-    D3D11_TEXTURE2D_DESC textureDesc = {};
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.Height = height;
-    textureDesc.Width = width;
-    textureDesc.MipLevels = 1;
-    textureDesc.ArraySize = 1;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    textureDesc.CPUAccessFlags = 0;
-    textureDesc.MiscFlags = 0;
-
-    // Subresource Data
-    D3D11_SUBRESOURCE_DATA subresourceData = {};
-    subresourceData.pSysMem = imageData;
-    subresourceData.SysMemPitch = width * 4;
-
-    // Creating the texture
-    ComPtr<ID3D11Texture2D> texture = nullptr;
-    if (FAILED(device->CreateTexture2D(&textureDesc, &subresourceData, texture.GetAddressOf())))
-    {
-        std::cerr << "Failed to create texture!" << std::endl;
-        texture->Release();
-        throw std::runtime_error("Failed to create texture");
-    }
-
-    // Creating shader resource view
-    if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
-    {
-        std::cerr << "Failed to create shader resource view!" << std::endl;
-        texture->Release();
-        throw std::runtime_error("Failed to create shader resource view!");
-    }
-    texture->Release();
-}
+//void MeshD3D11::CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv)
+//{
+//    int width, height, channel;
+//    width = height = 2;
+//    channel = 4;
+//    u_int imageData[4] = 
+//    {
+//        0X7F7F7F7F,     // R
+//        0X7F7F7F7F,     // G
+//        0X7F7F7F7F,     // B
+//        0XAAAAAAAA// A
+//    };
+//
+//    // Texture2D Description
+//    D3D11_TEXTURE2D_DESC textureDesc = {};
+//    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+//    textureDesc.Height = height;
+//    textureDesc.Width = width;
+//    textureDesc.MipLevels = 1;
+//    textureDesc.ArraySize = 1;
+//    textureDesc.SampleDesc.Count = 1;
+//    textureDesc.SampleDesc.Quality = 0;
+//    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+//    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+//    textureDesc.CPUAccessFlags = 0;
+//    textureDesc.MiscFlags = 0;
+//
+//    // Subresource Data
+//    D3D11_SUBRESOURCE_DATA subresourceData = {};
+//    subresourceData.pSysMem = imageData;
+//    subresourceData.SysMemPitch = width * 4;
+//
+//    // Creating the texture
+//    ComPtr<ID3D11Texture2D> texture = nullptr;
+//    if (FAILED(device->CreateTexture2D(&textureDesc, &subresourceData, texture.GetAddressOf())))
+//    {
+//        std::cerr << "Failed to create texture!" << std::endl;
+//        texture->Release();
+//        throw std::runtime_error("Failed to create texture");
+//    }
+//
+//    // Creating shader resource view
+//    if (FAILED(device->CreateShaderResourceView(texture.Get(), nullptr, srv.GetAddressOf())))
+//    {
+//        std::cerr << "Failed to create shader resource view!" << std::endl;
+//        texture->Release();
+//        throw std::runtime_error("Failed to create shader resource view!");
+//    }
+//    texture->Release();
+//}
 
 ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path)
 {
