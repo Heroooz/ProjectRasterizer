@@ -24,12 +24,10 @@ void Light::Initialize(ID3D11Device* device, const LightData& lightInfo)
 	projInfo.nearZ = lightInfo.perLightInfo.nearZ;
 	projInfo.farZ = lightInfo.perLightInfo.farZ;
 
-	//lightCam->Initialize(device, projInfo, lightInfo.perLightInfo.initialPosition);
 	CameraD3D11* lightCam = new CameraD3D11(device, projInfo, lightInfo.perLightInfo.initialPosition);
 	lightCam->RotateUp(lightInfo.perLightInfo.rotationX);
 	lightCam->RotateRight(lightInfo.perLightInfo.rotationY);
 
-	//lightCam->UpdateInternalConstantBuffer(context);  // maybe not?
 
 	LightBuffer light = {};
 	light.color = lightInfo.perLightInfo.color;
@@ -81,7 +79,6 @@ void Light::UpdateBuffers(ID3D11DeviceContext* context)
 		
 		this->lightBuffer.UpdateBuffer(context, &this->bufferData);
 	}
-	
 }
 
 UINT Light::GetNrOfLights() const { return (UINT)this->lightBuffer.GetNrOfElements(); }
@@ -102,31 +99,3 @@ XMFLOAT4X4 Light::GetCameraVP(UINT lightINdex) const
 }
 
 ID3D11Buffer* Light::GetLightBuffer() const { return this->lightBuffer.GetBuffer(); }
-
-
-//Light::Light(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity)
-//{
-//    Initialize(device, color, position, intensity);
-////}
-//
-//Light::~Light()
-//{
-//}
-
-//void Light::Initialize(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity)
-//{
-//    this->light.lightColor = color;
-//    this->light.lightPosition = position;
-//    this->light.lightIntensity = intensity;
-//
-//    this->lightBuffer.Initialize(device, sizeof(LightStruct), &this->light);
-//}
-//
-//void Light::UpdateBuffer(ID3D11DeviceContext* context)
-//{
-//    this->lightBuffer.UpdateBuffer(context, &this->light);
-//}
-//
-//ConstantBufferD3D11* Light::GetBuffer() { return &this->lightBuffer; }
-//
-//LightStruct Light::GetLightStruct() { return this->light; }

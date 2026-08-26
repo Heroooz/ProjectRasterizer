@@ -39,14 +39,6 @@ struct NrOfLights
 
 class Light
 {
-	//struct LightBuffer
-	//{
-	//	DirectX::XMFLOAT4X4 vpMatrix;
-	//	DirectX::XMFLOAT3 colour;
-	//	DirectX::XMFLOAT3 direction;
-	//	float angle = 0.0f;
-	//	DirectX::XMFLOAT3 position;
-	//};
 	struct LightBuffer
 	{
 		XMFLOAT4X4 vpmatrix;
@@ -93,51 +85,3 @@ public:
 	ID3D11Buffer* GetLightCameraConstantBuffer(UINT lightIndex, bool orthographic = false) const;
 	ID3D11Buffer* GetLightBuffer() const;
 };
-
-
-
-//class SpotLightCollectionD3D11
-//{
-//private:
-//	struct LightBuffer
-//	{
-//		DirectX::XMFLOAT4X4 vpMatrix;
-//		DirectX::XMFLOAT3 colour;
-//		DirectX::XMFLOAT3 direction;
-//		float angle = 0.0f;
-//		DirectX::XMFLOAT3 position;
-//	};
-//	struct LightBuffer
-//	{
-//		float4x4 vpmatrix;
-//		float4 color;
-//		float3 position;
-//		float intensity;
-//		float3 direction;
-//		float angle;
-//	};
-//
-//	std::vector<LightBuffer> bufferData;
-//
-//	DepthBufferD3D11 shadowMaps;
-//	StructuredBufferD3D11 lightBuffer;
-//	std::vector<CameraD3D11> shadowCameras;
-//
-//public:
-//	SpotLightCollectionD3D11() = default;
-//	~SpotLightCollectionD3D11() = default;
-//	SpotLightCollectionD3D11(const SpotLightCollectionD3D11& other) = delete;
-//	SpotLightCollectionD3D11& operator=(const SpotLightCollectionD3D11& other) = delete;
-//	SpotLightCollectionD3D11(SpotLightCollectionD3D11&& other) = delete;
-//	SpotLightCollectionD3D11& operator=(DepthBufferD3D11&& other) = delete;
-//
-//	void Initialize(ID3D11Device* device, const SpotLightData& lightInfo);
-//
-//	void UpdateLightBuffers(ID3D11DeviceContext* context);
-//
-//	UINT GetNrOfLights() const;
-//	ID3D11DepthStencilView* GetShadowMapDSV(UINT lightIndex) const;
-//	ID3D11ShaderResourceView* GetShadowMapsSRV() const;
-//	ID3D11ShaderResourceView* GetLightBufferSRV() const;
-//	ID3D11Buffer* GetLightCameraConstantBuffer(UINT lightIndex) const;
-//};

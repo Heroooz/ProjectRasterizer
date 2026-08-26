@@ -12,7 +12,6 @@ newmtl amanita
 	Kd 0.5882 0.5882 0.5882
 	Ks 0.2250 0.2250 0.2250
 	Ke 0.0000 0.0000 0.0000
-	map_Ka D:\3ds Max 9\scenes\MY_MARCKET\3DOCEAN\models\forest\models\mushrooms\amanita\amanita_color.tif
-	map_Kd D:\3ds Max 9\scenes\MY_MARCKET\3DOCEAN\models\forest\models\mushrooms\amanita\amanita_color.tif
-	map_bump D:\3ds Max 9\scenes\MY_MARCKET\3DOCEAN\models\forest\models\mushrooms\amanita\amanita_bump.tif
-	bump D:\3ds Max 9\scenes\MY_MARCKET\3DOCEAN\models\forest\models\mushrooms\amanita\amanita_bump.tif
+	map_Ka amanita_color.tif
+	map_Kd amanita_color.tif
+	map_Ks amanita_specular.tif

@@ -1,8 +1,8 @@
 # 3ds Max Wavefront OBJ Exporter v0.94b - (c)2007 guruware
-# File Created: 02.08.2010 11:34:40
+# File Created: 02.08.2010 11:50:47
 
-newmtl amanita
-	Ns 34.0000
+newmtl morel
+	Ns 16.0000
 	Ni 1.5000
 	d 1.0000
 	Tr 1.0000
@@ -10,9 +10,8 @@ newmtl amanita
 	illum 2
 	Ka 0.0000 0.0000 0.0000
 	Kd 0.5882 0.5882 0.5882
-	Ks 0.2250 0.2250 0.2250
+	Ks 0.0900 0.0900 0.0900
 	Ke 0.0000 0.0000 0.0000
-	map_Ka amanita_color.tif
-	map_Kd amanita_color.tif
-	map_Ks amanita_specular.tif
-
+	map_Ka morel_color.tif
+	map_Kd morel_color.tif
+	map_Ks morel_specular.tif
