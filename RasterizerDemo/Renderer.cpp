@@ -355,7 +355,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 
 void Renderer::LoadObjects(Scene& scene)
 {
-    scene.AddObject(device.Get(), "NOPCube/", "cube", { -5.0f, 2.0f, 2.0f }, { XM_PIDIV4, 0, XM_PIDIV4 }, { 0.7f, 0.7f, 0.7f }, false, false);
+    scene.AddObject(device.Get(), "NOPCube/", "cube", { 0.0f, 10.0f, 0.0f }, { XM_PIDIV4, 0, XM_PIDIV4 }, { 0.7f, 0.7f, 0.7f }, false, false);
     scene.AddObject(device.Get(), "NOPCube/", "cube", { -5.0f, 2.0f, -12.0f }, { 0, 0, 0 }, { 1, 1, 1 });
 
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
@@ -383,10 +383,8 @@ void Renderer::LoadObjects(Scene& scene)
 
     scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
     scene.AddObject(device.Get(), "SimpleObjects/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 0.0f, 0.4f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.4f, 0.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
-    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.4f, 0.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.0f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
+    scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.0f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
 
     scene.AddObject(device.Get(), "SimpleObjects/", "plane1", { 0.0f,-0.12f,0.0f }, { 0.0f ,0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
     //scene.AddObject(device.Get(), "SimpleObjects/", "reverse_cube", { 0.0f, 0.0f ,0.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);

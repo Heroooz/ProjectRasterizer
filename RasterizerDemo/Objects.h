@@ -8,11 +8,11 @@ using namespace DirectX;
 
 struct UpdateInfo
 {
+	XMFLOAT3 initPosition = { 0,0,0 };
 	XMFLOAT3 translate = { 0,0,0 };
 	XMFLOAT3 rotate = { 0,0,0 };
 	XMFLOAT3 scale{ 1,1,1 };
 	float angle = 0.0f;
-	float orbitPhase = 0.0f;
 };
 struct ObjectCenterPosition {
 	XMFLOAT4 centerPosition;
