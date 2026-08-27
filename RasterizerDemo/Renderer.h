@@ -35,7 +35,9 @@ public:
 
 	void UpdateParticles(Scene& scene);
 
-
+	inline void PrintCoordinates() {
+		std::cout << "X: " << camera.GetPosition().x << " Y: " << camera.GetPosition().y << " Z: " << camera.GetPosition().z << std::endl;
+	};
 private:
 	Window& window;
 	ComPtr<ID3D11Device> device;

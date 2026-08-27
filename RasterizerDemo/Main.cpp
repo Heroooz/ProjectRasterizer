@@ -140,6 +140,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 				particlesOn = !particlesOn;
 				wasPressed = 1.0f;
 			}
+			if (GetKeyState('C') & 0x8000 && wasPressed <= 0)
+			{
+				renderer.PrintCoordinates();
+			}
 			wasPressed -= deltatime;
 
 

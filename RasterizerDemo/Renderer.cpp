@@ -78,14 +78,9 @@ bool Renderer::Initialize(Scene& scene) {
 
 void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool ParticlesOn) {
 
-	//time.Update(); // Update frame timing
     this->camera.UpdateInternalConstantBuffer(immediateContext.Get());
     
     ClearBuffers();
-    //float clearColour[4] = { 0.1f, 0.4f, 0.5f, 1 };
-    //immediateContext->ClearRenderTargetView(rtv, clearColour);
-    //immediateContext->ClearDepthStencilView(dsView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
-
     //scene.DrawTree();
 
 
@@ -96,21 +91,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     immediateContext->RSSetViewports(1, &viewport);
 	vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
-
-    // Binding camera to VS, PS, CS
-    //camera.UpdateInternalConstantBuffer(immediateContext.Get());
-    //CameraBuffer camPS = {};
-    //camPS.viewProjMatrix = camera.GetViewProjectionMatrix();
-    //camPS.cameraPosition = camera.GetPosition();
-    //camPS.cameraPosition = scene.GetCameraPos(0, true);
-    //camPS.viewProjMatrix = scene.GetCameraVP(0, true);
-    //camPS.padding = 0.0f;
-    //ConstantBufferD3D11 camBufferPS(device.Get(), sizeof(CameraBuffer), &camPS);
-    //pCamera = camera.GetConstantBuffer();
-    //immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    //immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    //immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    //immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
    
     if (shadow)
         ShadowPass(scene, tessellation);
@@ -180,7 +160,7 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     psShader[0]->BindShader(immediateContext.Get());
 
     // For Switching camera view :)
-    //pCamera = scene.GetShadowCamera(1);         
+    pCamera = scene.GetShadowCamera(0);
     pCamera = camera.GetConstantBuffer();
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
@@ -317,7 +297,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     LightData sun = {};
     sun.perLightInfo.initialPosition = { 0.0f, 2.0f, 0.0f };
     sun.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
-    sun.perLightInfo.intensity = 0.1f;
+    sun.perLightInfo.intensity = 0.05f;
     sun.perLightInfo.angle = XM_PI;
     sun.perLightInfo.isDir = true;
     sun.perLightInfo.rotationX = 0;
@@ -326,8 +306,8 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     // Spotlight Ficklampa
     LightData red = {};
     red.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
-    red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 1.0f };
-    red.perLightInfo.intensity = 0.4f;
+    red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 5.0f };
+    red.perLightInfo.intensity = 0.5f;
     red.perLightInfo.angle = XM_PIDIV2;
     red.perLightInfo.rotationX = 0;
     red.perLightInfo.rotationY = 0;
@@ -338,21 +318,34 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 
     LightData blue = {};
     blue.perLightInfo.initialPosition = { -9.5f, 3.0f, 1.0f };
-    blue.perLightInfo.color = { 0.0f,0.0f,1.0f, 1.0f };
-    blue.perLightInfo.intensity = 0.1f;
+    blue.perLightInfo.color = { 0.0f, 0.0f, 1.0f, 1.0f };
+    blue.perLightInfo.intensity = 0.5f;
     blue.perLightInfo.angle = XM_PIDIV2;
-    blue.perLightInfo.rotationX = 3 * XM_PIDIV4;
+    blue.perLightInfo.rotationX = XM_PIDIV2;
     blue.perLightInfo.rotationY = 0;
-    blue.perLightInfo.fovAngleY = XM_PIDIV2;
+    blue.perLightInfo.fovAngleY = XM_PIDIV4;
     blue.perLightInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
     blue.perLightInfo.nearZ = 1.0f;
     blue.perLightInfo.farZ = 100.0f;
 
+    LightData green = {};
+    green.perLightInfo.initialPosition = { 14.7f, 3.0f, -5.0f };
+    green.perLightInfo.color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    green.perLightInfo.intensity = 0.4f;
+    green.perLightInfo.angle = XM_PIDIV2;
+    green.perLightInfo.rotationX = XM_PI;
+    green.perLightInfo.rotationY = 0;
+    green.perLightInfo.fovAngleY = XM_PIDIV4;
+    green.perLightInfo.aspectRatio = static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight());
+    green.perLightInfo.nearZ = 1.0f;
+    green.perLightInfo.farZ = 100.0f;
+
 
     scene.AddLight(device.Get(), sun);
 
-    scene.AddLight(device.Get(), red);
     scene.AddLight(device.Get(), blue);
+    scene.AddLight(device.Get(), red);
+    scene.AddLight(device.Get(), green);
 
     // Loading in the lights
     scene.InitializeLight(device.Get());
@@ -369,7 +362,8 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
 
     scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // red
-    scene.AddObject(device.Get(), "Torch/", "torch", { -15.0f, 3.0f, 1.0f }, { 0.0f, -XM_PIDIV4, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // blue
+    scene.AddObject(device.Get(), "Torch/", "torch", { -15.0f, 3.0f, 1.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // blue
+    scene.AddObject(device.Get(), "Torch/", "torch", { 12.7f, 2.0f, -16.3f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // blue
 
 
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
@@ -397,17 +391,6 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "SimpleObjects/", "plane1", { 0.0f,-0.12f,0.0f }, { 0.0f ,0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
     //scene.AddObject(device.Get(), "SimpleObjects/", "reverse_cube", { 0.0f, 0.0f ,0.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
 
-
-    // Scene 2
-    
-    //scene.AddDCEM(device.Get(), { 0.0f, 10.0f, 4.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader, "cube", false);
-    //scene.AddDCEM(device.Get(), { 10, 8, 8 }, 1024, 1024, psShader[1], psShader[0], dcemShader, "sphere", false);
-    //scene.AddObject(device.Get(), "Farm/", "20954_Farm_Silo_v1_NEW", { 220, 0, 30 }, { -XM_PIDIV2, -XM_PI, 0 }, { 50.0f, 50.0f, 50.0f });
-    //scene.AddObject(device.Get(), "Farm/", "Wood", { 15, 0, -3 }, { 0, 0, 0 }, { 5.0f, 5.0f, 5.0f });
-    //scene.AddObject(device.Get(), "toy/", "wooden_tractor_toy_1", { -20, 0, 20 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f });
-
-
-    //scene.AddObject(device.Get(), "Castle/", "Castle OBJ", { 13.0f,0.0f,-5.0f }, { 0.0f,0.0f,0.0f }, { 1.0f,1.0f,1.0f });
 }
 
 void Renderer::InitializeParticles(Scene& scene)
@@ -508,9 +491,4 @@ CameraD3D11& Renderer::GetCamera()
     return this->camera;
 }
 
-//float Renderer::GetDeltatime()
-//{
-//    this->time.Update();
-//    return this->time.GetDeltaTime();
-//}
 
