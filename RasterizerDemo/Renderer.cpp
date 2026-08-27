@@ -203,9 +203,6 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShaderResources(5, 1, srvSpotlight.GetAddressOf());
     immediateContext->CSSetShaderResources(6, 1, srvDirLight.GetAddressOf());
 
-    //ComPtr<ID3D11SamplerState> pSampler = samplerState.get();
-    //immediateContext->CSSetSamplers(0, 1, pSampler.GetAddressOf());
-
 
     ID3D11Buffer* nrofLights = scene.GetnrofLightBuffer();
     immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
@@ -273,7 +270,6 @@ void Renderer::DrawParticles(Scene& scene)
         // Resetting to standard values
         immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
         vsShader->BindShader(immediateContext.Get());
-        //immediateContext->VSSetConstantBuffers(0, 0, pCamera.GetAddressOf());
     }
 }
 
@@ -297,7 +293,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     LightData sun = {};
     sun.perLightInfo.initialPosition = { 0.0f, 2.0f, 0.0f };
     sun.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
-    sun.perLightInfo.intensity = 0.05f;
+    sun.perLightInfo.intensity = 0.1f;
     sun.perLightInfo.angle = XM_PI;
     sun.perLightInfo.isDir = true;
     sun.perLightInfo.rotationX = 0;
@@ -306,7 +302,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     // Spotlight Ficklampa
     LightData red = {};
     red.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
-    red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 5.0f };
+    red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 2.0f };
     red.perLightInfo.intensity = 0.5f;
     red.perLightInfo.angle = XM_PIDIV2;
     red.perLightInfo.rotationX = 0;
@@ -361,11 +357,11 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
 
-    scene.AddObject(device.Get(), "Torch/", "torch", { 0.2f, 3.0f, -15.0f }, { 0.0f, XM_PI, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // red
-    scene.AddObject(device.Get(), "Torch/", "torch", { -15.0f, 3.0f, 1.0f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // blue
-    scene.AddObject(device.Get(), "Torch/", "torch", { 12.7f, 2.0f, -16.3f }, { 0.0f, -XM_PIDIV2, 0.0f }, { 0.03f, 0.03f, 0.03f }, false);    // blue
+    scene.AddObject(device.Get(), "Flashlight/", "FlashLight", { 0.2f, 3.0f, -15.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // red
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { -15.0f, 3.0f, 1.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // blue
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { 14.7f, 2.0f, -7.3f }, { 0.0f, XM_PI, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // green
 
-
+    scene.AddObject(device.Get(), "llama/", "illama", { -2.0f, 0.0f, -4.0f }, { 0.0f,0.0f,0.0f }, { 5.0f,5.0f,5.0f }, false);
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
 
     scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_a_low", { 15.0f, 0.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }, false);
