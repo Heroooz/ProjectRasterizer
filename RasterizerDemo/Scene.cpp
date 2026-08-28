@@ -116,20 +116,20 @@ void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, CameraD3D11* came
 {
 	//int nrof = this->GetNrOfObjects();
 
-	BoundingFrustum frustum;
-	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
-	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
-	frustum.Transform(frustum, inverseView);
+	//BoundingFrustum frustum;
+	//BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
+	//XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
+	//frustum.Transform(frustum, inverseView);
 
-	std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
+	//std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
 
-	for (auto& obj : visibleObjs)
+	for (auto& obj : objects)
 	{
-		if (tessellate)
-		{
-			pCenter = obj->GetCenterBuffer();
-			immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);
-		}
+		//if (tessellate)
+		//{
+		//	pCenter = obj->GetCenterBuffer();
+		//	immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);
+		//}
 		obj->drawObject(immediatecontext);
 	}
 }
@@ -203,6 +203,16 @@ ID3D11Buffer* Scene::GetnrofLightBuffer() { return this->nrofLights.GetBuffer();
 int Scene::GetNrOfObjects() { return (int)this->objects.size(); }
 
 int Scene::GetNrOfSpotLights() { return this->spotLights.GetNrOfLights(); }
+
+std::vector<const Objects*> Scene::GetVisibleObjects(CameraD3D11* camera)
+{
+	BoundingFrustum frustum;
+	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
+	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
+	frustum.Transform(frustum, inverseView);
+
+	return quadtree.CheckTree(frustum);
+}
 
 Particles* Scene::GetParticles() { return this->particles; }
 

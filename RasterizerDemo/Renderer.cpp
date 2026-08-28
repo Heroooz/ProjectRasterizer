@@ -158,28 +158,40 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     psShader[0]->BindShader(immediateContext.Get());
 
     // For Switching camera view :)
-    pCamera = scene.GetShadowCamera(0);
+    //pCamera = scene.GetShadowCamera(0, true);
     pCamera = camera.GetConstantBuffer();
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    if (tessellation)
-    {
-        hullShader->BindShader(immediateContext.Get());
-        domainShader->BindShader(immediateContext.Get());
 
-        immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-        immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
 
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-    }
-    else
+    for (auto& obj : visibleObjects)
     {
-        immediateContext->HSSetShader(nullptr, nullptr, 0);
-        immediateContext->DSSetShader(nullptr, nullptr, 0);
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        if (tessellation && obj->shouldTessellate)
+        {
+            hullShader->BindShader(immediateContext.Get());
+            domainShader->BindShader(immediateContext.Get());
+
+            immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+            immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+            immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+
+            ID3D11Buffer* pCenter = obj->GetCenterBuffer();
+            immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
+        }
+        else
+        {
+            immediateContext->HSSetShader(nullptr, nullptr, 0);
+            immediateContext->DSSetShader(nullptr, nullptr, 0);
+            immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        }
+        obj->drawObject(immediateContext.Get());
     }
-    scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
+
     scene.DrawDCEM(immediateContext.Get());
+
+    //scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
 }
 
 void Renderer::LightPass(Scene& scene, bool shadow)
