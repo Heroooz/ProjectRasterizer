@@ -167,31 +167,38 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
 
     for (auto& obj : visibleObjects)
     {
+        Tesselate(tessellation && obj->shouldTessellate);
         if (tessellation && obj->shouldTessellate)
         {
-            hullShader->BindShader(immediateContext.Get());
-            domainShader->BindShader(immediateContext.Get());
-
-            immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-            immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-
-            immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-
             ID3D11Buffer* pCenter = obj->GetCenterBuffer();
             immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
         }
-        else
-        {
-            immediateContext->HSSetShader(nullptr, nullptr, 0);
-            immediateContext->DSSetShader(nullptr, nullptr, 0);
-            immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        }
         obj->drawObject(immediateContext.Get());
     }
-
+    Tesselate(tessellation);
     scene.DrawDCEM(immediateContext.Get());
 
     //scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
+}
+
+void Renderer::Tesselate(bool tessellation)
+{
+    if (tessellation)
+    {
+        hullShader->BindShader(immediateContext.Get());
+        domainShader->BindShader(immediateContext.Get());
+
+        immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+        immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+    }
+    else
+    {
+        immediateContext->HSSetShader(nullptr, nullptr, 0);
+        immediateContext->DSSetShader(nullptr, nullptr, 0);
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
 }
 
 void Renderer::LightPass(Scene& scene, bool shadow)
@@ -280,6 +287,7 @@ void Renderer::DrawParticles(Scene& scene)
     immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
     vsShader->BindShader(immediateContext.Get());
 }
+
 
 void Renderer::ClearBuffers()
 {

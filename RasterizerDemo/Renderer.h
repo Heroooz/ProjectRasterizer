@@ -122,6 +122,8 @@ private:
 	void LightPass(Scene& scene, bool shadow);
 	void DrawParticles(Scene& scene);
 
+	void Tesselate(bool tesselation);
+
 
 	// Adding the the scene
 	void CreateLights(ComPtr<ID3D11Device> device, Scene& scene);
