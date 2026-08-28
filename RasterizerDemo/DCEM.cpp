@@ -6,6 +6,8 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, U
 	this->normalPS = normalPS.get();
 	this->cubeMapCapturePS = DCEMCapturePS.get();
 
+	this->center = { {initPos.x, initPos.y, initPos.y, 1.0f} };
+	this->centerBuffer.Initialize(device, sizeof(this->centerBuffer), &this->center);
 
 	ProjectionInfo projectionInfo = {};
 	projectionInfo.aspectRatio = 1.0f;
@@ -150,6 +152,7 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 
 //void DCEM::Update(ID3D11DeviceContext* context)
 //{
+//	this->centerBuffer.UpdateBuffer(context, &center);
 //}
 
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
@@ -185,6 +188,9 @@ void DCEM::Draw(ID3D11DeviceContext* context)
 {
 	DCEMPS->BindShader(context);
 	context->PSSetShaderResources(4, 1, this->srv.GetAddressOf());
+
+	ID3D11Buffer* pCenter = this->centerBuffer.GetBuffer();
+	context->HSSetConstantBuffers(1, 1, &pCenter);
 
 	ID3D11Buffer* pMatrix = this->worldMatrixBuffer.GetBuffer();
 	context->VSSetConstantBuffers(1, 1, &pMatrix);

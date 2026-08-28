@@ -32,6 +32,8 @@ class DCEM
 	ComPtr<ID3D11Texture2D> texture;
 	D3D11_VIEWPORT viewport;
 
+	ObjectCenterPosition center;
+	ConstantBufferD3D11 centerBuffer;
 
 	ShaderD3D11* DCEMPS;
 	ShaderD3D11* normalPS;
