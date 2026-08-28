@@ -144,7 +144,6 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
                                 L_diff = albedo (diffuse tror jag) * lightcolor * I
                                 c_k = I * k_d * cos(a)^+
                                 c_k = I * k_d * max(0, cos(a))
-                                VAD ÄR I???? Angle of Incidence? INTENSITY!!!!
         * Blinn-Phong Specular: pow(max(0, dot(N,H), shininess)
     */
 }

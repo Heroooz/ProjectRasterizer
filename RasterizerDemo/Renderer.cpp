@@ -129,9 +129,6 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
         
         DrawObjects(scene, false);
-
-        //scene.DrawObjects(immediateContext.Get(), &camera, false);
-        //scene.DrawDCEM(immediateContext.Get());
     }
 
     // For each DirLight

@@ -32,18 +32,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		device->GetImmediateContext(&immediateContext);
 
 
+		// Toggles
 		bool shouldTesselate = true;
 		bool showWireFrame = false;
-		bool shadowOn = true;
+		bool shadowOn = false;
 		bool particlesOn = true;
 
 
 		UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
 
 
-
-
-		// TEMPORARY SPEED VARIABLE
 		float movespeed = 3.0f;
 		float rotationspeed = 2.0f;
 
@@ -59,9 +57,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		float sensitivity = 0.01f; // Adjust after prefrenc
 
 		float wasPressed = 0.0f;
-
-
-		//Scene* scene = renderer.GetScene();
 
 		std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
 		while (!(GetKeyState(VK_ESCAPE) & 0x8000) && msg.message != WM_QUIT)
