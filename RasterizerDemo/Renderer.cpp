@@ -98,9 +98,7 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     
     // Drawing Particles
     if (ParticlesOn)
-    {
         DrawParticles(scene);
-    }
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -224,53 +222,51 @@ void Renderer::LightPass(Scene& scene, bool shadow)
 void Renderer::DrawParticles(Scene& scene)
 {
     // Drawing the particles
-    if (true)
-    {
-        immediateContext->HSSetShader(nullptr, nullptr, 0);
-        immediateContext->DSSetShader(nullptr, nullptr, 0);
-        Particles* particles = scene.GetParticles();
-        UINT nrofParticles = particles->GetNrOfParticles();
 
-        ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
-        immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
+    immediateContext->HSSetShader(nullptr, nullptr, 0);
+    immediateContext->DSSetShader(nullptr, nullptr, 0);
+    Particles* particles = scene.GetParticles();
+    UINT nrofParticles = particles->GetNrOfParticles();
 
-        ID3D11ShaderResourceView* psrv = particles->GetSRV();
-        ID3D11ShaderResourceView* ptexture = particles->GetTexture();
+    ComPtr<ID3D11SamplerState> pSamplerState = samplerState->GetSamplerState();
+    immediateContext->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-        immediateContext->IASetInputLayout(nullptr);
+    ID3D11ShaderResourceView* psrv = particles->GetSRV();
+    ID3D11ShaderResourceView* ptexture = particles->GetTexture();
 
-        // Binding VS
-        particleShaders[0]->BindShader(immediateContext.Get());
-        immediateContext->VSSetShaderResources(0, 1, &psrv);
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+    immediateContext->IASetInputLayout(nullptr);
 
-        // Binding GS
-        particleShaders[1]->BindShader(immediateContext.Get());
-        pCamera = camera.GetConstantBuffer();
-        immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    // Binding VS
+    particleShaders[0]->BindShader(immediateContext.Get());
+    immediateContext->VSSetShaderResources(0, 1, &psrv);
 
-        immediateContext->RSSetViewports(1, &viewport);
+    // Binding GS
+    particleShaders[1]->BindShader(immediateContext.Get());
+    pCamera = camera.GetConstantBuffer();
+    immediateContext->GSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
-        // Binding PS
-        particleShaders[2]->BindShader(immediateContext.Get());
-        immediateContext->PSSetShaderResources(0, 1, &ptexture);
+    immediateContext->RSSetViewports(1, &viewport);
 
-        // Draw the Particles
-        immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
-        immediateContext->Draw(nrofParticles, 0);
+    // Binding PS
+    particleShaders[2]->BindShader(immediateContext.Get());
+    immediateContext->PSSetShaderResources(0, 1, &ptexture);
 
-        // Unbinding
-        immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
-        immediateContext->PSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
-        immediateContext->VSSetShader(nullptr, nullptr, 0);
-        immediateContext->GSSetShader(nullptr, nullptr, 0);
-        immediateContext->PSSetShader(nullptr, nullptr, 0);
-        immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+    // Draw the Particles
+    immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
+    immediateContext->Draw(nrofParticles, 0);
 
-        // Resetting to standard values
-        immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
-        vsShader->BindShader(immediateContext.Get());
-    }
+    // Unbinding
+    immediateContext->VSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+    immediateContext->PSSetShaderResources(0, 1, srvNULL[0].GetAddressOf());
+    immediateContext->VSSetShader(nullptr, nullptr, 0);
+    immediateContext->GSSetShader(nullptr, nullptr, 0);
+    immediateContext->PSSetShader(nullptr, nullptr, 0);
+    immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+
+    // Resetting to standard values
+    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
+    vsShader->BindShader(immediateContext.Get());
 }
 
 void Renderer::ClearBuffers()
@@ -365,20 +361,20 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
 
     scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_a_low", { 15.0f, 0.0f, -10.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }, false);
-    scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_b_low", { 7.0f, 0.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 7, 7, 7 }), false;
-    scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_a_low", { 5.0f, 0.0f, 8.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }), false;
+    scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_b_low", { 7.0f, 0.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 7, 7, 7 }, false);
+    scene.AddObject(device.Get(), "mushrooms/amanita/", "amanita_a_low", { 5.0f, 0.0f, 8.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }, false);
     scene.AddObject(device.Get(), "mushrooms/morel/", "morel_low", { -5.0f, 0.5f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 4, 4, 4 });
     scene.AddObject(device.Get(), "mushrooms/morel/", "morel_low", { 8.0f, 0.0f, 6.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 });
     scene.AddObject(device.Get(), "mushrooms/chanterelles/", "chanterelles_low", { 6.0f, 0.0f, 2.0f }, { 0.0f, XM_PI, 0.0f }, { 4, 4, 4 }, false);
-    scene.AddObject(device.Get(), "mushrooms/chanterelles/", "chanterelles_low", { 10.0f, 0.0f, 20.0f }, { 0.0f, XM_PI, 0.0f }, { 7, 7, 7 }), false;
-    scene.AddObject(device.Get(), "mushrooms/chanterelles/", "chanterelles_low", { -15.0f, 0.0f, 12.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }), false;
+    scene.AddObject(device.Get(), "mushrooms/chanterelles/", "chanterelles_low", { 10.0f, 0.0f, 20.0f }, { 0.0f, XM_PI, 0.0f }, { 7, 7, 7 }, false);
+    scene.AddObject(device.Get(), "mushrooms/chanterelles/", "chanterelles_low", { -15.0f, 0.0f, 12.0f }, { 0.0f, XM_PI, 0.0f }, { 5, 5, 5 }, false);
 
-    scene.AddObject(device.Get(), "Farm/", "Wood", { -15, 0, -5 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f });
-    scene.AddObject(device.Get(), "toy/", "wooden_tractor_toy_1", { -20, 0, 20 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f });
+    scene.AddObject(device.Get(), "Farm/", "Wood", { -15, 0, -5 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f }, false);
+    scene.AddObject(device.Get(), "toy/", "wooden_tractor_toy_1", { -20, 0, 20 }, { 0, 0, 0 }, { 1.0f, 1.0f, 1.0f }, false);
 
 
-    scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 });
-    scene.AddObject(device.Get(), "SimpleObjects/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 });
+    scene.AddObject(device.Get(), "Fountain/", "fountain", { 0, 0, 0 }, { 0, XM_PI, 0 }, { 1, 1, 1 }, false);
+    scene.AddObject(device.Get(), "SimpleObjects/", "circle", { 0, 0.5, 0 }, { XM_PI, 0, 0 }, { 3, 3, 3 }, false);
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { 2.0f, 0.0f, 2.0f }, { 0.0f, 0.0f, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.0f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
 
