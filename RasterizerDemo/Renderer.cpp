@@ -128,8 +128,10 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
         
-        scene.DrawObjects(immediateContext.Get(), &camera, false);
-        scene.DrawDCEM(immediateContext.Get());
+        DrawObjects(scene, false);
+
+        //scene.DrawObjects(immediateContext.Get(), &camera, false);
+        //scene.DrawDCEM(immediateContext.Get());
     }
 
     // For each DirLight
@@ -141,8 +143,11 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
 
         ComPtr<ID3D11Buffer> pShadowCam = scene.GetShadowCamera(i, true);
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
-        scene.DrawObjects(immediateContext.Get(), &camera, false);
-        scene.DrawDCEM(immediateContext.Get());
+
+        DrawObjects(scene, false);
+
+        //scene.DrawObjects(immediateContext.Get(), &camera, false);
+        //scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
     immediateContext->OMSetRenderTargets(0, nullptr, dsv);
@@ -163,20 +168,7 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
-    std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
-
-    for (auto& obj : visibleObjects)
-    {
-        Tesselate(tessellation && obj->shouldTessellate);
-        if (tessellation && obj->shouldTessellate)
-        {
-            ID3D11Buffer* pCenter = obj->GetCenterBuffer();
-            immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
-        }
-        obj->drawObject(immediateContext.Get());
-    }
-    Tesselate(tessellation);
-    scene.DrawDCEM(immediateContext.Get());
+    DrawObjects(scene, tessellation);
 
     //scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
 }
@@ -199,6 +191,24 @@ void Renderer::Tesselate(bool tessellation)
         immediateContext->DSSetShader(nullptr, nullptr, 0);
         immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
+}
+
+void Renderer::DrawObjects(Scene& scene, bool tessellation)
+{
+    std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
+
+    for (auto& obj : visibleObjects)
+    {
+        Tesselate(tessellation && obj->shouldTessellate);
+        if (tessellation && obj->shouldTessellate)
+        {
+            ID3D11Buffer* pCenter = obj->GetCenterBuffer();
+            immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
+        }
+        obj->drawObject(immediateContext.Get());
+    }
+    Tesselate(tessellation);
+    scene.DrawDCEM(immediateContext.Get());
 }
 
 void Renderer::LightPass(Scene& scene, bool shadow)

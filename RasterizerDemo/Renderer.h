@@ -123,7 +123,7 @@ private:
 	void DrawParticles(Scene& scene);
 
 	void Tesselate(bool tesselation);
-
+	void DrawObjects(Scene& scene, bool tessellation);
 
 	// Adding the the scene
 	void CreateLights(ComPtr<ID3D11Device> device, Scene& scene);
