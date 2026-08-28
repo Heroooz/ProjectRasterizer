@@ -66,6 +66,8 @@ public:
 	int GetNrOfObjects();
 	int GetNrOfSpotLights();
 
+	std::vector<const Objects*> GetVisibleObjects(CameraD3D11* camera);
+
 	Particles* GetParticles();
 	int GetNrOfDirLight();
 };
