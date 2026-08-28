@@ -159,6 +159,10 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 {
 	cubeMapCapturePS->BindShader(context);
 
+	context->GSSetShader(nullptr, nullptr, 0);
+	context->HSSetShader(nullptr, nullptr, 0);
+	context->DSSetShader(nullptr, nullptr, 0);
+
 	context->RSSetViewports(1, &viewport);
 
 	for (int face = 0; face < 6; ++face)
