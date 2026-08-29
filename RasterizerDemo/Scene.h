@@ -8,6 +8,11 @@
 #include "Particles.h"
 #include "QuadTree.h"
 
+namespace RenderingModes {
+	enum RenderingMode {
+		Standard, Position, Normals, Diffuse, Ambient, Specular
+	};
+}
 
 class Scene
 {
@@ -25,6 +30,7 @@ class Scene
 
 	QuadTree<Objects> quadtree;
 
+	RenderingModes::RenderingMode renderingMode = RenderingModes::Standard;
 
 public:
 	Scene();
@@ -70,4 +76,8 @@ public:
 
 	Particles* GetParticles();
 	int GetNrOfDirLight();
+
+
+	RenderingModes::RenderingMode GetRenderingMode() const { return this->renderingMode; }
+	void SetRenderingMode(RenderingModes::RenderingMode mode) { this->renderingMode = mode; }
 };

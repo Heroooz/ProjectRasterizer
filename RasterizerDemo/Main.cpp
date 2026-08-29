@@ -139,6 +139,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			{
 				renderer.PrintCoordinates();
 			}
+			for (int i = 0; i < 6; i++)
+			{
+				if (GetKeyState('1' + i) & 0x8000 && wasPressed <= 0)
+				{
+					scene->SetRenderingMode(RenderingModes::RenderingMode(i));
+					wasPressed = 1.0f;
+				}
+			}
 			wasPressed -= deltatime;
 
 

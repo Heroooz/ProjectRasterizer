@@ -40,6 +40,7 @@ bool Renderer::Initialize(Scene& scene) {
     this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->normalBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->diffuseBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
+    this->renderingModeBuffer.Initialize(device.Get(), sizeof(this->renderingMode), &this->renderingMode);
 
     this->rtvArr[0] = this->positionBuffer.GetRTV();
     this->rtvArr[1] = this->normalBuffer.GetRTV();
@@ -77,6 +78,13 @@ bool Renderer::Initialize(Scene& scene) {
 }
 
 void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool ParticlesOn) {
+
+    if (scene.GetRenderingMode() != this->renderingMode.mode) {
+        this->renderingMode.mode = scene.GetRenderingMode();
+        this->renderingModeBuffer.UpdateBuffer(this->immediateContext.Get(), &this->renderingMode);
+		ComPtr<ID3D11Buffer> pRenderingMode = this->renderingModeBuffer.GetBuffer();
+        this->immediateContext->CSSetConstantBuffers(10, 1, pRenderingMode.GetAddressOf());
+    }
 
     this->camera.UpdateInternalConstantBuffer(immediateContext.Get());
     

@@ -40,92 +40,129 @@ cbuffer NrOfLights : register(b1)
     int padding2;
 };
 
+cbuffer RenderMode : register(b10)
+{
+    int renderingMode;
+    float3 padding3;
+}
+
+static const int renderingModeStandard = 0;
+static const int renderingModePosition = 1;
+static const int renderingModeNormals = 2;
+static const int renderingModeDiffuse = 3;
+static const int renderingModeAmbient = 4;
+static const int renderingModeSpecular = 5;
 
 [numthreads(8, 8, 1)]
 void CSMain(uint3 DTid : SV_DispatchThreadID)
 {
-    float4 pixelPosition = float4(positionGBuffer[DTid.xy].xyz, 1);     // Position
-    float3 pixelNormal = normalGBuffer[DTid.xy].xyz;                    // Normal
-    
-    float ambientStandard = positionGBuffer[DTid.xy].a;
-    float4 diffuse =  float4(0, 0, 0, 0);
-    float4 specular = float4(0, 0, 0, 0);
-    float specularKof = 100;
-    
-    /* Light Calculations using
-        * Phong for diffuse 
-            * Diffuse:  c_d = I * k_d * max(0, dot(n, l))
-        *Blinn-Phong for 
-            *Specular: c_s = I * k_s * pow(max(0, dot(n,h)), p)
-    */
-    
-    // Light Calculations for SpotLights
-    for (int i = 0; i < nrofSpotLights; i++)
+    if (renderingMode == renderingModeStandard)
     {
-        LightBuffer spotlight = SpotLights[i];
         
-        float3 pos = spotlight.position;
-        float3 L = normalize(spotlight.position - pixelPosition.xyz);   // LightDir
-        float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);   // ViewDir
-        float3 H = normalize(L + V);
-        float T = dot(L, pixelNormal);                                  // Theta for diffuse  (LightDir & Normal)
-        float S = max(0, dot(pixelNormal.xyz, H)); // Sigma for specular (Halfway-Vector & Normal)
+        float4 pixelPosition = float4(positionGBuffer[DTid.xy].xyz, 1); // Position
+        float3 pixelNormal = normalGBuffer[DTid.xy].xyz; // Normal
+    
+        float ambientStandard = positionGBuffer[DTid.xy].a;
+        float4 diffuse = float4(0, 0, 0, 0);
+        float4 specular = float4(0, 0, 0, 0);
+        float specularKof = 100;
+    
+        /* Light Calculations using
+            * Phong for diffuse 
+                * Diffuse:  c_d = I * k_d * max(0, dot(n, l))
+            *Blinn-Phong for 
+                *Specular: c_s = I * k_s * pow(max(0, dot(n,h)), p)
+        */
+    
+        // Light Calculations for SpotLights
+        for (int i = 0; i < nrofSpotLights; i++)
+        {
+            LightBuffer spotlight = SpotLights[i];
+        
+            float3 pos = spotlight.position;
+            float3 L = normalize(spotlight.position - pixelPosition.xyz); // LightDir
+            float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz); // ViewDir
+            float3 H = normalize(L + V);
+            float T = dot(L, pixelNormal); // Theta for diffuse  (LightDir & Normal)
+            float S = max(0, dot(pixelNormal.xyz, H)); // Sigma for specular (Halfway-Vector & Normal)
        
-        float3 D = normalize(spotlight.direction);
-        float cosT = dot(-L, D);
-        float spoEffect = smoothstep(cos(spotlight.angle), 1.0f, cosT);
+            float3 D = normalize(spotlight.direction);
+            float cosT = dot(-L, D);
+            float spoEffect = smoothstep(cos(spotlight.angle), 1.0f, cosT);
         
-        float shadowFactor = 1;
-        if (shadowMappingOn == 1)
-        {// ShadowMapping
-            float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix);   // -> Clip Space
-            float3 ndcSpace = (clipSpace.xyz / clipSpace.w);                        // -> NDC Space
+            float shadowFactor = 1;
+            if (shadowMappingOn == 1)
+            { // ShadowMapping
+                float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix); // -> Clip Space
+                float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
         
-            float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
-            float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.00001; // Avoid self-shadowing
-            shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+                float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, i);
+                float shadowMapDepth = spotLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.00001; // Avoid self-shadowing
+                shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+            }
+        
+            // Setting the diffuse and specular    
+            diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+            specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
+        
+            if (spotlight.intensity > ambientStandard)
+                ambientStandard = spotlight.intensity;
         }
+    
+        // Light Calculations for Directional Lights
+        for (int j = 0; j < nrofDirLights; j++)
+        {
+            LightBuffer dirlight = DirLights[j];
         
-        // Setting the diffuse and specular    
-        diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-        specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
+            float3 L = normalize(dirlight.direction.xyz);
+            float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);
+            float3 H = normalize(L + V); // H = ( L + V ) / || L + V ||
+            float T = dot(L, pixelNormal);
+            float S = dot(pixelNormal.xyz, H);
         
-        if (spotlight.intensity > ambientStandard)
-            ambientStandard = spotlight.intensity;
+            float shadowFactor = 1;
+            if (shadowMappingOn == 1)
+            { // ShadowMapping
+                float4 clipSpace = mul(pixelPosition, dirlight.vpmatrix); // -> Clip Space
+                float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
+        
+                float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
+                float shadowMapDepth = dirLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
+                shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
+            }
+            // Setting a,d,s values
+            if (dirlight.intensity > ambientStandard)
+                ambientStandard = dirlight.intensity;
+        
+            diffuse += shadowFactor * dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+            specular += shadowFactor * dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
+        }
+        // c_a = k_a * l_a
+        float4 ambient = ambientStandard * float4(diffuseGBuffer[DTid.xy].xyz, 0);
+
+        backBufferUAV[DTid.xy] = ambient + diffuse + specular;
+    }
+    else if (renderingMode == renderingModePosition)
+    {
+        backBufferUAV[DTid.xy] = normalize(positionGBuffer[DTid.xy]);
+    }
+    else if (renderingMode == renderingModeNormals)
+    {
+        backBufferUAV[DTid.xy] = normalGBuffer[DTid.xy];
+    }
+    else if (renderingMode == renderingModeAmbient)
+    {
+        backBufferUAV[DTid.xy] = positionGBuffer[DTid.xy].w;
+    }
+    else if (renderingMode == renderingModeDiffuse)
+    {
+        backBufferUAV[DTid.xy] = diffuseGBuffer[DTid.xy];
+    }
+    else if (renderingMode == renderingModeSpecular)
+    {
+        backBufferUAV[DTid.xy] = normalGBuffer[DTid.xy].w;
     }
     
-    // Light Calculations for Directional Lights
-    for (int j = 0; j < nrofDirLights; j++ )
-    {
-        LightBuffer dirlight = DirLights[j];
-        
-        float3 L = normalize(dirlight.direction.xyz);
-        float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);
-        float3 H = normalize(L + V);        // H = ( L + V ) / || L + V ||
-        float T = dot(L, pixelNormal);
-        float S = dot(pixelNormal.xyz, H);
-        
-        float shadowFactor = 1;
-        if(shadowMappingOn == 1)  
-        {        // ShadowMapping
-            float4 clipSpace = mul(pixelPosition, dirlight.vpmatrix); // -> Clip Space
-            float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
-        
-            float3 shadowMapUV = float3(ndcSpace.x * 0.5f + 0.5f, ndcSpace.y * -0.5f + 0.5f, j);
-            float shadowMapDepth = dirLightShadowMap.SampleLevel(shadowMapSampler, shadowMapUV, 0.0f).r + 0.01; // Avoid self-shadowing
-            shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
-        }
-        // Setting a,d,s values
-        if(dirlight.intensity > ambientStandard)
-            ambientStandard = dirlight.intensity;
-        
-        diffuse +=  shadowFactor * dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-        specular += shadowFactor * dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
-    }
-    // c_a = k_a * l_a
-    float4 ambient = ambientStandard *  float4(diffuseGBuffer[DTid.xy].xyz, 0);    
-
-    backBufferUAV[DTid.xy] = ambient + diffuse + specular;
   
     return;
     

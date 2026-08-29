@@ -103,6 +103,12 @@ private:
 	ComPtr<ID3D11Buffer> lightPS;
 
 
+	struct RenderingMode {
+		int mode = 0;
+		float _padding[3]{};
+	} renderingMode;
+	ConstantBufferD3D11 renderingModeBuffer;
+
 	//Time time;
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
