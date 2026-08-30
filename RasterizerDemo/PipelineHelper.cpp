@@ -29,56 +29,6 @@ bool LoadShaders(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vSha
 	particleShadersPS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::GEOMETRY_SHADER, "ParticleGS.cso");
 	particleShadersCS = std::make_unique<ShaderD3D11>(device.Get(), ShaderType::COMPUTE_SHADER, "ParticleCS.cso");
 
-
-
-	//std::string shaderData;
-	//std::ifstream reader;
-	//reader.open("VertexShader.cso", std::ios::binary | std::ios::ate);
-	//if (!reader.is_open())
-	//{
-	//	std::cerr << "Could not open VS file!" << std::endl;
-	//	return false;
-	//}
-	//
-	//reader.seekg(0, std::ios::end);
-	//shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
-	//reader.seekg(0, std::ios::beg);
-	//
-	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
-	//	std::istreambuf_iterator<char>());
-	//
-	//ID3D11VertexShader* vs;
-	//if (FAILED(device->CreateVertexShader(shaderData.c_str(), shaderData.length(), nullptr, &vs)))
-	//{
-	//	std::cerr << "Failed to create vertex shader!" << std::endl;
-	//	return false;
-	//}
-	//
-	//vsstring = shaderData;
-	//shaderData.clear();
-	//
-	//reader.close();
-	//reader.open("DeferredPS.cso", std::ios::binary | std::ios::ate);
-	//if (!reader.is_open())
-	//{
-	//	std::cerr << "Could not open PS file!" << std::endl;
-	//	return false;
-	//}
-	//
-	//reader.seekg(0, std::ios::end);
-	//shaderData.reserve(static_cast<unsigned int>(reader.tellg()));
-	//reader.seekg(0, std::ios::beg);
-	//
-	//shaderData.assign((std::istreambuf_iterator<char>(reader)),
-	//	std::istreambuf_iterator<char>());
-	//
-	//ID3D11PixelShader* ps;
-	//if (FAILED(device->CreatePixelShader(shaderData.c_str(), shaderData.length(), nullptr, &ps)))
-	//{
-	//	std::cerr << "Failed to create pixel shader!" << std::endl;
-	//	return false;
-	//}
-
 	return true;
 }
 
@@ -95,14 +45,6 @@ bool CreateInputLayout(ComPtr<ID3D11Device> device, std::unique_ptr<InputLayoutD
 
 	inputLayout->FinalizeInputLayout(device.Get(), vShader->GetShaderByteData(), vShader->GetShaderByteSize());
 
-	//D3D11_INPUT_ELEMENT_DESC inputDesc[3] =
-	//{
-	//	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	//	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	//	{"UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	//};
-	//HRESULT hr = device->CreateInputLayout(inputDesc, sizeof(inputDesc) / sizeof(D3D10_INPUT_ELEMENT_DESC), vsstring.c_str(), vsstring.size(), &inputLayout);
-	//return !FAILED(hr);
 	return true;
 }
 
@@ -169,22 +111,6 @@ bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D1
 
 	shadowSampler = std::make_unique<SamplerD3D11>(device.Get(), D3D11_TEXTURE_ADDRESS_CLAMP, borderColour, sd);	
 
-	//D3D11_SAMPLER_DESC samplerDesc;
-	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.MipLODBias = 0;
-	//samplerDesc.MaxAnisotropy = 1;
-	//samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	//samplerDesc.BorderColor[0] = 0;
-	//samplerDesc.BorderColor[1] = 0;
-	//samplerDesc.BorderColor[2] = 0;
-	//samplerDesc.BorderColor[3] = 0;
-	//samplerDesc.MinLOD = 0;
-	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	//HRESULT hr = device->CreateSamplerState(&samplerDesc, &sampler);
-	//return !FAILED(hr);
 	return true;
 }
 

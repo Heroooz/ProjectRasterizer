@@ -175,10 +175,8 @@
     <ClCompile Include="SamplerD3D11.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="ShaderD3D11.cpp" />
-    <ClCompile Include="ShaderResourceTextureD3D11.cpp" />
     <ClCompile Include="StructuredBufferD3D11.cpp" />
     <ClCompile Include="SubMeshD3D11.cpp" />
-    <ClCompile Include="Time.cpp" />
     <ClCompile Include="VertexBufferD3D11.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowHelper.cpp" />
@@ -322,13 +320,10 @@
     <ClInclude Include="SamplerD3D11.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="ShaderD3D11.h" />
-    <ClInclude Include="ShaderResourceTextureD3D11.h" />
     <ClInclude Include="SimpleVertex.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="StructuredBufferD3D11.h" />
     <ClInclude Include="SubMeshD3D11.h" />
-    <ClInclude Include="Time.h" />
-    <ClInclude Include="Transform.h" />
     <ClInclude Include="VertexBufferD3D11.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowHelper.h" />

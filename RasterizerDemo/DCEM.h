@@ -45,10 +45,8 @@ public:
 
 	void Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT height);
 
-	//void Update(ID3D11DeviceContext* context);
 	void GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects);
 	void Draw(ID3D11DeviceContext* context);
-
 
 	ID3D11Buffer* GetCameraVP(int nr);
 	const ID3D11RenderTargetView* GetRTV(int nr);

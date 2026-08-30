@@ -150,11 +150,6 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 	 
 }
 
-//void DCEM::Update(ID3D11DeviceContext* context)
-//{
-//	this->centerBuffer.UpdateBuffer(context, &center);
-//}
-
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
 {
 	cubeMapCapturePS->BindShader(context);

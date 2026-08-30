@@ -18,7 +18,6 @@
 #include "Scene.h"
 #include "SimpleVertex.h"
 #include "Light.h"
-#include "Transform.h"
 
 
 class Renderer {

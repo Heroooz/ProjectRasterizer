@@ -1,9 +1,6 @@
 #include "Scene.h"
 
-Scene::Scene()
-{
-}
-
+Scene::Scene() { }
 Scene::~Scene()
 {
 	for (auto& object : objects)
@@ -79,8 +76,6 @@ void Scene::UpdateNrOfLigthsBuffer(ID3D11DeviceContext* context, bool shadowsOn)
 
 void Scene::UpdateObjects(ID3D11DeviceContext* context, float deltatime)
 {
-	//for (auto dcem : dcems)
-	//	dcem->Update(context);
 	for (auto& object : objects)
 		object->UpdateObject(context, deltatime);
 }
@@ -107,33 +102,6 @@ void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* 
 	immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
-void Scene::DrawScene(ID3D11DeviceContext* context, bool tesselate)
-{
-	// SHould probablu use this instead of many different funcs
-}
-
-void Scene::DrawObjects(ID3D11DeviceContext* immediatecontext, CameraD3D11* camera, bool tessellate)
-{
-	//int nrof = this->GetNrOfObjects();
-
-	//BoundingFrustum frustum;
-	//BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
-	//XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
-	//frustum.Transform(frustum, inverseView);
-
-	//std::vector<const Objects*> visibleObjs = quadtree.CheckTree(frustum);
-
-	for (auto& obj : objects)
-	{
-		//if (tessellate)
-		//{
-		//	pCenter = obj->GetCenterBuffer();
-		//	immediatecontext->HSSetConstantBuffers(1, 1, &pCenter);
-		//}
-		obj->drawObject(immediatecontext);
-	}
-}
-
 void Scene::GenerateDCEM(ID3D11DeviceContext* context)
 {
 	for (auto& dcem : dcems)
@@ -150,12 +118,7 @@ void Scene::DrawDCEM(ID3D11DeviceContext* context)
 	}
 }
 
-
-void Scene::RemoveObjectFromScene(int index)
-{
-}
-
-void Scene::DrawTree()
+void Scene::DrawTree() 
 {
 	quadtree.PrintTree();
 }
@@ -206,10 +169,13 @@ int Scene::GetNrOfSpotLights() { return this->spotLights.GetNrOfLights(); }
 
 std::vector<const Objects*> Scene::GetVisibleObjects(CameraD3D11* camera)
 {
+	// Using the player camera frustum
 	BoundingFrustum frustum;
 	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
 	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
 	frustum.Transform(frustum, inverseView);
+
+	frustum.Far = 20.0f;
 
 	return quadtree.CheckTree(frustum);
 }

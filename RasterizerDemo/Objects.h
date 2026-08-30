@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MeshD3D11.h"
-#include "Transform.h"
 #include "ConstantBufferD3D11.h"
 
 using namespace DirectX;

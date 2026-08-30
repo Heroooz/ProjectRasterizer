@@ -28,7 +28,6 @@ void CameraD3D11::Initialize(ID3D11Device* device, const ProjectionInfo& project
         projectionInfo.farZ
     );
 
-    // Same hardcoded sreen width/height as in main...
     this->orthographicMatrix = XMMatrixOrthographicLH(
         1920.0f,
         1080.0f,
@@ -75,7 +74,6 @@ void CameraD3D11::RotateAroundAxis(float amount, const XMFLOAT3& axis)
     upVec = XMVector3Normalize(upVec);
     XMStoreFloat3(&this->up, upVec);
 }
-
 
 void CameraD3D11::MoveForward(float amount) { MoveInDirection(amount, this->forward); }
 
@@ -149,22 +147,6 @@ void CameraD3D11::UpdateInternalConstantBuffer(ID3D11DeviceContext* context)
     this->perspectiveCamera.viewProjMatrix = viewproj4x4;
     this->perspectiveCamera.cameraPosition = this->position;
     this->VPcameraBuffer.UpdateBuffer(context, &this->perspectiveCamera);
-    /*
-    //   // XMLoadFloat3(&this->position), XMLoadFloat3(&this->forward), XMLoadFloat3(&this->up));
-    //XMMATRIX projectionMatrix = XMMatrixPerspectiveFovLH(
-    //    this->projInfo.fovAngleY, this->projInfo.aspectRatio,
-    //    this->projInfo.nearZ, this->projInfo.farZ);
-    //    
-    //    //XMMatrixPerspectiveFovLH(this->projInfo.fovAngleY, this->projInfo.aspectRatio, this->projInfo.nearZ, this->projInfo.farZ);
-    //XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
-    //    
-    //    //XMMatrixMultiply(viewMatrix, projectionMatrix);
-
-    //XMFLOAT4X4 viewProjectionMatrixFloat4x4;
-    //DirectX::XMStoreFloat4x4(&viewProjectionMatrixFloat4x4, XMMatrixTranspose(viewProjectionMatrix));
-
-    //this->cameraBuffer.UpdateBuffer(context, &viewProjectionMatrixFloat4x4);
-    */
 }
 
 void CameraD3D11::UpdateOrthographicBuffer(ID3D11DeviceContext* context, float orthWidth, float orthHeight)
@@ -221,7 +203,6 @@ DirectX::XMFLOAT4X4 CameraD3D11::GetOrthographicProjectionMatrix() const
     XMVECTOR d = eyePos + focPoint;
     XMMATRIX viewMatrix = XMMatrixLookAtLH(eyePos, d, upVec);
 
-    //XMMATRIX o = XMMatrixOrthographicLH(100.0f, 100.0f, this->projInfo.nearZ, this->projInfo.farZ);
     XMMATRIX vo = XMMatrixTranspose(XMMatrixMultiply(viewMatrix, this->orthographicMatrix));
 
     XMFLOAT4X4 o4x4;
