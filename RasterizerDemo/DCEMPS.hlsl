@@ -31,7 +31,7 @@ struct DCEMPSOutput
 {
     float4 position : SV_Target0;   // Position (XYZ) + Ambient Factor (W)
     float4 normal : SV_Target1;     // Normal (XYZ) + Specualr Factor (W)
-    float4 diffuse : SV_Target2;    // Diffuse (XYZ)
+    float4 diffuse : SV_Target2;    // Diffuse (XYZ) + Shiniess (W)
 };
 
 struct DCEMPSInput

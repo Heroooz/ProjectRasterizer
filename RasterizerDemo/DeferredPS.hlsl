@@ -33,7 +33,7 @@ struct PSOutPut
 {
     float4 position : SV_Target0;       // Position (XYZ) + Ambient Factor (W)
     float4 normal   : SV_Target1;       // Normal (XYZ) + Specualr Factor (W)
-    float4 diffuse  : SV_Target2;       // Diffuse (XYZ)
+    float4 diffuse  : SV_Target2;       // Diffuse (XYZ) + Shininess (W)
 };
 
 struct PSInput
@@ -114,8 +114,8 @@ PSOutPut main(PSInput input)
     
     PSOutPut output;
     output.position = float4(input.worldPosition.xyz, ambient); // Position XYZ + Ambient W
-    output.normal = float4(normal, specular); // Normal XYZ + Specular W
-    output.diffuse = float4(diffuse.xyz, shininess);
+    output.normal = float4(normal, specular);                   // Normal XYZ + Specular W
+    output.diffuse = float4(diffuse.xyz, shininess);            // Diffuse XYZ + Shininess W
     return output;
 };
 

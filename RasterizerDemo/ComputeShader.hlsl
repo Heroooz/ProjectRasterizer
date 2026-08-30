@@ -90,10 +90,13 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
             float3 D = normalize(spotlight.direction);
             float cosT = dot(-L, D);
             float spoEffect = smoothstep(cos(spotlight.angle), 1.0f, cosT);
+            
+            float4 lighting = spoEffect * spotlight.intensity * spotlight.color;
         
             float shadowFactor = 1;
             if (shadowMappingOn == 1)
-            { // ShadowMapping
+            { 
+                // ShadowMapping
                 float4 clipSpace = mul(pixelPosition, spotlight.vpmatrix); // -> Clip Space
                 float3 ndcSpace = (clipSpace.xyz / clipSpace.w); // -> NDC Space
         
@@ -102,9 +105,9 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
                 shadowFactor = (ndcSpace.z > shadowMapDepth) ? 0.0f : 1.0f;
             }
         
-            // Setting the diffuse and specular    
-            diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-            specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
+            // Adding diffuse and specular    
+            diffuse += lighting * shadowFactor  * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+            specular += lighting * shadowFactor * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
         
             if (spotlight.intensity > ambientStandard)
                 ambientStandard = spotlight.intensity;
@@ -114,6 +117,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         for (int j = 0; j < nrofDirLights; j++)
         {
             LightBuffer dirlight = DirLights[j];
+            float4 lighting = dirlight.intensity * dirlight.color;
+
         
             float3 L = normalize(dirlight.direction.xyz);
             float3 V = normalize(cameraPosition.xyz - pixelPosition.xyz);
@@ -135,8 +140,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
             if (dirlight.intensity > ambientStandard)
                 ambientStandard = dirlight.intensity;
         
-            diffuse += shadowFactor * dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-            specular += shadowFactor * dirlight.color * dirlight.intensity * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
+            diffuse += shadowFactor * lighting * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
+            specular += shadowFactor * lighting * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
         }
         // c_a = k_a * l_a
         float4 ambient = ambientStandard * float4(diffuseGBuffer[DTid.xy].xyz, 0);
@@ -168,19 +173,17 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
   
     return;
     
-    
-    
     /*
         * Ambient:  c_a = k_a * I_a 
         * Diffuse:  c_d = I * k_d * max(0, cos(a))
-        * Specular:                                                                       [eggshell  mirror]
+        * Specular:                                                                       [eggshell, mirror]
             * Phong:        c_s = I * k_s * pow(max(0, dot(n,l)), p)  // phong exp / shininess [ 100, 10000]
             * Blinn-Phong:  c_s = I * k_s * pow(max(0, dot(n,h)), p)
     
     
                                         cos(a) = dot(l,n)
         * Lambert's law:        I = max(0, dot(N,L))
-                                L_diff = albedo (diffuse tror jag) * lightcolor * I
+                                L_diff = albedo * lightcolor * I
                                 c_k = I * k_d * cos(a)^+
                                 c_k = I * k_d * max(0, cos(a))
         * Blinn-Phong Specular: pow(max(0, dot(N,H), shininess)
