@@ -113,15 +113,6 @@ private:
 	float rotation = 0.0f;
 	DirectX::XMFLOAT4X4 matrixArr[2] = {}; // World and ViewProjection matrices
 
-
-
-	//struct CameraBuffer
-	//{
-	//	XMFLOAT4X4 viewProjMatrix;
-	//	XMFLOAT3 cameraPosition;
-	//	float padding;
-	//};
-
 	void ClearBuffers();
 	void ShadowPass(Scene& scene, bool tessellate);
 	void GeometryPass(Scene& scene, bool tessellate);

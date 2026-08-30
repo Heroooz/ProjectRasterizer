@@ -103,8 +103,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     if (shadow)
         ShadowPass(scene, tessellation);
 
-    
-    // Drawing Particles
     if (ParticlesOn)
         DrawParticles(scene);
 
@@ -215,6 +213,7 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
+// Helper function for tessellation
 void Renderer::Tesselate(bool tessellation)
 {
     if (tessellation)
@@ -235,6 +234,7 @@ void Renderer::Tesselate(bool tessellation)
     }
 }
 
+// Helper function for drawing objects
 void Renderer::DrawObjects(Scene& scene, bool tessellation)
 {
     std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
@@ -320,21 +320,21 @@ void Renderer::ClearBuffers()
 
 void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
 {
-    // Dirlight SOl
+    // Dirlight
     LightData sun = {};
     sun.perLightInfo.initialPosition = { 0.0f, 2.0f, 0.0f };
     sun.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
-    sun.perLightInfo.intensity = 0.3f;
+    sun.perLightInfo.intensity = 0.2f;
     sun.perLightInfo.angle = XM_PI;
     sun.perLightInfo.isDir = true;
     sun.perLightInfo.rotationX = 0;
     sun.perLightInfo.rotationY = XM_PIDIV2;
 
-    // Spotlight Ficklampa
+    // Spotlights
     LightData red = {};
     red.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 2.0f };
-    red.perLightInfo.intensity = 0.5f;
+    red.perLightInfo.intensity = 0.6f;
     red.perLightInfo.angle = XM_PIDIV2;
     red.perLightInfo.rotationX = 0;
     red.perLightInfo.rotationY = 0;
@@ -370,15 +370,13 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 
     scene.AddLight(device.Get(), sun);
 
-    scene.AddLight(device.Get(), blue);
     scene.AddLight(device.Get(), red);
     scene.AddLight(device.Get(), green);
+    scene.AddLight(device.Get(), blue);
 
     // Loading in the lights
     scene.InitializeLight(device.Get());
 }
-
-
 
 void Renderer::LoadObjects(Scene& scene)
 {
@@ -388,9 +386,9 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
 
-    scene.AddObject(device.Get(), "Flashlight/", "FlashLight", { 0.2f, 3.0f, -15.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // red
-    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { -15.0f, 3.0f, 1.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // blue
-    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { 14.7f, 2.0f, -7.3f }, { 0.0f, XM_PI, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // green
+    scene.AddObject(device.Get(), "Flashlight/", "FlashLight", { 0.2f, 3.0f, -15.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);           // red
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { 14.7f, 2.0f, -7.3f }, { 0.0f, XM_PI, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);          // green
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { -15.0f, 3.0f, 1.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);      // blue
 
     scene.AddObject(device.Get(), "llama/", "illama", { -2.0f, 0.0f, -4.0f }, { 0.0f,0.0f,0.0f }, { 5.0f,5.0f,5.0f }, false);
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
@@ -422,6 +420,12 @@ void Renderer::InitializeParticles(Scene& scene)
 {
     scene.AddParticles(device.Get(), sizeof(ParticleData), 128, nullptr, false, true, true);
 }
+
+void Renderer::UpdateParticles(Scene& scene)
+{
+    scene.UpdateParticles(immediateContext.Get(), particleShaders[3].get());
+}
+
 
 
 bool Renderer::SetupDeviceAndSwapChain() {
@@ -501,10 +505,6 @@ bool Renderer::CreateUnorderedAccessView()
     return true;
 }
 
-void Renderer::UpdateParticles(Scene& scene)
-{
-    scene.UpdateParticles(immediateContext.Get(), particleShaders[3].get());
-}
 
 
 ID3D11Device* Renderer::GetDevice()
@@ -515,5 +515,3 @@ CameraD3D11& Renderer::GetCamera()
 {
     return this->camera;
 }
-
-
