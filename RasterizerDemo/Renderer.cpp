@@ -5,8 +5,7 @@ using namespace DirectX;
 Renderer::Renderer(Window& window, Scene& scene) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr),
                                      dsView(nullptr), viewport(), inputLayout(nullptr), 
                                      vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
-                                     renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
-                                     camera(), rotation(0.0f) {
+                                     renderTargetD3D11(), depthBufferD3D11(), camera() {
 
     if (!Renderer::Initialize(scene)) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -37,7 +36,7 @@ bool Renderer::Initialize(Scene& scene) {
 
 
     // G-Buffers
-    this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
+    this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());       // Positio
     this->normalBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->diffuseBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->renderingModeBuffer.Initialize(device.Get(), sizeof(this->renderingMode), &this->renderingMode);
@@ -318,6 +317,7 @@ void Renderer::ClearBuffers()
     immediateContext->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
 
+// Adding all the lights to the scene
 void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
 {
     // Dirlight
@@ -378,6 +378,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     scene.InitializeLight(device.Get());
 }
 
+// Loading in all the objects to the scene
 void Renderer::LoadObjects(Scene& scene)
 {
     scene.AddObject(device.Get(), "NOPCube/", "cube", { 0.0f, 10.0f, 0.0f }, { XM_PIDIV4, 0, XM_PIDIV4 }, { 0.7f, 0.7f, 0.7f }, false, false);

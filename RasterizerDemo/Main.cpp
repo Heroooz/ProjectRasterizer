@@ -107,38 +107,41 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			{
 				renderer.GetCamera().RotateUp(rotationspeed * deltatime);
 			}
-			if (GetKeyState('R') & 0x8000)
+			if (GetKeyState('R') & 0x8000 && wasPressed <= 0)
 			{
 				renderer.GetCamera().ResetUp();
-			}
-
-			if (GetKeyState('T') & 0x8000 && wasPressed <= 0)
-			{
-				shouldTesselate = !shouldTesselate;
-				wasPressed = 1.0f;
-			}
-			if (GetKeyState('X') & 0x8000 && wasPressed <= 0)
-			{
-				showWireFrame = !showWireFrame;
-				UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
-				wasPressed = 1.0f;
-
-			}
-			if (GetKeyState('O') & 0x8000 && wasPressed <= 0)
-			{
-				shadowOn = !shadowOn;
-				scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
-				wasPressed = 1.0f;
-			}
-			if (GetKeyState('P') & 0x8000 && wasPressed <= 0)
-			{
-				particlesOn = !particlesOn;
 				wasPressed = 1.0f;
 			}
 			if (GetKeyState('C') & 0x8000 && wasPressed <= 0)
 			{
 				renderer.PrintCoordinates();
+				wasPressed = 1.0f;
 			}
+			// Toggle Buttons
+			if (GetKeyState('T') & 0x8000 && wasPressed <= 0)	// Tessellation
+			{
+				shouldTesselate = !shouldTesselate;
+				wasPressed = 1.0f;
+			}
+			if (GetKeyState('X') & 0x8000 && wasPressed <= 0)	// Wireframe
+			{
+				showWireFrame = !showWireFrame;
+				UpdateRasterizerDesc(*device.GetAddressOf(), *immediateContext.GetAddressOf(), showWireFrame);
+				wasPressed = 1.0f;
+			}
+			if (GetKeyState('O') & 0x8000 && wasPressed <= 0)	// Shadows
+			{
+				shadowOn = !shadowOn;
+				scene->UpdateNrOfLigthsBuffer(immediateContext.Get(), shadowOn);
+				wasPressed = 1.0f;
+			}
+			if (GetKeyState('P') & 0x8000 && wasPressed <= 0)	// Particles
+			{
+				particlesOn = !particlesOn;
+				wasPressed = 1.0f;
+			}
+			// Switching rendering modes
+			// 1-6: Default, Position, Normal, Diffuse, Ambient, Specular
 			for (int i = 0; i < 6; i++)
 			{
 				if (GetKeyState('1' + i) & 0x8000 && wasPressed <= 0)
