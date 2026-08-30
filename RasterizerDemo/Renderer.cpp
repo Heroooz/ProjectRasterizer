@@ -110,6 +110,7 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+
     scene.GenerateDCEM(immediateContext.Get());
 
     GeometryPass(scene, tessellation);
@@ -118,12 +119,15 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     swapChain->Present(0, 0);
 }
 
+// Optional Shadow Pass
 void Renderer::ShadowPass(Scene& scene, bool tessellate)
 {
     immediateContext->PSSetShader(nullptr, nullptr, 0);
 
     immediateContext->HSSetShader(nullptr, nullptr, 0);
     immediateContext->DSSetShader(nullptr, nullptr, 0);
+
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     ID3D11DepthStencilView* dsv;
     // For each Spotlight
@@ -150,15 +154,12 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
 
         DrawObjects(scene, false);
-
-        //scene.DrawObjects(immediateContext.Get(), &camera, false);
-        //scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
     immediateContext->OMSetRenderTargets(0, nullptr, dsv);
 }
 
-
+// Pass 1 - Geometry Pass
 void Renderer::GeometryPass(Scene& scene, bool tessellation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
@@ -174,8 +175,44 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
     DrawObjects(scene, tessellation);
+}
 
-    //scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
+// Pass 2 - Light Pass
+void Renderer::LightPass(Scene& scene, bool shadow)
+{
+    immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
+    csShader->BindShader(immediateContext.Get());
+    pCamera = camera.GetConstantBuffer();
+    immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+    immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
+    immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
+
+    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
+    ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
+    ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
+    ComPtr<ID3D11ShaderResourceView> srvDirLight = scene.GetLightBufferSRV(true);
+
+    immediateContext->CSSetShaderResources(3, 1, srvSpotlightMap.GetAddressOf());
+    immediateContext->CSSetShaderResources(4, 1, srvDirLightMap.GetAddressOf());
+    immediateContext->CSSetShaderResources(5, 1, srvSpotlight.GetAddressOf());
+    immediateContext->CSSetShaderResources(6, 1, srvDirLight.GetAddressOf());
+
+
+    ID3D11Buffer* nrofLights = scene.GetnrofLightBuffer();
+    immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
+
+    // Dispatching threads to CS
+    UINT dispatchX = (window.GetWidth() + 7) / 8;
+    UINT dispatchY = (window.GetHeight() + 7) / 8;
+    immediateContext->Dispatch(dispatchX, dispatchY, 1);
+
+
+    // Unbinding
+    immediateContext->CSSetShaderResources(0, 3, srvNULL->GetAddressOf());
+    immediateContext->CSSetShaderResources(3, 3, srvNULL->GetAddressOf());
+    immediateContext->CSSetShaderResources(6, 1, srvNULL[0].GetAddressOf());
+    immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
+    immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
 void Renderer::Tesselate(bool tessellation)
@@ -214,43 +251,6 @@ void Renderer::DrawObjects(Scene& scene, bool tessellation)
     }
     Tesselate(tessellation);
     scene.DrawDCEM(immediateContext.Get());
-}
-
-void Renderer::LightPass(Scene& scene, bool shadow)
-{
-    immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
-    csShader->BindShader(immediateContext.Get());
-    pCamera = camera.GetConstantBuffer();
-    immediateContext->CSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-    immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
-    immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
-
-    ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
-    ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
-    ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
-    ComPtr<ID3D11ShaderResourceView> srvDirLight = scene.GetLightBufferSRV(true);
-
-    immediateContext->CSSetShaderResources(3, 1, srvSpotlightMap.GetAddressOf());
-    immediateContext->CSSetShaderResources(4, 1, srvDirLightMap.GetAddressOf());
-    immediateContext->CSSetShaderResources(5, 1, srvSpotlight.GetAddressOf());
-    immediateContext->CSSetShaderResources(6, 1, srvDirLight.GetAddressOf());
-
-
-    ID3D11Buffer* nrofLights = scene.GetnrofLightBuffer();
-    immediateContext->CSSetConstantBuffers(1, 1, &nrofLights);
-
-    // Dispatching threads to CS
-    UINT dispatchX = (window.GetWidth() + 7) / 8;
-    UINT dispatchY = (window.GetHeight() + 7) / 8;
-    immediateContext->Dispatch(dispatchX, dispatchY, 1);
-
-
-    // Unbinding
-    immediateContext->CSSetShaderResources(0, 3, srvNULL->GetAddressOf());
-    immediateContext->CSSetShaderResources(3, 3, srvNULL->GetAddressOf());
-    immediateContext->CSSetShaderResources(6, 1, srvNULL[0].GetAddressOf());
-    immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
-    immediateContext->CSSetShader(nullptr, nullptr, 0);
 }
 
 void Renderer::DrawParticles(Scene& scene)
@@ -324,7 +324,7 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
     LightData sun = {};
     sun.perLightInfo.initialPosition = { 0.0f, 2.0f, 0.0f };
     sun.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
-    sun.perLightInfo.intensity = 0.1f;
+    sun.perLightInfo.intensity = 0.3f;
     sun.perLightInfo.angle = XM_PI;
     sun.perLightInfo.isDir = true;
     sun.perLightInfo.rotationX = 0;

@@ -35,7 +35,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		// Toggles
 		bool shouldTesselate = true;
 		bool showWireFrame = false;
-		bool shadowOn = false;
+		bool shadowOn = true;
 		bool particlesOn = true;
 
 

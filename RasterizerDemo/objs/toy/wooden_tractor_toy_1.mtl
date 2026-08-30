@@ -10,7 +10,7 @@ newmtl wooden_tractor_toy_1
 	illum 2
 	Ka 0.5882 0.5882 0.5882
 	Kd 0.5882 0.5882 0.5882
-	Ks 0.0000 0.0000 0.0000
+	Ks 1.0000 1.0000 1.0000
 	Ke 0.0000 0.0000 0.0000
 	map_Ka wooden_tractor_toy_1_Albedo.jpg
 	map_Kd wooden_tractor_toy_1_Albedo.jpg

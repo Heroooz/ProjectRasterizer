@@ -63,9 +63,10 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float3 pixelNormal = normalGBuffer[DTid.xy].xyz; // Normal
     
         float ambientStandard = positionGBuffer[DTid.xy].a;
+        float specularCoef = normalGBuffer[DTid.xy].a;
+        float shininess = diffuseGBuffer[DTid.xy].a;
         float4 diffuse = float4(0, 0, 0, 0);
         float4 specular = float4(0, 0, 0, 0);
-        float specularKof = 100;
     
         /* Light Calculations using
             * Phong for diffuse 
@@ -103,7 +104,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         
             // Setting the diffuse and specular    
             diffuse += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-            specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
+            specular += spoEffect * shadowFactor * spotlight.intensity * spotlight.color * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
         
             if (spotlight.intensity > ambientStandard)
                 ambientStandard = spotlight.intensity;
@@ -135,13 +136,14 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
                 ambientStandard = dirlight.intensity;
         
             diffuse += shadowFactor * dirlight.intensity * dirlight.color * float4(diffuseGBuffer[DTid.xy].xyz, 0) * saturate(T);
-            specular += shadowFactor * dirlight.color * dirlight.intensity * normalGBuffer[DTid.xy].a * pow(saturate(S), specularKof); // * float4(1, 1, 1, 0);
+            specular += shadowFactor * dirlight.color * dirlight.intensity * specularCoef * pow(saturate(S), shininess); // * float4(1, 1, 1, 0);
         }
         // c_a = k_a * l_a
         float4 ambient = ambientStandard * float4(diffuseGBuffer[DTid.xy].xyz, 0);
 
         backBufferUAV[DTid.xy] = ambient + diffuse + specular;
     }
+    
     else if (renderingMode == renderingModePosition)
     {
         backBufferUAV[DTid.xy] = normalize(positionGBuffer[DTid.xy]);
