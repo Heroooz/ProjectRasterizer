@@ -52,5 +52,3 @@ The particles are placed above the house, comming from the chimney. Can be toggl
 
 Normal Mapping / Parallax Occlusion Mapping
 These techniques can be viewed on the cube above the fountain. By swapping rendering modes between standard ('1'), normal ('3'), and diffuse ('4'), you can clearly see the techiques working.
-
-..\x64\Debug\ProjectRasterizer.exe
