@@ -21,7 +21,13 @@ PixelShaderOutput main(PixelShaderInput input)
     
     psout.position = input.pos;
     psout.normal = input.normal;
-    psout.color = particleTexture.Sample(particleSampler, input.uv);
+    float4 color = particleTexture.Sample(particleSampler, input.uv);
+    
+    if (color.r == 0 && color.g == 0 && color.b == 0)
+    {
+        discard;
+    };
+    psout.color = color;
     
     return psout;
 }

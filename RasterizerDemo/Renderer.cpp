@@ -166,8 +166,8 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     psShader[0]->BindShader(immediateContext.Get());
 
     // For Switching camera view :)
-    //pCamera = scene.GetShadowCamera(0, true);
     pCamera = camera.GetConstantBuffer();
+    //pCamera = scene.GetShadowCamera(0);
     immediateContext->VSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
@@ -413,8 +413,6 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddObject(device.Get(), "Duck/", "rubberduckie", { -2.0f, 0.0f, -2.0f }, { 0.0f, XM_PI, 0.0f }, { 0.2f, 0.2f, 0.2f }, false, false);
 
     scene.AddObject(device.Get(), "SimpleObjects/", "plane1", { 0.0f,-0.12f,0.0f }, { 0.0f ,0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
-    //scene.AddObject(device.Get(), "SimpleObjects/", "reverse_cube", { 0.0f, 0.0f ,0.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);
-
 }
 
 void Renderer::InitializeParticles(Scene& scene)
