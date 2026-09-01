@@ -20,8 +20,6 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 	this->mesh = new MeshD3D11(device, folderPath, objFile);
 
 	DirectX::BoundingBox meshbb = this->mesh->GetBoundingBox();
-	//meshbb.Center = XMFLOAT3(this->center.centerPosition.x, this->center.centerPosition.y, this->center.centerPosition.z);
-	//meshbb.Extents = XMFLOAT3(meshbb.Extents.x * this->updateInf.scale.x, meshbb.Extents.y * this->updateInf.scale.y, meshbb.Extents.z * this->updateInf.scale.z);
 
 	this->boundingbox.Center = position;
 	this->boundingbox.Extents = { meshbb.Extents.x * scale.x, meshbb.Extents.y * scale.y, meshbb.Extents.z * scale.z };
@@ -42,8 +40,6 @@ void Objects::Initialize(ID3D11Device* device, const std::string folderPath, con
 	{
 		this->isStatic = false;
 	}
-
-	//XMMATRIX world = XMMatrixScaling(1, 1, 1) * XMMatrixRotationRollPitchYaw(0, 0, 0) * XMMatrixTranslation(1, 1, 10);
 
 	XMFLOAT4X4 world4x4T;
 	XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
@@ -92,13 +88,6 @@ void Objects::drawObject(ID3D11DeviceContext* context) const
 	}
 }
 
-DirectX::BoundingBox Objects::GetBoundingBox() const 
-{ 
-	//DirectX::BoundingBox meshbb = this->mesh->GetBoundingBox();
-	//meshbb.Center = XMFLOAT3(this->center.centerPosition.x, this->center.centerPosition.y, this->center.centerPosition.z);
-	//meshbb.Extents = XMFLOAT3(meshbb.Extents.x * this->updateInf.scale.x, meshbb.Extents.y * this->updateInf.scale.y, meshbb.Extents.z * this->updateInf.scale.z);
-	//
-	return this->boundingbox; 
-}
+DirectX::BoundingBox Objects::GetBoundingBox() const { return this->boundingbox; }
 
 ID3D11Buffer* Objects::GetCenterBuffer() const { return this->centerBuffer.GetBuffer(); }

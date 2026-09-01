@@ -5,8 +5,7 @@ using namespace DirectX;
 Renderer::Renderer(Window& window, Scene& scene) : window(window), device(nullptr), immediateContext(nullptr), swapChain(nullptr), rtv(nullptr),
                                      dsView(nullptr), viewport(), inputLayout(nullptr), 
                                      vsConstantBuffer(nullptr), psConstantBuffer(nullptr), texture(nullptr), srv(nullptr), samplerState(nullptr), 
-                                     renderTargetD3D11(), depthBufferD3D11(), vsConstantBufferD3D11(), psConstantBufferD3D11(),
-                                     camera(), rotation(0.0f) {
+                                     renderTargetD3D11(), depthBufferD3D11(), camera() {
 
     if (!Renderer::Initialize(scene)) {
         std::cerr << "Failed to initialize renderer!" << std::endl;
@@ -37,7 +36,7 @@ bool Renderer::Initialize(Scene& scene) {
 
 
     // G-Buffers
-    this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
+    this->positionBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());       // Positio
     this->normalBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->diffuseBuffer.Initialize(device.Get(), window.GetWidth(), window.GetHeight());
     this->renderingModeBuffer.Initialize(device.Get(), sizeof(this->renderingMode), &this->renderingMode);
@@ -103,12 +102,11 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     if (shadow)
         ShadowPass(scene, tessellation);
 
-    
-    // Drawing Particles
     if (ParticlesOn)
         DrawParticles(scene);
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 
     scene.GenerateDCEM(immediateContext.Get());
 
@@ -118,12 +116,15 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     swapChain->Present(0, 0);
 }
 
+// Optional Shadow Pass
 void Renderer::ShadowPass(Scene& scene, bool tessellate)
 {
     immediateContext->PSSetShader(nullptr, nullptr, 0);
 
     immediateContext->HSSetShader(nullptr, nullptr, 0);
     immediateContext->DSSetShader(nullptr, nullptr, 0);
+
+    immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     ID3D11DepthStencilView* dsv;
     // For each Spotlight
@@ -150,15 +151,12 @@ void Renderer::ShadowPass(Scene& scene, bool tessellate)
         immediateContext->VSSetConstantBuffers(0, 1, pShadowCam.GetAddressOf());
 
         DrawObjects(scene, false);
-
-        //scene.DrawObjects(immediateContext.Get(), &camera, false);
-        //scene.DrawDCEM(immediateContext.Get());
     }
     dsv = nullptr;
     immediateContext->OMSetRenderTargets(0, nullptr, dsv);
 }
 
-
+// Pass 1 - Geometry Pass
 void Renderer::GeometryPass(Scene& scene, bool tessellation)
 {
     immediateContext->OMSetRenderTargets(3, rtvArr->GetAddressOf(), dsView.Get());
@@ -174,48 +172,9 @@ void Renderer::GeometryPass(Scene& scene, bool tessellation)
     immediateContext->PSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
 
     DrawObjects(scene, tessellation);
-
-    //scene.DrawObjects(immediateContext.Get(), &camera, tessellation);
 }
 
-void Renderer::Tesselate(bool tessellation)
-{
-    if (tessellation)
-    {
-        hullShader->BindShader(immediateContext.Get());
-        domainShader->BindShader(immediateContext.Get());
-
-        immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-        immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
-
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-    }
-    else
-    {
-        immediateContext->HSSetShader(nullptr, nullptr, 0);
-        immediateContext->DSSetShader(nullptr, nullptr, 0);
-        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    }
-}
-
-void Renderer::DrawObjects(Scene& scene, bool tessellation)
-{
-    std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
-
-    for (auto& obj : visibleObjects)
-    {
-        Tesselate(tessellation && obj->shouldTessellate);
-        if (tessellation && obj->shouldTessellate)
-        {
-            ID3D11Buffer* pCenter = obj->GetCenterBuffer();
-            immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
-        }
-        obj->drawObject(immediateContext.Get());
-    }
-    Tesselate(tessellation);
-    scene.DrawDCEM(immediateContext.Get());
-}
-
+// Pass 2 - Light Pass
 void Renderer::LightPass(Scene& scene, bool shadow)
 {
     immediateContext->OMSetRenderTargets(0, nullptr, dsView.Get());
@@ -251,6 +210,46 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShaderResources(6, 1, srvNULL[0].GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uavNULL.GetAddressOf(), nullptr);
     immediateContext->CSSetShader(nullptr, nullptr, 0);
+}
+
+// Helper function for tessellation
+void Renderer::Tesselate(bool tessellation)
+{
+    if (tessellation)
+    {
+        hullShader->BindShader(immediateContext.Get());
+        domainShader->BindShader(immediateContext.Get());
+
+        immediateContext->HSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+        immediateContext->DSSetConstantBuffers(0, 1, pCamera.GetAddressOf());
+
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+    }
+    else
+    {
+        immediateContext->HSSetShader(nullptr, nullptr, 0);
+        immediateContext->DSSetShader(nullptr, nullptr, 0);
+        immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    }
+}
+
+// Helper function for drawing objects
+void Renderer::DrawObjects(Scene& scene, bool tessellation)
+{
+    std::vector<const Objects*> visibleObjects = scene.GetVisibleObjects(&camera);
+
+    for (auto& obj : visibleObjects)
+    {
+        Tesselate(tessellation && obj->shouldTessellate);
+        if (tessellation && obj->shouldTessellate)
+        {
+            ID3D11Buffer* pCenter = obj->GetCenterBuffer();
+            immediateContext->HSSetConstantBuffers(1, 1, &pCenter);
+        }
+        obj->drawObject(immediateContext.Get());
+    }
+    Tesselate(tessellation);
+    scene.DrawDCEM(immediateContext.Get());
 }
 
 void Renderer::DrawParticles(Scene& scene)
@@ -318,23 +317,24 @@ void Renderer::ClearBuffers()
     immediateContext->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1, 0);
 }
 
+// Adding all the lights to the scene
 void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene) 
 {
-    // Dirlight SOl
+    // Dirlight
     LightData sun = {};
     sun.perLightInfo.initialPosition = { 0.0f, 2.0f, 0.0f };
     sun.perLightInfo.color = { 1.0f,1.0f,1.0f,1.0f };
-    sun.perLightInfo.intensity = 0.1f;
+    sun.perLightInfo.intensity = 0.2f;
     sun.perLightInfo.angle = XM_PI;
     sun.perLightInfo.isDir = true;
     sun.perLightInfo.rotationX = 0;
     sun.perLightInfo.rotationY = XM_PIDIV2;
 
-    // Spotlight Ficklampa
+    // Spotlights
     LightData red = {};
     red.perLightInfo.initialPosition = { 0.4f, 3.5f, -11.4f };
     red.perLightInfo.color = { 1.0f, 0.0f, 0.0f, 2.0f };
-    red.perLightInfo.intensity = 0.5f;
+    red.perLightInfo.intensity = 0.6f;
     red.perLightInfo.angle = XM_PIDIV2;
     red.perLightInfo.rotationX = 0;
     red.perLightInfo.rotationY = 0;
@@ -370,16 +370,15 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 
     scene.AddLight(device.Get(), sun);
 
-    scene.AddLight(device.Get(), blue);
     scene.AddLight(device.Get(), red);
     scene.AddLight(device.Get(), green);
+    scene.AddLight(device.Get(), blue);
 
     // Loading in the lights
     scene.InitializeLight(device.Get());
 }
 
-
-
+// Loading in all the objects to the scene
 void Renderer::LoadObjects(Scene& scene)
 {
     scene.AddObject(device.Get(), "NOPCube/", "cube", { 0.0f, 10.0f, 0.0f }, { XM_PIDIV4, 0, XM_PIDIV4 }, { 0.7f, 0.7f, 0.7f }, false, false);
@@ -388,9 +387,9 @@ void Renderer::LoadObjects(Scene& scene)
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
 
-    scene.AddObject(device.Get(), "Flashlight/", "FlashLight", { 0.2f, 3.0f, -15.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // red
-    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { -15.0f, 3.0f, 1.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // blue
-    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { 14.7f, 2.0f, -7.3f }, { 0.0f, XM_PI, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);    // green
+    scene.AddObject(device.Get(), "Flashlight/", "FlashLight", { 0.2f, 3.0f, -15.0f }, { 0.0f, 0.0f, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);           // red
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { 14.7f, 2.0f, -7.3f }, { 0.0f, XM_PI, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);          // green
+    scene.AddObject(device.Get(), "Flashlight/", "Flashlight", { -15.0f, 3.0f, 1.0f }, { 0.0f, XM_PIDIV2, 0.0f }, { 50.0f, 50.0f, 50.0f }, false);      // blue
 
     scene.AddObject(device.Get(), "llama/", "illama", { -2.0f, 0.0f, -4.0f }, { 0.0f,0.0f,0.0f }, { 5.0f,5.0f,5.0f }, false);
     scene.AddObject(device.Get(), "house_obj/", "house", { 13.0f, 0.0f, 4.0f }, { 0.0f, XM_PI, 0.0f }, { 2.0f, 2.0f, 2.0f }, false);
@@ -422,6 +421,12 @@ void Renderer::InitializeParticles(Scene& scene)
 {
     scene.AddParticles(device.Get(), sizeof(ParticleData), 128, nullptr, false, true, true);
 }
+
+void Renderer::UpdateParticles(Scene& scene)
+{
+    scene.UpdateParticles(immediateContext.Get(), particleShaders[3].get());
+}
+
 
 
 bool Renderer::SetupDeviceAndSwapChain() {
@@ -501,10 +506,6 @@ bool Renderer::CreateUnorderedAccessView()
     return true;
 }
 
-void Renderer::UpdateParticles(Scene& scene)
-{
-    scene.UpdateParticles(immediateContext.Get(), particleShaders[3].get());
-}
 
 
 ID3D11Device* Renderer::GetDevice()
@@ -515,5 +516,3 @@ CameraD3D11& Renderer::GetCamera()
 {
     return this->camera;
 }
-
-

@@ -35,7 +35,4 @@ void SamplerD3D11::Initialize(ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE a
 
 }
 
-ID3D11SamplerState* SamplerD3D11::GetSamplerState() const
-{
-    return this->sampler.Get();
-}
+ID3D11SamplerState* SamplerD3D11::GetSamplerState() const { return this->sampler.Get(); }

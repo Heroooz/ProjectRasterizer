@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Transform.h"
 #include "Objects.h"
 #include "Light.h"
 #include "DCEM.h"
@@ -36,12 +35,12 @@ public:
 	Scene();
 	~Scene();
 
-	//void Initialize();
-
-	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, bool shoudtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
+	void AddObject(ID3D11Device* device, const std::string folderPath, const std::string objFile, XMFLOAT3 position, XMFLOAT3 rotation, XMFLOAT3 scale, 
+		bool shoudtessellate = true, bool isStatic = true, float angle = 1.0f, bool SRT = true);
 	void AddLight(ID3D11Device* device, LightData data);
-	void AddDCEM(ID3D11Device* device, XMFLOAT3 position, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS);
-	void AddParticles(ID3D11Device* device, UINT sizeOfElement, UINT nrOfElementsInBuffer,
+	void AddDCEM(ID3D11Device* device, XMFLOAT3 position, XMFLOAT3 scale, UINT width, UINT height, std::unique_ptr<ShaderD3D11>& DCEMPS, 
+		std::unique_ptr<ShaderD3D11>& normalPS, std::unique_ptr<ShaderD3D11>& DCEMCapturePS);
+	void AddParticles(ID3D11Device* device, UINT sizeOfElement, UINT nrOfElementsInBuffer, 
 		void* bufferData = nullptr, bool dynamic = true, bool hasSRV = false, bool hasUAV = false);
 
 
@@ -51,11 +50,8 @@ public:
 
 	void UpdateParticles(ID3D11DeviceContext* context, ShaderD3D11* pcs);
 
-	void DrawScene(ID3D11DeviceContext* context, bool tessellate);
-	void DrawObjects(ID3D11DeviceContext* context, CameraD3D11* camera, bool tesselate);
 	void GenerateDCEM(ID3D11DeviceContext* context);
 	void DrawDCEM(ID3D11DeviceContext* context);
-	void RemoveObjectFromScene(int index);
 
 	void DrawTree();
 

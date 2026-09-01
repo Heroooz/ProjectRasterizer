@@ -33,7 +33,7 @@ struct PSOutPut
 {
     float4 position : SV_Target0;       // Position (XYZ) + Ambient Factor (W)
     float4 normal   : SV_Target1;       // Normal (XYZ) + Specualr Factor (W)
-    float4 diffuse  : SV_Target2;       // Diffuse (XYZ)
+    float4 diffuse  : SV_Target2;       // Diffuse (XYZ) + Shininess (W)
 };
 
 struct PSInput
@@ -56,7 +56,7 @@ PSOutPut main(PSInput input)
     // Standard Normal
     float3 normal = normalize(input.normal);
     float ambient = defAmb * (ambientFactor.x + ambientFactor.y + ambientFactor. z) / 3;
-    float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3 * shininess;
+    float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3;
     float4 diffuse = float4(diffuseFactor, 1);
 
     // Calculating normal map and parallaxing
@@ -114,8 +114,8 @@ PSOutPut main(PSInput input)
     
     PSOutPut output;
     output.position = float4(input.worldPosition.xyz, ambient); // Position XYZ + Ambient W
-    output.normal = float4(normal, specular); // Normal XYZ + Specular W
-    output.diffuse = diffuse; 
+    output.normal = float4(normal, specular);                   // Normal XYZ + Specular W
+    output.diffuse = float4(diffuse.xyz, shininess);            // Diffuse XYZ + Shininess W
     return output;
 };
 

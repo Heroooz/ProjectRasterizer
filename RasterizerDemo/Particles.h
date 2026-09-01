@@ -38,5 +38,4 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 	ID3D11UnorderedAccessView* GetUAV();
 	ID3D11Buffer* GetParticlesBuffer();
-	//void Update(ID3D11DeviceContext* immediateContext, float deltatime);
 };

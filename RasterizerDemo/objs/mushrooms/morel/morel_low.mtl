@@ -10,7 +10,7 @@ newmtl morel
 	illum 2
 	Ka 0.0000 0.0000 0.0000
 	Kd 0.5882 0.5882 0.5882
-	Ks 0.0900 0.0900 0.0900
+	Ks 0.2000 0.2000 0.2000
 	Ke 0.0000 0.0000 0.0000
 	map_Ka morel_color.tif
 	map_Kd morel_color.tif

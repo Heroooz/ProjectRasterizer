@@ -19,7 +19,6 @@
 class MeshD3D11
 {
 
-
 private:
 	std::vector<SubMeshD3D11> subMeshes;
 	VertexBufferD3D11 vertexBuffer;
@@ -28,7 +27,7 @@ private:
 
 	std::string filePath = "objs/";
 
-	void CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
+	//void CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
 	ComPtr<ID3D11ShaderResourceView> CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path);
 
 public:
@@ -50,7 +49,5 @@ public:
 	ID3D11ShaderResourceView* GetDiffuseSRV(size_t subMeshIndex) const;
 	ID3D11ShaderResourceView* GetSpecularSRV(size_t subMeshIndex) const;
 
-	//VertexBufferD3D11 getVertexBuffer() const;
-	//IndexBufferD3D11 getIndexBuffer() const;
 	DirectX::BoundingBox GetBoundingBox() const;
 };

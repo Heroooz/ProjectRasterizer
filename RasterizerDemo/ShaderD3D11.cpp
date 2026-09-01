@@ -26,11 +26,6 @@ ShaderD3D11::~ShaderD3D11()
 	default:
 		break;
 	}
-
-	//if (this->shaderBlob)
-	//{
-	//	this->shaderBlob->Release();
-	//}
 }
 
 ShaderD3D11::ShaderD3D11(ID3D11Device* device, ShaderType shaderType, const void* dataPtr, size_t dataSize) : type(shaderType)
@@ -108,17 +103,9 @@ void ShaderD3D11::Initialize(ID3D11Device* device, ShaderType shaderType, const 
 }
 
 
-const void* ShaderD3D11::GetShaderByteData() const
-{
-	return this->shaderData.data();
-	//return this->shaderBlob->GetBufferPointer();
-}
+const void* ShaderD3D11::GetShaderByteData() const { return this->shaderData.data(); }
 
-size_t ShaderD3D11::GetShaderByteSize() const
-{
-	return this->shaderData.size();
-	//return this->shaderBlob->GetBufferSize();
-}
+size_t ShaderD3D11::GetShaderByteSize() const { return this->shaderData.size(); }
 
 void ShaderD3D11::BindShader(ID3D11DeviceContext* context) const
 {
