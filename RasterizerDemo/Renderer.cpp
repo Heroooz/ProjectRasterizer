@@ -78,6 +78,7 @@ bool Renderer::Initialize(Scene& scene) {
 
 void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool ParticlesOn) {
 
+	// Updating the rendering mode constant buffer if it has changed [1,2,3,4,5,6]
     if (scene.GetRenderingMode() != this->renderingMode.mode) {
         this->renderingMode.mode = scene.GetRenderingMode();
         this->renderingModeBuffer.UpdateBuffer(this->immediateContext.Get(), &this->renderingMode);
@@ -91,11 +92,9 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
     //scene.DrawTree();
 
 
-    immediateContext->IASetInputLayout(inputLayout->GetInputLayout());
-    static UINT stride = sizeof(SimpleVertex);
-    static UINT offset = 0;
+    immediateContext->IASetInputLayout(inputLayout->GetInputLayout()); // Position, Normal, UV (Texcoord)
 
-    immediateContext->RSSetViewports(1, &viewport);
+	immediateContext->RSSetViewports(1, &viewport); // RasterizerState viewport
 	vsShader->BindShader(immediateContext.Get());
     psShader[0]->BindShader(immediateContext.Get());
    
@@ -106,7 +105,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
         DrawParticles(scene);
 
     immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
     scene.GenerateDCEM(immediateContext.Get());
 
@@ -120,7 +118,6 @@ void Renderer::Render(Scene& scene, bool tessellation, bool shadow, bool Particl
 void Renderer::ShadowPass(Scene& scene, bool tessellate)
 {
     immediateContext->PSSetShader(nullptr, nullptr, 0);
-
     immediateContext->HSSetShader(nullptr, nullptr, 0);
     immediateContext->DSSetShader(nullptr, nullptr, 0);
 
@@ -184,6 +181,7 @@ void Renderer::LightPass(Scene& scene, bool shadow)
     immediateContext->CSSetShaderResources(0, 3, srvArr->GetAddressOf());
     immediateContext->CSSetUnorderedAccessViews(0, 1, uav.GetAddressOf(), nullptr);
 
+	// Setup for the lights and shadow maps
     ComPtr<ID3D11ShaderResourceView> srvSpotlightMap = scene.GetShadowMapSRV();
     ComPtr<ID3D11ShaderResourceView> srvDirLightMap = scene.GetShadowMapSRV(true);
     ComPtr<ID3D11ShaderResourceView> srvSpotlight = scene.GetLightBufferSRV();
@@ -213,7 +211,7 @@ void Renderer::LightPass(Scene& scene, bool shadow)
 }
 
 // Helper function for tessellation
-void Renderer::Tesselate(bool tessellation)
+void Renderer::Tessellate(bool tessellation)
 {
     if (tessellation)
     {
@@ -240,7 +238,7 @@ void Renderer::DrawObjects(Scene& scene, bool tessellation)
 
     for (auto& obj : visibleObjects)
     {
-        Tesselate(tessellation && obj->shouldTessellate);
+        Tessellate(tessellation && obj->shouldTessellate);
         if (tessellation && obj->shouldTessellate)
         {
             ID3D11Buffer* pCenter = obj->GetCenterBuffer();
@@ -248,7 +246,7 @@ void Renderer::DrawObjects(Scene& scene, bool tessellation)
         }
         obj->drawObject(immediateContext.Get());
     }
-    Tesselate(tessellation);
+    Tessellate(tessellation);
     scene.DrawDCEM(immediateContext.Get());
 }
 
@@ -504,12 +502,11 @@ bool Renderer::CreateUnorderedAccessView()
     return true;
 }
 
-
-
 ID3D11Device* Renderer::GetDevice()
 {
     return this->device.Get();
 }
+
 CameraD3D11& Renderer::GetCamera()
 {
     return this->camera;

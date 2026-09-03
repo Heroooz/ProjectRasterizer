@@ -100,7 +100,7 @@ private:
 	void GeometryPass(Scene& scene, bool tessellate);
 	void LightPass(Scene& scene, bool shadow);
 
-	void Tesselate(bool tesselation);
+	void Tessellate(bool tesselation);
 	void DrawParticles(Scene& scene);
 	void DrawObjects(Scene& scene, bool tessellation);
 

@@ -23,9 +23,9 @@ PixelShaderOutput main(PixelShaderInput input)
     psout.normal = input.normal;
     float4 color = particleTexture.Sample(particleSampler, input.uv);
     
-    if (color.r == 0 && color.g == 0 && color.b == 0)
+    if (color.a <= 0.05f)
     {
-        discard;
+        discard; // Discard the pixel if transparency is below threshold
     };
     psout.color = color;
     

@@ -46,7 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		float rotationspeed = 2.0f;
 
 		// Get initial mouse position (center of the screen)
-		//ShowCursor(FALSE);
+		ShowCursor(FALSE);
 		POINT center;
 		center.x = WIDTH / 2;
 		center.y = HEIGHT / 2;
@@ -54,7 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		SetCursorPos(center.x, center.y);
 
 		POINT lastMousePos = center;
-		float sensitivity = 0.01f; // Adjust after prefrenc
+		float sensitivity = 0.003f; // Adjust after prefrenc
 
 		float wasPressed = 0.0f;
 
@@ -162,7 +162,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			renderer.GetCamera().UpdateInternalConstantBuffer(immediateContext.Get());
 
 			// Mouse panning-movement
-			/*POINT currentPos;
+			POINT currentPos;
 			GetCursorPos(&currentPos);
 
 			float dx = static_cast<float>(currentPos.x - lastMousePos.x);
@@ -172,7 +172,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 			SetCursorPos(center.x, center.y);
 			lastMousePos = center;
-			*/
+			
 
 			renderer.Render(*scene, shouldTesselate, shadowOn, particlesOn);
 		} 

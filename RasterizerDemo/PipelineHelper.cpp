@@ -48,6 +48,7 @@ bool CreateInputLayout(ComPtr<ID3D11Device> device, std::unique_ptr<InputLayoutD
 	return true;
 }
 
+/*
 bool CreateTexture(ComPtr<ID3D11Device> device, const char* filename, int x, int y, int comp,
 	ComPtr<ID3D11Texture2D>& texture, ComPtr<ID3D11ShaderResourceView>& srv) {
 	stbi__vertically_flip_on_load = true;
@@ -88,6 +89,7 @@ bool CreateTexture(ComPtr<ID3D11Device> device, const char* filename, int x, int
 	stbi_image_free(textureData);
 	return true;
 }
+*/
 
 bool CreateSamplerState(ComPtr<ID3D11Device> device, std::unique_ptr<SamplerD3D11>& samplerState, std::unique_ptr<SamplerD3D11>& shadowSampler)
 {
@@ -132,10 +134,10 @@ bool SetupPipeline(ComPtr<ID3D11Device> device, std::unique_ptr<ShaderD3D11>& vS
 		return false;
 	}
 
-	if (!CreateTexture(device, "texture.jpg", 900, 600, 0, texture, srv)) {
-		std::cerr << "Error creating texture!" << std::endl;
-		return false;
-	}
+	//if (!CreateTexture(device, "texture.jpg", 900, 600, 0, texture, srv)) {
+	//	std::cerr << "Error creating texture!" << std::endl;
+	//	return false;
+	//}
 
 	if (!CreateSamplerState(device, samplerState, shadowSampler)) {
 		std::cerr << "Error creating sampler!" << std::endl;

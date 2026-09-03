@@ -45,32 +45,17 @@ struct DCEMPSInput
 static const float defAmb = 1.0;
 DCEMPSOutput main(DCEMPSInput input)
 {
-    float2 uv = input.uv;
-    //uv.y = -uv.y;
+    DCEMPSOutput output;
     
     float3 normal = normalize(input.normal);
     
-    DCEMPSOutput output;
+    float3 viewDir = normalize(cameraPosition.xyz - input.worldPosition.xyz); // View direction from the camera to the fragment
+    float3 samplevec = normalize(reflect(-viewDir, normalize(input.normal.xyz))); // Reflect the view direction around the normal to get the reflection vector
+    float3 reflection = reflectionTexture.Sample(samplerState, samplevec).rgb; // Sample the texture using the vector to get the color
     
-    float3 viewDir = normalize(cameraPosition.xyz - input.worldPosition.xyz);
-    float3 samplevec = normalize(reflect(-viewDir, normalize(input.normal.xyz)));
-
-    float3 reflection = reflectionTexture.Sample(samplerState, samplevec).rgb;
     float ambient = (reflection.r + reflection.g + reflection.b) / 3.0f;
-    if (hasAmbientTexture == 1)
-    {
-        ambient *= ambientTexture.Sample(samplerState, uv).r;
-    }
-    
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3;
-    if (hasSpecularTexture == 1)
-        specular *= specularTexture.Sample(samplerState, uv).r;
-    
-    float4 diffuse = float4(diffuseFactor, 1.0f);
-    if (hasDiffuseTexture == 1)
-        diffuse *= float4(diffuseTexture.Sample(samplerState, uv));
-    else
-        diffuse *= float4(reflection, 1.0f);
+    float4 diffuse = float4(diffuseFactor, 1.0f) * float4(reflection, 1.0f);
     
     output.position = float4(input.worldPosition.xyz, ambient);
     output.normal = float4(normal, specular);

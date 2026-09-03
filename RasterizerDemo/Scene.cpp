@@ -94,7 +94,7 @@ void Scene::UpdateParticles(ID3D11DeviceContext* immediateContext, ShaderD3D11* 
 	immediateContext->CSSetUnorderedAccessViews(0, 1, &puav, nullptr);
 
 	// Dispath to CS
-	immediateContext->Dispatch(std::ceil(nrofParticles / 32), 1, 1);
+	immediateContext->Dispatch((UINT)std::ceil((double)nrofParticles / 32.0), 1, 1);
 
 	// Unbind
 	ID3D11UnorderedAccessView* uavNULL = nullptr;
@@ -174,8 +174,6 @@ std::vector<const Objects*> Scene::GetVisibleObjects(CameraD3D11* camera)
 	BoundingFrustum::CreateFromMatrix(frustum, camera->GetProjectionMatrix());
 	XMMATRIX inverseView = XMMatrixInverse(nullptr, camera->GetViewMatrix());
 	frustum.Transform(frustum, inverseView);
-
-	frustum.Far = 20.0f;
 
 	return quadtree.CheckTree(frustum);
 }

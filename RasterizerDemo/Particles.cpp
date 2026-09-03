@@ -65,14 +65,10 @@ void Particles::Initialize(ID3D11Device* device, UINT sizeOfElement,
 		float dist = float(rand() % 50) + 3.0f;			// distance to travel
 
 
-		particledata.position = particledata.startPos = { px,7.0f,pz };
-
+		particledata.position = particledata.startPos = { px, 7.0f, pz };
 		particledata.dir = { ax, 1.0f, ay };
-
-
 		particledata.speed = speed;
 		particledata.dist = dist;
-
 
 		particles.push_back(particledata);
 	}

@@ -51,10 +51,10 @@ struct HullShaderOutput
 
 
 [domain("tri")]
-[partitioning("fractional_odd")]
-[outputtopology("triangle_cw")]
-[outputcontrolpoints(3)]
-[patchconstantfunc("CalcHSPatchConstants")]
+[partitioning("fractional_odd")] // Fractional odd tessellation partitioning
+[outputtopology("triangle_cw")] // Clockwise winding order for the output triangles
+[outputcontrolpoints(3)] 
+[patchconstantfunc("CalcHSPatchConstants")] // Function to calculate tessellation factors for the patch
 
 HullShaderOutput main(
  InputPatch<VertexShaderOutput, NUM_CONTROL_POINTS> ip,

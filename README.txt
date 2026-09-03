@@ -1,29 +1,35 @@
-3D Project made by 
-Emma Oliv
-Felix Ortner
+---------------------------------
+-   				-
+-   	3D Project made by 	-
+-   	Emma Oliv		-
+-   	Felix Ortner		-
+-   				-
+---------------------------------
 
-Key Binds:
-WASD - Move around
-SPACE / CRTL - Up / Down
-ARROWS - Look around
-
-Toggle on/off:
-P - Particles
-T - Tesselation
-X - Wireframe
-O - Shadows
-C - (Printing coordinates to the terminal)
-
-Rendering modes:
-1 - Standard
-2 - Position G-buffer
-3 - Normal G-buffer
-4 - Diffuse G-buffer
-5 - Ambient
-6 - Specular
-
-Run .bat to run the project.
-
+ Key Binds:
+ WASD - Move Around
+ SPACE / CRTL - Up / Down
+ ARROWS - Look Around
+ MOUSE - Look Around
+ 
+ Toggle on/off:
+ P - Particles
+ T - Tesselation
+ X - Wireframe
+ O - Shadows
+ C - (Printing coordinates to the terminal)
+ 
+ Rendering modes:
+ 1 - Standard
+ 2 - Position G-buffer
+ 3 - Normal G-buffer
+ 4 - Diffuse G-buffer
+ 5 - Ambient
+ 6 - Specular
+ 
+ Run .bat to run the project.
+ 
+---------------------------------
 
 Deferred Rendering
 All the objects in the scene are rendered using deferred rendering, using DeferredPS.hlsl and ComputeShader.hlsl.
@@ -42,10 +48,9 @@ You can see this technique by observing the ico-sphears in the scene.
 
 Frustum Culling / Quadtree
 The frustum culling can be seen by going forward (from the start-position) and seeing the shadows disappear. It can also be seen by uncommenting row 170 (and commenting out row 169)in renderer.cpp (
-169    pCamera = camera.GetConstantBuffer();
-170    //pCamera = scene.GetShadowCamera(0);
+166    pCamera = camera.GetConstantBuffer();
+167    //pCamera = scene.GetShadowCamera(0);
 ) and move around while viewing it from another angle. It can be difficult to pin point your exact location, but the culling is clearly visible.
-
 
 Billboarded Particles
 The particles are placed above the house, comming from the chimney. Can be toggled on/off pressing 'P'.

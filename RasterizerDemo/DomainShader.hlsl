@@ -36,32 +36,32 @@ DomainShaderOutput main(HS_CONSTANT_DATA_OUTPUT input, float3 barycentric : SV_D
     // p(u,v) = (u,v,w)(p_0,p_1,p_2)^T      (1-u-v=w) are the barycentric coords.
     float3 linearPos = patch[0].worldPosition * barycentric.x + patch[1].worldPosition * barycentric.y + patch[2].worldPosition * barycentric.z;
     
-    float3 phongPos = float3(0, 0, 0);
+    float3 phongPos = float3(0, 0, 0); // Phong tessellation
     
     for (int i = 0; i < NUM_CONTROL_POINTS; i++)
     {
         float3 pointToPos = linearPos - patch[i].worldPosition;
         float proj = dot(pointToPos, patch[i].normal);          
         
-        // Projection: t_i(q) = q - ((q-p_i)*n_i
+        // Projection: t_i(q) = q - ((q-p_i)*n_i)*n_i
         float3 pointPlane = linearPos - proj * patch[i].normal;        
         phongPos += barycentric[i] * pointPlane;
     }
     
 
-    output.worldPosition = float4(lerp(linearPos, phongPos, 0.7f), 1);
+    output.worldPosition = float4(lerp(linearPos, phongPos, 0.75f), 1); // Blend between linear and Phong tessellation
     output.normal = normalize(patch[0].normal * barycentric.x + patch[1].normal * barycentric.y + patch[2].normal * barycentric.z);
-    output.uv = patch[0].uv * barycentric.x + patch[1].uv * barycentric.y + patch[2].uv * barycentric.z;
-    output.position = mul(output.worldPosition, vp);
+    output.uv = patch[0].uv * barycentric.x + patch[1].uv * barycentric.y + patch[2].uv * barycentric.z; 
+    output.position = mul(output.worldPosition, vp); // Transform the world position to clip space
     return output;
 };
 
 
 /*
-    * Plance f/e tri-point:
-    * t_i(q) = q - ((q-p_i)*n_i)                                                // Projection of plane on vertex v_i
-    * p*(u,vp) = (u,v,w) * (t_0(p(u,v)), t_1(p(u,v)), t_2(p(u,v)))^T      // Transformed pos
+    * Place f/e tri-point:
+    * t_i(q) = q - ((q-p_i)*n_i)*n_i                                            // Projection on to the plane of vertex v_i
+    * p*(u,vp) = (u,v,w) * (t_0(p(u,v)), t_1(p(u,v)), t_2(p(u,v)))^T            // Transformed pos
 
-    * p_a^*(u,v) = (1-a)*p(u,v) + a*p^*(u_v)                                    // standard a=0.75
+    * p_a^* (u,v) = (1-a)*p(u,v) + a*p^*(u_v)                                    // standard a=0.75
 
 */

@@ -45,11 +45,12 @@ struct PSInput
 };
 
 static const float defAmb = 0.2f;
-static const int nrOfLayers = 32;
+static const int nrOfLayers = 32; 
 static const float layerDepth = 1.0f / nrOfLayers;
+
 PSOutPut main(PSInput input)
 {
-    // For the objs, UV-y must be flipped :)
+    // For the objs, UV-y must be flipped, because DirectX and OpenGL have different UV coordinate systems.
     float2 uv = input.uv;
     uv.y = -uv.y;
  
@@ -69,9 +70,9 @@ PSOutPut main(PSInput input)
         float3x3 tbn = float3x3(tangent, bitangent, normal);
         
         // View Direction in tangent space
-        float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));      
+        float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));
            
-        float2 texStep = -(viewDir.xy / viewDir.z) * (parallax * layerDepth);
+        float2 texStep = -(viewDir.xy / viewDir.z) * (parallax * layerDepth); 
         float currentLayerDepth = 0.0f;
         
         float2 currentUV = input.uv;
@@ -87,7 +88,7 @@ PSOutPut main(PSInput input)
             beforeSampleDepth = afterSampleDepth;
             afterSampleDepth = normalTexture.Sample(samplerState, currentUV).a;
             
-            // Should not go under the face
+            // Should not go under the face of the mesh, if so go back
             if (currentLayerDepth >= afterSampleDepth)
             {
                 float beforeDiff = beforeSampleDepth - (currentLayerDepth - layerDepth);

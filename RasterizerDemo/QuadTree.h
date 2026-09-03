@@ -41,8 +41,8 @@ inline void QuadTree<T>::PrintTree(std::unique_ptr<Node>& nodeToProcess)
 	// If all nodes, parent and child, contain information to be printed then do that here
 	if (nodeToProcess->children[0] == nullptr)
 	{
-		std::cout << &nodeToProcess->elements << "\t";
 		// If leaf nodes are the only nodes to contain information to be printed then do so here
+		std::cout << &nodeToProcess->elements << "\t";
 	}
 	else // The node is not a leaf node, it has children
 	{
@@ -158,10 +158,10 @@ inline void QuadTree<T>::CheckNode(const DirectX::BoundingFrustum& frustum,
 		{
 			// Check if there is a collision between the frustum and the object's 
 			// bounding volume
-			collision = frustum.Intersects(node->boundingRegion);
+			collision = frustum.Intersects(element->GetBoundingBox());
 			if (collision)
 			{
-				// CHeck if the object is already present in the return vector,
+				// Check if the object is already present in the return vector,
 				// add if not
 				if (std::find(foundObjects.begin(), foundObjects.end(), element) == foundObjects.end())
 					foundObjects.push_back(element);

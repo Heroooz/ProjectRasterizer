@@ -152,8 +152,10 @@ void DCEM::Initialize(ID3D11Device* device, XMFLOAT3 initPos, UINT width, UINT h
 
 void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objects*>& sceneObjects)
 {
+	// Binding the DCEMCapture pixel shader
 	cubeMapCapturePS->BindShader(context);
 
+	// Unbinding any shaders that might be bound
 	context->GSSetShader(nullptr, nullptr, 0);
 	context->HSSetShader(nullptr, nullptr, 0);
 	context->DSSetShader(nullptr, nullptr, 0);
@@ -162,7 +164,7 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 
 	for (int face = 0; face < 6; ++face)
 	{
-		float clear[4] = { 0,0,0,1 };
+		float clear[4] = { 0.53f, 0.81f, 0.93f, 0.53f };
 		context->ClearRenderTargetView(rtv[face].Get(), clear);
 		context->ClearDepthStencilView(dsView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -180,11 +182,14 @@ void DCEM::GenerateCubemap(ID3D11DeviceContext* context, const std::vector<Objec
 			obj->drawObject(context);
 		}
 	}
+
+	// Restoring the normal deferred pixel shader
 	normalPS->BindShader(context);
 }
 
 void DCEM::Draw(ID3D11DeviceContext* context)
 {
+	// Binding the DCEM pixel shader and the cube map SRV
 	DCEMPS->BindShader(context);
 	context->PSSetShaderResources(4, 1, this->srv.GetAddressOf());
 
@@ -204,6 +209,7 @@ void DCEM::Draw(ID3D11DeviceContext* context)
 	ComPtr<ID3D11ShaderResourceView> srvNULL = nullptr;
 	context->PSSetShaderResources(4, 1, srvNULL.GetAddressOf());
 
+	// Restoring the normal deferred pixel shader
 	normalPS->BindShader(context);
 }
 

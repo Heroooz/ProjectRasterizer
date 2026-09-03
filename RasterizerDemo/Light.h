@@ -23,9 +23,9 @@ struct LightData
 		float rotationX = 0.0f;
 		float rotationY = 0.0f;
 		float fovAngleY = 1.0f;
-		float aspectRatio = 16 / 9;
+		float aspectRatio = 16.0f / 9.0f;
 		float nearZ = 0.1f;
-		float farZ = 100;
+		float farZ = 100.0f;
 	} perLightInfo;
 };
 
@@ -64,7 +64,6 @@ class Light
 
 public:
 	Light() = default;
-	//Light(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
 	~Light();
 	Light(const Light& other) = delete;
 	Light& operator=(const Light& other) = delete;
@@ -73,7 +72,6 @@ public:
 
 	void Initialize(ID3D11Device* device, const LightData& lightInfo);
 	void InitializeBuffers(ID3D11Device* device);
-    //void InitiaLightlize(ID3D11Device* device, XMFLOAT4 color, XMFLOAT3 position, float intensity);
     void UpdateBuffers(ID3D11DeviceContext* context);
 
 	UINT GetNrOfLights() const;
