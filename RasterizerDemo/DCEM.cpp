@@ -58,7 +58,7 @@ DCEM::DCEM(ID3D11Device* device, XMFLOAT3 initPos, XMFLOAT3 scale, UINT width, U
 	world = XMMatrixMultiply(XMMatrixScaling(scale.x, scale.y, scale.z), world);
 
 	XMFLOAT4X4 world4x4T;
-	DirectX::XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world));
+	DirectX::XMStoreFloat4x4(&world4x4T, XMMatrixTranspose(world)); // Transpose the world matrix for HLSL
 	this->worldMatrixBuffer.Initialize(device, sizeof(XMFLOAT4X4), &world4x4T);
 
 	Initialize(device, initPos, width, height);
