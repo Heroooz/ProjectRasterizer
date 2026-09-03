@@ -27,7 +27,7 @@
  5 - Ambient
  6 - Specular
  
- Run .bat to run the project.
+ Build the Solution in .sln -> Run .bat to run the project as .exe
  
 ---------------------------------
 
