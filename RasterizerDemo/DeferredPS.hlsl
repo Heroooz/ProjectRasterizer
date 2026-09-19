@@ -19,11 +19,11 @@ cbuffer MaterialBuffer : register(b1)
     float3 diffuseFactor;
     float parallax;
     float3 specularFactor;
-    float padding3;
     int hasAmbientTexture;
     int hasDiffuseTexture;
     int hasSpecularTexture;
     int hasNormalTexture;
+    int hasDisplacementTexture;
 };
 
 void ComputeTBN(in float3 worldPos, in float3 normal, in float2 uv, out float3 tangent, out float3 bitangent);
@@ -60,49 +60,56 @@ PSOutPut main(PSInput input)
     float specular = (specularFactor.x + specularFactor.y + specularFactor.z) / 3;
     float4 diffuse = float4(diffuseFactor, 1);
 
-    // Calculating normal map and parallaxing
-    if (hasNormalTexture == 1)
+
+    if (hasDisplacementTexture || hasNormalTexture)
     {
-        // Calculating the tangent and bitangent of the vertex
+        // Calculating normal map and parallaxing
         float3 tangent;
         float3 bitangent;
+        // Calculating the tangent and bitangent
         ComputeTBN(input.worldPosition.xyz, normal, input.uv, tangent, bitangent);
-        float3x3 tbn = float3x3(tangent, bitangent, normal);
-        
-        // View Direction in tangent space
-        float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));
-           
-        float2 texStep = -(viewDir.xy / viewDir.z) * (parallax * layerDepth); 
-        float currentLayerDepth = 0.0f;
-        
-        float2 currentUV = input.uv;
-        float2 prevUV = input.uv;
-        float beforeSampleDepth = 0.0f;
-        float afterSampleDepth = 0.0f;
-        for (int i = 0; i < nrOfLayers; i++)
+        if (hasDisplacementTexture == 1)
         {
-            prevUV = currentUV;
-            currentUV += texStep;
-            currentLayerDepth += layerDepth;
-            
-            beforeSampleDepth = afterSampleDepth;
-            afterSampleDepth = normalTexture.Sample(samplerState, currentUV).a;
-            
-            // Should not go under the face of the mesh, if so go back
-            if (currentLayerDepth >= afterSampleDepth)
+            float3x3 tbn = float3x3(tangent, bitangent, normal);
+        
+            // View Direction in tangent space
+            float3 viewDir = normalize(mul(cameraPosition - input.worldPosition.xyz, transpose(tbn)));
+           
+            float2 texStep = -(viewDir.xy / viewDir.z) * (parallax * layerDepth);
+            float currentLayerDepth = 0.0f;
+        
+            float2 currentUV = input.uv;
+            float2 prevUV = input.uv;
+            float beforeSampleDepth = 0.0f;
+            float afterSampleDepth = 0.0f;
+            for (int i = 0; i < nrOfLayers; i++)
             {
-                float beforeDiff = beforeSampleDepth - (currentLayerDepth - layerDepth);
-                float afterDiff = currentLayerDepth - afterSampleDepth;
-                float weight = afterDiff / (beforeDiff + afterDiff);
+                prevUV = currentUV;
+                currentUV += texStep;
+                currentLayerDepth += layerDepth;
+            
+                beforeSampleDepth = afterSampleDepth;
+                afterSampleDepth = normalTexture.Sample(samplerState, currentUV).a;
+            
+                // Should not go under the face of the mesh, if so go back
+                if (currentLayerDepth >= afterSampleDepth)
+                {
+                    float beforeDiff = beforeSampleDepth - (currentLayerDepth - layerDepth);
+                    float afterDiff = currentLayerDepth - afterSampleDepth;
+                    float weight = afterDiff / (beforeDiff + afterDiff);
                 
-                uv = lerp(currentUV, prevUV, weight);
-                break;
+                    uv = lerp(currentUV, prevUV, weight);
+                    break;
+                }
             }
         }
-        
-        float3 normalMap = normalTexture.Sample(samplerState, uv).rgb * 2.0f - 1.0f;
-        float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * normal);
-        normal = worldNormal;
+    
+        if (hasNormalTexture == 1)
+        {
+            float3 normalMap = normalTexture.Sample(samplerState, uv).rgb * 2.0f - 1.0f;
+            float3 worldNormal = normalize(normalMap.x * tangent + normalMap.y * bitangent + normalMap.z * normal);
+            normal = worldNormal;
+        }
     }
     
     if (hasAmbientTexture == 1)

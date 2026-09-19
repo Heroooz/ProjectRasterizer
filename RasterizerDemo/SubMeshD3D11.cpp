@@ -3,7 +3,7 @@
 void SubMeshD3D11::Initialize(ID3D11Device* device, size_t startIndexValue, size_t nrOfIndicesInSubMesh,
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ambientTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTextureSRV,
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV,
-    DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shinisess, float parallax)
+    DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shininess, bool hasN, bool hasD, float parallax)
 {
     this->startIndex = startIndexValue;
     this->nrOfIndices = nrOfIndicesInSubMesh;
@@ -17,11 +17,13 @@ void SubMeshD3D11::Initialize(ID3D11Device* device, size_t startIndexValue, size
     material.diffuseFactor = diffuse;
     material.specularFactor = specular;
     material.parallax = parallax;
-    material.shininess = shinisess;
+    material.shininess = shininess;
     material.hasAmbientTexture = ambientTextureSRV != nullptr;
     material.hasDiffuseTexture = diffuseTextureSRV != nullptr;
     material.hasSpecularTexture = specularTextureSRV != nullptr;
-    material.hasNormalTexture = normalTextureSRV != nullptr;
+    material.hasNormalTexture = hasN && normalTexture != nullptr;
+    material.hasDisplacementTexture = hasD && normalTexture != nullptr;
+
 
     this->materialBuffer.Initialize(device, sizeof(MaterialBuffer), &material);
 }

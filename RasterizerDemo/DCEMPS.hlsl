@@ -20,11 +20,11 @@ cbuffer MaterialBuffer : register(b1)
     float3 diffuseFactor;
     float parallax;
     float3 specularFactor;
-    float padding3;
     int hasAmbientTexture;
     int hasDiffuseTexture;
     int hasSpecularTexture;
     int hasNormalTexture;
+    int hasDisplacementTexture;
 };
 
 struct DCEMPSOutput

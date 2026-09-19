@@ -18,11 +18,11 @@ private:
 		DirectX::XMFLOAT3 diffuseFactor;
 		float parallax = 0.0f;
 		DirectX::XMFLOAT3 specularFactor;
-		float padding3 = 0.0f;
 		int hasAmbientTexture = 0;
 		int hasDiffuseTexture = 0;
 		int hasSpecularTexture = 0;
 		int hasNormalTexture = 0;
+		int hasDisplacementTexture = 0;
 	};
 
 	size_t startIndex = 0;
@@ -46,7 +46,7 @@ public:
 	void Initialize(ID3D11Device* device, size_t startIndexValue, size_t nrOfIndicesInSubMesh,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ambientTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTextureSRV,
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> specularTextureSRV, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> normalTextureSRV,
-		DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shinisess = 100.0f, float parallax = 0.0f);
+		DirectX::XMFLOAT3 ambient, DirectX::XMFLOAT3 diffuse, DirectX::XMFLOAT3 specular, float shininess, bool hasN, bool hasD, float parallax);
 
 	void PerformDrawCall(ID3D11DeviceContext* context) const;
 

@@ -47,7 +47,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         DirectX::XMFLOAT3 ambientColor, diffuseColor, specularColor;
         float shininess = 500.0f;
         float specularIntensity = 1.0f;
-        //float phongExp = 100.0f;
         
         // Loading ambient texture
         if (!mesh.MeshMaterial.map_Ka.empty())
@@ -64,7 +63,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         }
         ambientColor = { mesh.MeshMaterial.Ka.X, mesh.MeshMaterial.Ka.Y, mesh.MeshMaterial.Ka.Z };
 
-
 		// Loading diffuse texture
         if (!mesh.MeshMaterial.map_Kd.empty())
         {
@@ -76,10 +74,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
                 std::cerr << "Failed to load diffuse texture at " << path << "!\n";
 				throw std::runtime_error("Failed to load diffuse texture!\n");
             }
-        }
-        else
-        {
-            //createTexture(device, &diffuseTextureSRV);
         }
         diffuseColor = { mesh.MeshMaterial.Kd.X, mesh.MeshMaterial.Kd.Y, mesh.MeshMaterial.Kd.Z };
 
@@ -99,31 +93,20 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
 		shininess = mesh.MeshMaterial.Ns;                               // Phong Exopnent
         specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f; // illumination
 
+        std::string n_path, d_path;
         // Load Normal Texture
         if (!mesh.MeshMaterial.map_bump.empty())
+            n_path = this->filePath + mesh.MeshMaterial.map_bump;
+
+        // Checking for displacement map
+        if (!mesh.MeshMaterial.map_d.empty())
         {
-            path = this->filePath + mesh.MeshMaterial.map_bump;
-
-            std::string d_path = "";
-
-            // Checking for displacement map
-            if (!mesh.MeshMaterial.map_d.empty())
-            {
-                d_path = this->filePath + mesh.MeshMaterial.map_d;
-                parallax = 0.15f;
-            }
-
-            normalTextureSRV =  CreateNormalTexture(device, path, d_path);
+            d_path = this->filePath + mesh.MeshMaterial.map_d;
+            //if (mesh.MeshMaterial.d) parallax = mesh.MeshMaterial.d;
+            parallax = 0.15f;
         }
-
-
-            //HRESULT hr = DirectX::CreateWICTextureFromFile(device,
-            //    std::wstring(path.begin(), path.end()).c_str(), nullptr, &normalTextureSRV);
-            //if (FAILED(hr))
-            //{
-            //    std::cerr << "Failed to load bump texture at " << path << "!\n";
-            //    throw std::runtime_error("Failed to load bump texture!\n");
-            //}
+        if (!n_path.empty() || !d_path.empty())
+            normalTextureSRV = CreateNormalAndDisplacementTexture(device, n_path, d_path);
 
 		// Adding Vertices to Vertex and Bouding Box buffers
 		vertices.reserve(mesh.Vertices.size());
@@ -146,7 +129,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         indexOffset += mesh.Vertices.size();
         subMesh.Initialize(device, startIndex, mesh.Indices.size(), 
             ambientTextureSRV, diffuseTextureSRV, specularTextureSRV, normalTextureSRV,
-            ambientColor, diffuseColor, specularColor, shininess, parallax);
+            ambientColor, diffuseColor, specularColor, shininess, !n_path.empty(), !d_path.empty(), parallax);
 		this->subMeshes.emplace_back(std::move(subMesh));
     }
 
@@ -154,19 +137,6 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
     this->vertexBuffer.Initialize(device, sizeof(SimpleVertex), (UINT)vertices.size(), vertices.data());
     this->indexBuffer.Initialize(device, indices.size(), indices.data());
     this->boundingBox.CreateFromPoints(this->boundingBox, bbVertices.size(), bbVertices.data(), sizeof(DirectX::XMFLOAT3));
-
-    // Initialize sub-meshes
-    //subMeshes.resize(meshInfo.subMeshInfo.size());
-    //for (size_t i = 0; i < meshInfo.subMeshInfo.size(); ++i)
-    //{
-    //    subMeshes[i].Initialize(
-    //        meshInfo.subMeshInfo[i].startIndexValue,
-    //        meshInfo.subMeshInfo[i].nrOfIndicesInSubMesh,
-    //        meshInfo.subMeshInfo[i].ambientTextureSRV,
-    //        meshInfo.subMeshInfo[i].diffuseTextureSRV,
-    //        meshInfo.subMeshInfo[i].specularTextureSRV
-    //    );
-    //}
 }
 
 
@@ -270,18 +240,25 @@ void MeshD3D11::CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderRe
 }
 */
 
-ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path)
+ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalAndDisplacementTexture(ComPtr<ID3D11Device> device, const std::string n_path, const std::string d_path)
 {
     int width, height, channel;
     stbi_set_flip_vertically_on_load(false);
-    stbi_uc* normData = stbi_load(n_path.c_str(), &width, &height, &channel, 4);
-    if (!normData)
-    {
-        std::cerr << "Failed to load texture!" << std::endl;
-        stbi_image_free(normData);
-        throw std::runtime_error("Failed to normal texture at + " + n_path + "!");
-    }
 
+    stbi_uc* normData = nullptr;
+    if (n_path.empty() && d_path.empty()) return nullptr;
+
+    if (!n_path.empty()) 
+    {
+        normData = stbi_load(n_path.c_str(), &width, &height, &channel, 4);
+        if (!normData)
+        {
+            std::cerr << "Failed to load texture!" << std::endl;
+            stbi_image_free(normData);
+            return nullptr;
+            //throw std::runtime_error("Failed to normal texture at + " + n_path + "!");
+        }
+    }
     if (!d_path.empty())
     {
         int dW, dH, dC;
@@ -290,15 +267,24 @@ ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalTexture(ComPtr<ID3D11Dev
         {
             std::cerr << "Failed to load displacement texture!" << std::endl;
             stbi_image_free(dispData);
-            stbi_image_free(normData);
-            throw std::runtime_error("Failed to displacement texture at + " + d_path + "!");
+            return nullptr;
+            //throw std::runtime_error("Failed to displacement texture at + " + d_path + "!");
         }
-        if (dW != width || dH != height)
+    
+        if (normData && (dW != width || dH != height))
         {
             stbi_image_free(normData);
             stbi_image_free(dispData);
-            throw std::runtime_error("Data does not match!");
+            return nullptr;
+            //throw std::runtime_error("Data does not match!");
         }
+        else if(!normData)
+        {
+            width = dW;
+            height = dH;
+            normData = stbi_load(d_path.c_str(), &dW, &dH, &dC, 4);
+        }
+
         int nrofPixels = dW * dH;
         for (int i = 0; i < nrofPixels; i++)
         {

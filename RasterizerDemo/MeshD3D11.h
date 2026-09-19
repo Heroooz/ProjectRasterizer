@@ -28,7 +28,8 @@ private:
 	std::string filePath = "objs/";
 
 	//void CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderResourceView> srv);
-	ComPtr<ID3D11ShaderResourceView> CreateNormalTexture(ComPtr<ID3D11Device> device, std::string n_path, std::string d_path);
+	ComPtr<ID3D11ShaderResourceView> CreateNormalAndDisplacementTexture(ComPtr<ID3D11Device> device, const std::string n_path, const std::string d_path);
+
 
 public:
 	MeshD3D11() = default;
