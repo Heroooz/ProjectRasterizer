@@ -380,8 +380,8 @@ void Renderer::CreateLights(ComPtr<ID3D11Device> device, Scene& scene)
 void Renderer::LoadObjects(Scene& scene)
 {
     scene.AddObject(device.Get(), "NOPCube/", "cube", { 0.0f, 10.0f, 0.0f }, { XM_PIDIV4, 0, XM_PIDIV4 }, { 0.7f, 0.7f, 0.7f }, false, false);
-    scene.AddObject(device.Get(), "NOPCube/", "cubeN", { -2.0f, 6.0f, 2.0f }, { 0, 0, 0 }, { 0.5, 0.5, 0.5 }, false, false);
-    scene.AddObject(device.Get(), "NOPCube/", "cubeD", { 1.0f, 4.0f, 1.0f }, { 0, 0, 0 }, { 0.5, 0.5, 0.5 }, false, false);
+    scene.AddObject(device.Get(), "NOPCube/", "cubeN", { -0.2f, 6.0f, 0.2f }, { 0, 0, 0 }, { 0.5, 0.5, 0.5 }, false, false);
+    scene.AddObject(device.Get(), "NOPCube/", "cubeD", { 0.1f, 4.0f, 0.1f }, { 0, 0, 0 }, { 0.5, 0.5, 0.5 }, false, false);
 
     scene.AddDCEM(device.Get(), { 0.0f, 4.0f, 4.0f }, { 1.0f, 1.0f, 1.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);
     scene.AddDCEM(device.Get(), { 0, 8, 8 }, { 3.0f, 3.0f, 3.0f }, 1024, 1024, psShader[1], psShader[0], dcemShader);

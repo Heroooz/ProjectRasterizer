@@ -94,7 +94,7 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         specularIntensity = mesh.MeshMaterial.illum == 2 ? 1.0f : 0.0f; // illumination
 
         std::string n_path, d_path;
-        // Load Normal Texture
+        // Checking for normal map
         if (!mesh.MeshMaterial.map_bump.empty())
             n_path = this->filePath + mesh.MeshMaterial.map_bump;
 
@@ -102,9 +102,9 @@ void MeshD3D11::Initialize(ID3D11Device* device, const std::string& folderPath, 
         if (!mesh.MeshMaterial.map_d.empty())
         {
             d_path = this->filePath + mesh.MeshMaterial.map_d;
-            //if (mesh.MeshMaterial.d) parallax = mesh.MeshMaterial.d;
             parallax = 0.15f;
         }
+        // Creates the normal (RGB) / displacement (A) texture
         if (!n_path.empty() || !d_path.empty())
             normalTextureSRV = CreateNormalAndDisplacementTexture(device, n_path, d_path);
 
@@ -242,11 +242,11 @@ void MeshD3D11::CreateTexture(ComPtr<ID3D11Device> device, ComPtr<ID3D11ShaderRe
 
 ComPtr<ID3D11ShaderResourceView> MeshD3D11::CreateNormalAndDisplacementTexture(ComPtr<ID3D11Device> device, const std::string n_path, const std::string d_path)
 {
-    int width, height, channel;
-    stbi_set_flip_vertically_on_load(false);
-
-    stbi_uc* normData = nullptr;
     if (n_path.empty() && d_path.empty()) return nullptr;
+
+    stbi_set_flip_vertically_on_load(false);
+    int width, height, channel;
+    stbi_uc* normData = nullptr;
 
     if (!n_path.empty()) 
     {
